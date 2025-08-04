@@ -9,6 +9,7 @@ const Navbar = () => {
     { label: "Tjenester", href: "#services" },
     { label: "Portefølje", href: "#portfolio" },
     { label: "HMI Demo", href: "/hmi" },
+    { label: "Data Analyse", href: "/data-analysis" },
     { label: "Kontakt", href: "#contact" },
   ];
 
