@@ -8,7 +8,7 @@ const Navbar = () => {
   const navItems = [
     { label: "Tjenester", href: "#services" },
     { label: "Portefølje", href: "#portfolio" },
-    { label: "Om Meg", href: "#about" },
+    { label: "HMI Demo", href: "/hmi" },
     { label: "Kontakt", href: "#contact" },
   ];
 
