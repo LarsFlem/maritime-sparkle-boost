@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
 
 const Hero = () => {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -26,21 +28,18 @@ const Hero = () => {
         <div className="mb-8 animate-fade-in-up">
           <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-6 py-2 mb-6">
             <Waves className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Maritime Engineering Excellence</span>
+            <span className="text-sm font-medium text-primary">{t('hero.title')}</span>
           </div>
         </div>
 
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Advanced Maritime
+            {t('hero.title')}
           </span>
-          <br />
-          <span className="text-foreground">Automation Solutions</span>
         </h1>
 
         <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
-          Jeg tilbyr konsulent- og engineeringtjenester innen elektro og automasjon, 
-          med spesialisering i design og implementering av systemer for bevegelig maskineri og offshore løsninger.
+          {t('hero.subtitle')}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
@@ -48,7 +47,7 @@ const Hero = () => {
             size="lg" 
             className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse text-lg px-8 py-6 group"
           >
-            Se Mine Tjenester
+            {t('hero.cta.services')}
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button 
@@ -56,7 +55,7 @@ const Hero = () => {
             size="lg"
             className="border-primary/30 text-primary hover:bg-primary/10 text-lg px-8 py-6"
           >
-            Kontakt Meg
+            {t('hero.cta.contact')}
           </Button>
         </div>
 
@@ -64,18 +63,18 @@ const Hero = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
           <div className="glass-effect rounded-xl p-6 tech-border">
             <Settings className="h-8 w-8 text-primary mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Engineering Excellence</h3>
-            <p className="text-muted-foreground text-sm">Komplette automatiseringsløsninger for maritime industri</p>
+            <h3 className="font-semibold text-lg mb-2">{t('hero.feature1.title')}</h3>
+            <p className="text-muted-foreground text-sm">{t('hero.feature1.desc')}</p>
           </div>
           <div className="glass-effect rounded-xl p-6 tech-border">
             <Zap className="h-8 w-8 text-accent mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Elektro & Automasjon</h3>
-            <p className="text-muted-foreground text-sm">PLC-programmering og HMI-utvikling med TwinCAT</p>
+            <h3 className="font-semibold text-lg mb-2">{t('hero.feature2.title')}</h3>
+            <p className="text-muted-foreground text-sm">{t('hero.feature2.desc')}</p>
           </div>
           <div className="glass-effect rounded-xl p-6 tech-border">
             <Waves className="h-8 w-8 text-primary mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Offshore Support</h3>
-            <p className="text-muted-foreground text-sm">Komplett støtte for offshore og maritime operasjoner</p>
+            <h3 className="font-semibold text-lg mb-2">{t('hero.feature3.title')}</h3>
+            <p className="text-muted-foreground text-sm">{t('hero.feature3.desc')}</p>
           </div>
         </div>
       </div>

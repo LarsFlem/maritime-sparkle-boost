@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Anchor } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
-    { label: "Tjenester", href: "#services" },
-    { label: "Portefølje", href: "#portfolio" },
-    { label: "HMI Demo", href: "/hmi" },
-    { label: "Data Analyse", href: "/data-analysis" },
-    { label: "Kontakt", href: "#contact" },
+    { label: t('nav.services'), href: "#services" },
+    { label: t('nav.portfolio'), href: "#portfolio" },
+    { label: t('nav.hmi'), href: "/hmi" },
+    { label: t('nav.dataAnalysis'), href: "/data-analysis" },
+    { label: t('nav.contact'), href: "#contact" },
   ];
 
   return (
@@ -28,7 +31,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
               <a
                 key={item.label}
@@ -38,11 +41,12 @@ const Navbar = () => {
                 {item.label}
               </a>
             ))}
+            <LanguageSwitcher />
             <Button 
               size="sm"
               className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse"
             >
-              Få Tilbud
+              {t('nav.getQuote')}
             </Button>
           </div>
 
@@ -73,12 +77,13 @@ const Navbar = () => {
                   {item.label}
                 </a>
               ))}
-              <div className="px-3 py-2">
+              <div className="flex items-center justify-between px-3 py-2 gap-2">
+                <LanguageSwitcher />
                 <Button 
                   size="sm"
-                  className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                 >
-                  Få Tilbud
+                  {t('nav.getQuote')}
                 </Button>
               </div>
             </div>
