@@ -11,56 +11,48 @@ import {
   Shield,
   ArrowRight
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import engineeringIcon from "@/assets/engineering-icon.png";
 import supportIcon from "@/assets/support-icon.png";
 import projectIcon from "@/assets/project-icon.png";
 
 const Services = () => {
+  const { t } = useLanguage();
+  
   const services = [
     {
-      title: "Komplette Engineering-pakker",
+      title: t('services.package.title'),
       icon: engineeringIcon,
-      description: "Design og implementering av automatiseringssystemer for bevegelig maskineri",
+      description: t('services.package.description'),
       features: [
-        "Design og implementering av automatiseringssystemer for bevegelig maskineri",
-        "Alarmsystemer og generell automasjon",
-        "Planlegging, design og gjennomføring av elektriske systemer i samsvar med IECEx- og ATEX-standarder",
-        "Programmering av PLC-er, spesielt TwinCAT for Beckhoff PLC-er",
-        "Konfigurasjon av HMI-løsninger basert på HTML/CSS/JS",
-        "Oppsett og vedlikehold av SQL-databaser for alarmsystemer",
-        "Koordinering med ulike disipliner for å sikre optimal ytelse og pålitelighet"
+        t('services.package.feature1'),
+        t('services.package.feature2'),
+        t('services.package.feature3'),
+        t('services.package.feature4')
       ],
       color: "from-primary to-blue-500"
     },
     {
-      title: "Support og Kommisjoning",
+      title: t('services.support.title'),
       icon: supportIcon,
-      description: "Igangsetting av automasjonsutstyr og maskineri",
+      description: t('services.support.description'),
       features: [
-        "Igangsetting av automasjonsutstyr og maskineri",
-        "Feilsøking og teknisk støtte på elektrisk- og automasjonsutstyr",
-        "Nettverkskonfigurasjon for routere, access points og brannmurer",
-        "Oppsett av CCTV-systemer",
-        "Leveranse av detaljert as-built dokumentasjon",
-        "Fjernsupport for databaserte systemer",
-        "Teknisk opplæring av operatører i bruk av avanserte automasjonssystemer",
-        "Termografering av produkt",
-        "Gjennomføring av IAT, FAT, HAT, eller SAT med klasse/kunde"
+        t('services.support.feature1'),
+        t('services.support.feature2'),
+        t('services.support.feature3'),
+        t('services.support.feature4')
       ],
       color: "from-accent to-green-500"
     },
     {
-      title: "Prosjektsupportering og Assistanse",
+      title: t('services.project.title'),
       icon: projectIcon,
-      description: "Støtte i prosjektledelse og teknisk assistanse",
+      description: t('services.project.description'),
       features: [
-        "Støtte i prosjektledelse, inkludert estimering av tid og kostnader",
-        "Assistanse i håndtering av programvareoppdateringer og endringer",
-        "Software Change Management",
-        "Teknisk assistanse på pågående prosjekter",
-        "FMEA-assistanse (Failure Modes and Effects Analysis)",
-        "Assistanse ved implementering av nye verktøy som AutoCAD, Vault, TwinCAT, etc.",
-        "Kostnadskontroll på eksisterende løsninger"
+        t('services.project.feature1'),
+        t('services.project.feature2'),
+        t('services.project.feature3'),
+        t('services.project.feature4')
       ],
       color: "from-purple-500 to-primary"
     }
@@ -84,18 +76,15 @@ const Services = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-6 py-2 mb-6">
             <Settings className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Mine Tjenester</span>
+            <span className="text-sm font-medium text-primary">{t('services.title')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Professional Engineering
+              {t('services.title')}
             </span>
-            <br />
-            <span className="text-foreground">Solutions</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Med en solid bakgrunn innen mekatronikk og erfaring fra ledende maritime selskaper, 
-            leverer jeg komplette løsninger for din bedrifts tekniske utfordringer.
+            {t('services.description')}
           </p>
         </div>
 
@@ -134,7 +123,7 @@ const Services = () => {
                     className="w-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 text-primary group/button"
                     variant="outline"
                   >
-                    Les Mer
+                    {t('services.readMore')}
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/button:translate-x-1 transition-transform" />
                   </Button>
                 </div>
@@ -147,7 +136,7 @@ const Services = () => {
         <div className="mt-20 text-center">
           <div className="glass-effect rounded-2xl p-8 tech-border max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-6 text-foreground">
-              Erfaring fra ledende maritime selskaper
+              {t('services.experience.title')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {["Moreld Apply", "Red Rock", "HMH", "Ocean Infinity Marine", "Kongsberg Maritime", "Rolls Royce Marine", "Optimar Stette"].map((company, index) => (

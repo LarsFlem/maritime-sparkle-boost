@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, MapPin, Users, Zap } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Portfolio = () => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const projects = [
@@ -101,12 +103,12 @@ const Portfolio = () => {
   ];
 
   const categories = [
-    { id: "all", label: "All Projects" },
-    { id: "offshore", label: "Offshore" },
-    { id: "commercial", label: "Commercial" },
-    { id: "research", label: "Research" },
-    { id: "passenger", label: "Passenger" },
-    { id: "fishing", label: "Fishing" }
+    { id: "all", label: t('portfolio.all') },
+    { id: "offshore", label: t('portfolio.offshore') },
+    { id: "commercial", label: t('portfolio.commercial') },
+    { id: "research", label: t('portfolio.research') },
+    { id: "passenger", label: t('portfolio.passenger') },
+    { id: "fishing", label: t('portfolio.fishing') }
   ];
 
   const filteredProjects = selectedCategory === "all" 
@@ -119,10 +121,10 @@ const Portfolio = () => {
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Project Portfolio
+            {t('portfolio.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Discover our successful maritime automation implementations across diverse vessel types and operational environments
+            {t('portfolio.description')}
           </p>
         </div>
 
@@ -185,7 +187,7 @@ const Portfolio = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    {project.teamSize} engineers
+                    {project.teamSize} {t('portfolio.engineers')}
                   </div>
                 </div>
               </CardHeader>
@@ -199,7 +201,7 @@ const Portfolio = () => {
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-primary" />
-                    Technologies Used
+                    {t('portfolio.technologies')}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {project.technologies.map((tech) => (
@@ -212,7 +214,7 @@ const Portfolio = () => {
 
                 {/* Results */}
                 <div>
-                  <h4 className="font-semibold mb-3">Key Results</h4>
+                  <h4 className="font-semibold mb-3">{t('portfolio.results')}</h4>
                   <ul className="space-y-2">
                     {project.results.map((result, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -226,7 +228,7 @@ const Portfolio = () => {
                 {/* Client */}
                 <div className="pt-4 border-t border-border/50">
                   <p className="text-sm font-medium">
-                    Client: <span className="text-primary">{project.client}</span>
+                    {t('portfolio.client')}: <span className="text-primary">{project.client}</span>
                   </p>
                 </div>
 
@@ -236,7 +238,7 @@ const Portfolio = () => {
                   className="w-full group-hover:border-primary/50 transition-colors"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  View Case Study
+                  {t('portfolio.viewCase')}
                 </Button>
               </CardContent>
             </Card>
@@ -246,15 +248,15 @@ const Portfolio = () => {
         {/* Call to Action */}
         <div className="text-center mt-16 animate-fade-in">
           <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 backdrop-blur-sm border border-primary/20">
-            <h3 className="text-2xl font-bold mb-4">Ready to Start Your Project?</h3>
+            <h3 className="text-2xl font-bold mb-4">{t('portfolio.cta.title')}</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Join our growing list of satisfied clients who have transformed their maritime operations with our cutting-edge automation solutions.
+              {t('portfolio.cta.description')}
             </p>
             <Button 
               size="lg"
               className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse"
             >
-              Start Your Project
+              {t('portfolio.cta.button')}
             </Button>
           </div>
         </div>

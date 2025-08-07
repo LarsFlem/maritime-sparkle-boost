@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send, Clock, Award } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Contact = () => {
+  const { t } = useLanguage();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
@@ -23,18 +26,17 @@ const Contact = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-6 py-2 mb-6">
             <Mail className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Kontakt Meg</span>
+            <span className="text-sm font-medium text-primary">{t('contact.title')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            <span className="text-foreground">La Oss Diskutere</span>
+            <span className="text-foreground">{t('contact.subtitle')}</span>
             <br />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Ditt Prosjekt
+              {t('contact.subtitle')}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Er du klar for å ta ditt maritime prosjekt til neste nivå? 
-            Kontakt meg for en uforpliktende samtale om hvordan jeg kan bidra til din suksess.
+            {t('contact.description')}
           </p>
         </div>
 
@@ -45,7 +47,7 @@ const Contact = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Mail className="h-5 w-5 text-primary" />
-                  <span>Kontaktinformasjon</span>
+                  <span>{t('contact.info.email')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -54,7 +56,7 @@ const Contact = () => {
                     <Mail className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">E-post</p>
+                    <p className="font-medium text-foreground">{t('contact.info.email')}</p>
                     <p className="text-sm text-muted-foreground">post@maritime-automation.no</p>
                   </div>
                 </div>
@@ -64,7 +66,7 @@ const Contact = () => {
                     <Phone className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">Telefon</p>
+                    <p className="font-medium text-foreground">{t('contact.info.phone')}</p>
                     <p className="text-sm text-muted-foreground">+47 XXX XX XXX</p>
                   </div>
                 </div>
@@ -74,7 +76,7 @@ const Contact = () => {
                     <MapPin className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">Lokasjon</p>
+                    <p className="font-medium text-foreground">{t('contact.info.location')}</p>
                     <p className="text-sm text-muted-foreground">Norge</p>
                   </div>
                 </div>
@@ -85,16 +87,16 @@ const Contact = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Clock className="h-5 w-5 text-primary" />
-                  <span>Responstid</span>
+                  <span>{t('contact.info.responseTime')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Jeg svarer vanligvis innen 24 timer på alle henvendelser.
+                  {t('contact.info.responseTimeValue')}
                 </p>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-green-400">Tilgjengelig for nye prosjekter</span>
+                  <span className="text-sm font-medium text-green-400">{t('contact.info.responseTimeValue')}</span>
                 </div>
               </CardContent>
             </Card>
@@ -103,12 +105,12 @@ const Contact = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Award className="h-5 w-5 text-primary" />
-                  <span>Sertifikasjoner</span>
+                  <span>{t('contact.info.certifications')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Innehaver nødvendige sertifikat og attester for arbeid på sjøen og på rig.
+                  {t('contact.info.certificationsValue')}
                 </p>
               </CardContent>
             </Card>
@@ -118,26 +120,26 @@ const Contact = () => {
           <div className="lg:col-span-2">
             <Card className="glass-effect tech-border">
               <CardHeader>
-                <CardTitle>Send Meg en Melding</CardTitle>
+                <CardTitle>{t('contact.form.message')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Navn *</Label>
+                      <Label htmlFor="name">{t('contact.form.name')} *</Label>
                       <Input 
                         id="name" 
-                        placeholder="Ditt navn"
+                        placeholder={t('contact.form.name')}
                         className="bg-card/50 border-primary/20 focus:border-primary"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">E-post *</Label>
+                      <Label htmlFor="email">{t('contact.form.email')} *</Label>
                       <Input 
                         id="email" 
                         type="email"
-                        placeholder="din@epost.no"
+                        placeholder={t('contact.form.email')}
                         className="bg-card/50 border-primary/20 focus:border-primary"
                         required
                       />
@@ -146,38 +148,38 @@ const Contact = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="company">Bedrift</Label>
+                      <Label htmlFor="company">{t('contact.form.company')}</Label>
                       <Input 
                         id="company" 
-                        placeholder="Bedriftsnavn"
+                        placeholder={t('contact.form.company')}
                         className="bg-card/50 border-primary/20 focus:border-primary"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefon</Label>
+                      <Label htmlFor="phone">{t('contact.form.phone')}</Label>
                       <Input 
                         id="phone" 
-                        placeholder="+47 XXX XX XXX"
+                        placeholder={t('contact.form.phone')}
                         className="bg-card/50 border-primary/20 focus:border-primary"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="subject">Emne *</Label>
+                    <Label htmlFor="subject">{t('contact.form.subject')} *</Label>
                     <Input 
                       id="subject" 
-                      placeholder="Hva gjelder henvendelsen?"
+                      placeholder={t('contact.form.subject')}
                       className="bg-card/50 border-primary/20 focus:border-primary"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message">Melding *</Label>
+                    <Label htmlFor="message">{t('contact.form.message')} *</Label>
                     <Textarea 
                       id="message" 
-                      placeholder="Beskriv ditt prosjekt eller hva du trenger hjelp med..."
+                      placeholder={t('contact.form.messagePlaceholder')}
                       rows={6}
                       className="bg-card/50 border-primary/20 focus:border-primary resize-none"
                       required
@@ -190,7 +192,7 @@ const Contact = () => {
                     className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse group"
                   >
                     <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    Send Melding
+                    {t('contact.form.submit')}
                   </Button>
                 </form>
               </CardContent>

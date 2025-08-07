@@ -1,6 +1,8 @@
 import { Anchor, Mail, Phone, MapPin } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
+  const { t } = useLanguage();
   return (
     <footer className="relative py-16 border-t border-primary/20">
       {/* Background */}
@@ -40,19 +42,17 @@ const Footer = () => {
 
           {/* Services */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Tjenester</h3>
+            <h3 className="font-semibold text-foreground mb-4">{t('footer.services')}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="hover:text-primary transition-colors cursor-pointer">Engineering-pakker</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">PLC-programmering</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">HMI-utvikling</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">Support & Kommisjoning</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">Prosjektstøtte</li>
+              <li className="hover:text-primary transition-colors cursor-pointer">{t('services.package.title')}</li>
+              <li className="hover:text-primary transition-colors cursor-pointer">{t('services.support.title')}</li>
+              <li className="hover:text-primary transition-colors cursor-pointer">{t('services.project.title')}</li>
             </ul>
           </div>
 
           {/* Expertise */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Ekspertise</h3>
+            <h3 className="font-semibold text-foreground mb-4">{t('footer.expertise')}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="hover:text-primary transition-colors cursor-pointer">TwinCAT Programming</li>
               <li className="hover:text-primary transition-colors cursor-pointer">Beckhoff PLC</li>
@@ -66,10 +66,10 @@ const Footer = () => {
         <div className="border-t border-primary/20 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              © 2024 Maritime Automation. Alle rettigheter forbeholdt.
+              © 2024 Maritime Automation. {t('footer.copyright')}
             </p>
             <p className="text-sm text-muted-foreground mt-2 md:mt-0">
-              Profesjonell maritime engineering løsninger
+              {t('footer.tagline')}
             </p>
           </div>
         </div>

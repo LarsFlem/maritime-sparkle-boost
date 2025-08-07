@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Power, Waves, Battery, Settings, Activity } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Navbar from "@/components/Navbar";
 
 interface Turbine {
   id: string;
@@ -20,6 +22,7 @@ interface Turbine {
 }
 
 const HMIDashboard = () => {
+  const { t } = useLanguage();
   const [turbines, setTurbines] = useState<Turbine[]>([
     { id: "T001", name: "Wave Gen Alpha", status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, temperature: 45, vibration: 2.1 },
     { id: "T002", name: "Wave Gen Beta", status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, temperature: 42, vibration: 1.8 },
@@ -65,8 +68,8 @@ const HMIDashboard = () => {
 
   const getStatusBadge = (status: Turbine["status"]) => {
     switch (status) {
-      case "operational": return <Badge className="bg-green-500 text-white">Operational</Badge>;
-      case "warning": return <Badge className="bg-yellow-500 text-white">Warning</Badge>;
+      case "operational": return <Badge className="bg-green-500 text-white">{t('hmi.details.operational')}</Badge>;
+      case "warning": return <Badge className="bg-yellow-500 text-white">{t('hmi.details.warning')}</Badge>;
       case "offline": return <Badge className="bg-red-500 text-white">Offline</Badge>;
     }
   };
@@ -85,21 +88,23 @@ const HMIDashboard = () => {
   const offlineTurbines = turbines.filter(t => t.status === "offline").length;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6">
+    <div className="min-h-screen bg-slate-900 text-white">
+      <Navbar />
+      <div className="pt-20 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Wave Generator HMI Control Center</h1>
-            <p className="text-slate-400">Offshore Energy Farm - Real-time Monitoring</p>
+            <h1 className="text-4xl font-bold mb-2">{t('hmi.title.full')}</h1>
+            <p className="text-slate-400">{t('hmi.subtitle.full')}</p>
           </div>
           <div className="flex gap-4">
             <Button variant="outline" className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700">
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              {t('hmi.settings')}
             </Button>
             <Badge className="text-lg px-4 py-2 bg-blue-600">
               <Activity className="w-4 h-4 mr-2" />
-              System Online
+              {t('hmi.systemOnline')}
             </Badge>
           </div>
         </div>
@@ -350,6 +355,7 @@ const HMIDashboard = () => {
           50% { transform: translateX(100px); }
         }
       `}</style>
+      </div>
     </div>
   );
 };
