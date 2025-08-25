@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Download, TrendingUp, Zap, Activity, BarChart3 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import Navbar from '@/components/Navbar';
 import {
   LineChart,
   Line,
@@ -70,6 +72,7 @@ const maintenanceData = [
 ];
 
 export default function DataAnalysis() {
+  const { t } = useLanguage();
   const [timeRange, setTimeRange] = useState('30');
   const [selectedTurbine, setSelectedTurbine] = useState('all');
   
@@ -117,15 +120,16 @@ export default function DataAnalysis() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <Navbar />
+      <div className="pt-20 container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Data Analysis</h1>
-            <p className="text-muted-foreground">Historical performance analysis for offshore wave generators</p>
+            <h1 className="text-4xl font-bold mb-2">{t('dataAnalysis.title')}</h1>
+            <p className="text-muted-foreground">{t('dataAnalysis.subtitle')}</p>
           </div>
           <Button onClick={exportData} className="flex items-center gap-2">
             <Download className="h-4 w-4" />
-            Export Data
+            {t('dataAnalysis.exportData')}
           </Button>
         </div>
 
@@ -133,22 +137,22 @@ export default function DataAnalysis() {
         <div className="flex gap-4 mb-6 flex-wrap">
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time range" />
+              <SelectValue placeholder={t('dataAnalysis.selectTimeRange')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-              <SelectItem value="365">Last year</SelectItem>
+              <SelectItem value="7">{t('dataAnalysis.last7days')}</SelectItem>
+              <SelectItem value="30">{t('dataAnalysis.last30days')}</SelectItem>
+              <SelectItem value="90">{t('dataAnalysis.last90days')}</SelectItem>
+              <SelectItem value="365">{t('dataAnalysis.lastYear')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={selectedTurbine} onValueChange={setSelectedTurbine}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select turbine" />
+              <SelectValue placeholder={t('dataAnalysis.selectTurbine')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Turbines</SelectItem>
+              <SelectItem value="all">{t('dataAnalysis.allTurbines')}</SelectItem>
               <SelectItem value="wg1">WG-1</SelectItem>
               <SelectItem value="wg2">WG-2</SelectItem>
               <SelectItem value="wg3">WG-3</SelectItem>
@@ -163,7 +167,7 @@ export default function DataAnalysis() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Energy</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.totalEnergy')}</p>
                   <p className="text-2xl font-bold">{totalEnergyGenerated.toFixed(1)} MWh</p>
                 </div>
                 <Zap className="h-8 w-8 text-primary" />
@@ -175,7 +179,7 @@ export default function DataAnalysis() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg Efficiency</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.avgEfficiency')}</p>
                   <p className="text-2xl font-bold">{avgEfficiency.toFixed(1)}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-primary" />
@@ -187,7 +191,7 @@ export default function DataAnalysis() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Turbines</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.activeTurbines')}</p>
                   <p className="text-2xl font-bold">4/4</p>
                 </div>
                 <Activity className="h-8 w-8 text-primary" />
@@ -199,7 +203,7 @@ export default function DataAnalysis() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Data Points</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.dataPoints')}</p>
                   <p className="text-2xl font-bold">{historicalData.length}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
@@ -210,16 +214,16 @@ export default function DataAnalysis() {
 
         <Tabs defaultValue="power" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="power">Power Generation</TabsTrigger>
-            <TabsTrigger value="environmental">Environmental</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+            <TabsTrigger value="power">{t('dataAnalysis.powerGeneration')}</TabsTrigger>
+            <TabsTrigger value="environmental">{t('dataAnalysis.environmental')}</TabsTrigger>
+            <TabsTrigger value="performance">{t('dataAnalysis.performance')}</TabsTrigger>
+            <TabsTrigger value="maintenance">{t('dataAnalysis.maintenance')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="power">
             <Card>
               <CardHeader>
-                <CardTitle>Power Generation Trends</CardTitle>
+                <CardTitle>{t('dataAnalysis.powerGenerationTrends')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
@@ -249,7 +253,7 @@ export default function DataAnalysis() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Wave Height Trends</CardTitle>
+                  <CardTitle>{t('dataAnalysis.waveHeightTrends')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -266,7 +270,7 @@ export default function DataAnalysis() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Wind Speed Analysis</CardTitle>
+                  <CardTitle>{t('dataAnalysis.windSpeedAnalysis')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -287,7 +291,7 @@ export default function DataAnalysis() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Turbine Performance Comparison</CardTitle>
+                  <CardTitle>{t('dataAnalysis.turbinePerformanceComparison')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -306,7 +310,7 @@ export default function DataAnalysis() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Energy Output by Turbine</CardTitle>
+                  <CardTitle>{t('dataAnalysis.energyOutputByTurbine')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -327,7 +331,7 @@ export default function DataAnalysis() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Maintenance Activity Distribution</CardTitle>
+                  <CardTitle>{t('dataAnalysis.maintenanceActivityDistribution')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -354,7 +358,7 @@ export default function DataAnalysis() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Maintenance Schedule</CardTitle>
+                  <CardTitle>{t('dataAnalysis.maintenanceSchedule')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
