@@ -3,19 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Anchor } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   const navItems = [
     { label: t('nav.home'), to: "/", type: "link" },
-    { label: t('nav.services'), to: "#services", type: "anchor" },
-    { label: t('nav.portfolio'), to: "#portfolio", type: "anchor" },
+    { label: t('nav.services'), to: isHomePage ? "#services" : "/#services", type: isHomePage ? "anchor" : "link" },
+    { label: t('nav.portfolio'), to: isHomePage ? "#portfolio" : "/#portfolio", type: isHomePage ? "anchor" : "link" },
     { label: t('nav.hmi'), to: "/hmi", type: "link" },
     { label: t('nav.dataAnalysis'), to: "/data-analysis", type: "link" },
-    { label: t('nav.contact'), to: "#contact", type: "anchor" },
+    { label: t('nav.contact'), to: isHomePage ? "#contact" : "/#contact", type: isHomePage ? "anchor" : "link" },
   ];
 
   return (
