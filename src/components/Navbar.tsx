@@ -20,12 +20,28 @@ const Navbar = () => {
     { label: t('nav.contact'), to: isHomePage ? "#contact" : "/#contact", type: isHomePage ? "anchor" : "link" },
   ];
 
+  const handleNavClick = (item: any) => {
+    if (item.label === t('nav.home') && isHomePage) {
+      // If we're already on home page and clicking home, scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setIsOpen(false);
+  };
+
   return (
     <nav className="fixed top-0 w-full z-50 glass-effect border-b border-primary/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2"
+            onClick={() => {
+              if (isHomePage) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center glow-pulse">
               <Anchor className="h-6 w-6 text-white" />
             </div>
@@ -42,6 +58,7 @@ const Navbar = () => {
                   key={item.label}
                   to={item.to}
                   className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
+                  onClick={() => handleNavClick(item)}
                 >
                   {item.label}
                 </Link>
@@ -50,6 +67,7 @@ const Navbar = () => {
                   key={item.label}
                   href={item.to}
                   className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
+                  onClick={() => handleNavClick(item)}
                 >
                   {item.label}
                 </a>
@@ -87,7 +105,7 @@ const Navbar = () => {
                     key={item.label}
                     to={item.to}
                     className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => handleNavClick(item)}
                   >
                     {item.label}
                   </Link>
@@ -96,7 +114,7 @@ const Navbar = () => {
                     key={item.label}
                     href={item.to}
                     className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => handleNavClick(item)}
                   >
                     {item.label}
                   </a>
