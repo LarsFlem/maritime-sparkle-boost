@@ -10,12 +10,12 @@ const Navbar = () => {
   const { t } = useLanguage();
 
   const navItems = [
-    { label: t('nav.home'), to: "/" },
-    { label: t('nav.services'), to: "/#services" },
-    { label: t('nav.portfolio'), to: "/#portfolio" },
-    { label: t('nav.hmi'), to: "/hmi" },
-    { label: t('nav.dataAnalysis'), to: "/data-analysis" },
-    { label: t('nav.contact'), to: "/#contact" },
+    { label: t('nav.home'), to: "/", type: "link" },
+    { label: t('nav.services'), to: "#services", type: "anchor" },
+    { label: t('nav.portfolio'), to: "#portfolio", type: "anchor" },
+    { label: t('nav.hmi'), to: "/hmi", type: "link" },
+    { label: t('nav.dataAnalysis'), to: "/data-analysis", type: "link" },
+    { label: t('nav.contact'), to: "#contact", type: "anchor" },
   ];
 
   return (
@@ -35,13 +35,23 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
-              >
-                {item.label}
-              </Link>
+              item.type === "link" ? (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.to}
+                  className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
+                >
+                  {item.label}
+                </a>
+              )
             ))}
             <LanguageSwitcher />
             <Button 
@@ -70,14 +80,25 @@ const Navbar = () => {
           <div className="md:hidden animate-fade-in-up">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-card/90 backdrop-blur-md rounded-lg mt-2">
               {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </Link>
+                item.type === "link" ? (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.to}
+                    className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                )
               ))}
               <div className="flex items-center justify-between px-3 py-2 gap-2">
                 <LanguageSwitcher />
