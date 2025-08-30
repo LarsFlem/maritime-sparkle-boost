@@ -57,7 +57,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{t('contact.info.email')}</p>
-                    <p className="text-sm text-muted-foreground">post@maritime-automation.no</p>
+                    <p className="text-sm text-muted-foreground">Lars@Maritime-Automation.no</p>
                   </div>
                 </div>
                 
@@ -67,7 +67,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{t('contact.info.phone')}</p>
-                    <p className="text-sm text-muted-foreground">+47 XXX XX XXX</p>
+                    <p className="text-sm text-muted-foreground">+47 917 98 722</p>
                   </div>
                 </div>
 
@@ -77,7 +77,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{t('contact.info.location')}</p>
-                    <p className="text-sm text-muted-foreground">Norge</p>
+                    <p className="text-sm text-muted-foreground">Rennesøygata 14A, 4014 Stavanger</p>
                   </div>
                 </div>
               </CardContent>

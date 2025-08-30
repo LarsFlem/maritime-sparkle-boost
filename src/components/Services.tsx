@@ -12,9 +12,9 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import engineeringIcon from "@/assets/engineering-icon.png";
-import supportIcon from "@/assets/support-icon.png";
-import projectIcon from "@/assets/project-icon.png";
+import engineeringIcon from "@/assets/engineering-real.png";
+import supportIcon from "@/assets/commissioning-real.jpg";
+import projectIcon from "@/assets/assistanse-real.jpg";
 
 const Services = () => {
   const { t } = useLanguage();
@@ -99,7 +99,7 @@ const Services = () => {
                   <img 
                     src={service.icon} 
                     alt={service.title}
-                    className="w-full h-full object-contain filter brightness-0 invert"
+                    className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
                 <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
