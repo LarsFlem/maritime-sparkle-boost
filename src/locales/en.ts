@@ -6,6 +6,7 @@ export default {
   'nav.contact': 'Contact',
   'nav.hmi': 'HMI Dashboard',
   'nav.dataAnalysis': 'Data Analysis',
+  'nav.liveDemo': 'Live Demo',
   'nav.getQuote': 'Get Quote',
 
   // Hero Section
@@ -171,6 +172,19 @@ export default {
   'dataAnalysis.filters.last30days': 'Last 30 Days',
   'dataAnalysis.filters.last90days': 'Last 90 Days',
   'dataAnalysis.filters.thisYear': 'This Year',
+
+  // Live Demo
+  'liveDemo.title': 'Live PLC & Robot Demo',
+  'liveDemo.subtitle': 'Real-time monitoring and control of an industrial automation system with live video feed',
+  'liveDemo.status.running': 'System Running',
+  'liveDemo.status.stopped': 'System Stopped',
+  'liveDemo.videoFeed.title': 'Live Video Feed',
+  'liveDemo.videoFeed.placeholder': 'Video Feed Placeholder',
+  'liveDemo.videoFeed.description': 'Live camera view of the industrial robot system',
+  'liveDemo.hmi.title': 'PLC Control Interface',
+  'liveDemo.hmi.tabs.control': 'Control',
+  'liveDemo.hmi.tabs.monitoring': 'Monitor',
+  'liveDemo.hmi.tabs.settings': 'Settings',
 
   // Common
   'common.loading': 'Loading...',
