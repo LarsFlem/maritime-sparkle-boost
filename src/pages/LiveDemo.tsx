@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
+import BluetoothController from "@/components/BluetoothController";
 import { 
   Play, 
   Square, 
@@ -123,6 +124,19 @@ const LiveDemo = () => {
     }
   };
 
+  // Bluetooth controller callbacks
+  const handleBluetoothPositionChange = (position: number) => {
+    if (!autoMode && !emergencyStop) {
+      setTargetPosition([position]);
+    }
+  };
+
+  const handleBluetoothSpeedChange = (speed: number) => {
+    if (!autoMode && !emergencyStop) {
+      setTargetSpeed([speed]);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navbar />
@@ -145,7 +159,7 @@ const LiveDemo = () => {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
           {/* Video Feed */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
@@ -190,6 +204,14 @@ const LiveDemo = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Bluetooth Controller */}
+          <BluetoothController
+            onPositionChange={handleBluetoothPositionChange}
+            onSpeedChange={handleBluetoothSpeedChange}
+            isEmergencyStop={emergencyStop}
+            isRunning={plcState.isRunning}
+          />
 
           {/* PLC HMI Control Panel */}
           <Card className="bg-slate-800/50 border-slate-700">
@@ -423,24 +445,24 @@ const LiveDemo = () => {
                   <div className="bg-slate-700/50 p-4 rounded-lg">
                     <div className="flex items-center mb-4">
                       <Power className="w-5 h-5 text-slate-300 mr-2" />
-                      <span className="text-white font-medium">Safety Parameters</span>
+                      <span className="text-white font-medium">System Information</span>
                     </div>
                     <div className="space-y-4 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Max Temperature:</span>
-                        <span className="text-white">35°C</span>
+                        <span className="text-slate-300">Runtime:</span>
+                        <span className="text-white">24h 15m</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Max Pressure:</span>
-                        <span className="text-white">2.5 bar</span>
+                        <span className="text-slate-300">CPU Usage:</span>
+                        <span className="text-white">12%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Max Speed:</span>
-                        <span className="text-white">100%</span>
+                        <span className="text-slate-300">Memory:</span>
+                        <span className="text-white">45% (2.1GB)</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Emergency Stop:</span>
-                        <span className="text-green-400">Enabled</span>
+                        <span className="text-slate-300">Temperature:</span>
+                        <span className="text-white">42°C</span>
                       </div>
                     </div>
                   </div>
