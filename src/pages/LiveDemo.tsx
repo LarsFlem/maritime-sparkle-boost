@@ -9,6 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import BluetoothController from "@/components/BluetoothController";
+import { DataLogger } from "@/components/live-demo/DataLogger";
+import { AlarmSystem } from "@/components/live-demo/AlarmSystem";
+import { IOMonitor } from "@/components/live-demo/IOMonitor";
+import { ProgramSequencer } from "@/components/live-demo/ProgramSequencer";
 import { 
   Play, 
   Square, 
@@ -32,6 +36,8 @@ interface PLCState {
   temperature: number;
   pressure: number;
   motorRpm: number;
+  vibration: number;
+  power: number;
   errors: string[];
   cycleCount: number;
   lastUpdate: Date;
@@ -47,6 +53,8 @@ const LiveDemo = () => {
     temperature: 22.5,
     pressure: 1.2,
     motorRpm: 0,
+    vibration: 1.5,
+    power: 0,
     errors: [],
     cycleCount: 0,
     lastUpdate: new Date()
@@ -61,7 +69,14 @@ const LiveDemo = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setPLCState(prev => {
-        if (!prev.isRunning || emergencyStop) return { ...prev, lastUpdate: new Date() };
+        if (!prev.isRunning || emergencyStop) return { 
+          ...prev, 
+          speed: 0,
+          motorRpm: 0,
+          vibration: 0.5,
+          power: 0,
+          lastUpdate: new Date() 
+        };
 
         const newPosition = autoMode 
           ? Math.sin(Date.now() / 2000) * 50 + 50 
@@ -71,6 +86,8 @@ const LiveDemo = () => {
         const newRpm = prev.isRunning ? newSpeed * 20 + Math.random() * 50 : 0;
         const newTemp = 22.5 + (prev.isRunning ? Math.random() * 5 : 0);
         const newPressure = 1.2 + (prev.isRunning ? Math.random() * 0.5 : 0);
+        const newVibration = prev.isRunning ? 1.5 + Math.random() * 2 : 0.5;
+        const newPower = prev.isRunning ? (newSpeed / 100) * 3.5 + Math.random() * 0.5 : 0;
 
         return {
           ...prev,
@@ -79,6 +96,8 @@ const LiveDemo = () => {
           temperature: newTemp,
           pressure: newPressure,
           motorRpm: newRpm,
+          vibration: newVibration,
+          power: newPower,
           cycleCount: autoMode && Math.abs(newPosition - 50) < 2 ? prev.cycleCount + 1 : prev.cycleCount,
           lastUpdate: new Date()
         };
@@ -137,6 +156,12 @@ const LiveDemo = () => {
     }
   };
 
+  // Program sequencer callbacks
+  const handleProgramStepChange = (position?: number, speed?: number) => {
+    if (position !== undefined) setTargetPosition([position]);
+    if (speed !== undefined) setTargetSpeed([speed]);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navbar />
@@ -159,7 +184,8 @@ const LiveDemo = () => {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {/* Video Feed */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader>
@@ -470,6 +496,46 @@ const LiveDemo = () => {
               </Tabs>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Extended Features Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Data Logger */}
+          <DataLogger
+            currentData={{
+              temperature: plcState.temperature,
+              pressure: plcState.pressure,
+              speed: plcState.speed,
+              motorRpm: plcState.motorRpm,
+              vibration: plcState.vibration,
+              power: plcState.power
+            }}
+            isRunning={plcState.isRunning}
+          />
+
+          {/* Alarm System */}
+          <AlarmSystem
+            temperature={plcState.temperature}
+            pressure={plcState.pressure}
+            vibration={plcState.vibration}
+            emergencyStop={emergencyStop}
+          />
+        </div>
+
+        {/* I/O and Program Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* I/O Monitor */}
+          <IOMonitor
+            isRunning={plcState.isRunning}
+            position={plcState.position}
+          />
+
+          {/* Program Sequencer */}
+          <ProgramSequencer
+            onStepChange={handleProgramStepChange}
+            isRunning={plcState.isRunning}
+            autoMode={autoMode}
+          />
         </div>
       </div>
     </div>
