@@ -116,11 +116,18 @@ const Portfolio = () => {
     : projects.filter(project => project.category === selectedCategory);
 
   return (
-    <section id="portfolio" className="py-20 bg-gradient-to-b from-background to-secondary/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="portfolio" className="py-20 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/10 to-background"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl drift-animation blob-animation"></div>
+        <div className="absolute bottom-40 left-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl drift-animation blob-animation" style={{ animationDelay: '-5s' }}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="text-center mb-16 animate-fade-in-up">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
             {t('portfolio.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -129,7 +136,7 @@ const Portfolio = () => {
         </div>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in">
+        <div className="flex flex-wrap justify-center gap-3 mb-12 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           {categories.map((category) => (
             <Button
               key={category.id}
@@ -137,8 +144,8 @@ const Portfolio = () => {
               onClick={() => setSelectedCategory(category.id)}
               className={`transition-all duration-300 ${
                 selectedCategory === category.id 
-                  ? "bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse" 
-                  : "hover:border-primary/50"
+                  ? "bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense" 
+                  : "hover:border-primary/50 hover:bg-primary/10"
               }`}
             >
               {category.label}
@@ -151,41 +158,44 @@ const Portfolio = () => {
           {filteredProjects.map((project, index) => (
             <Card
               key={project.id}
-              className="glass-effect hover:scale-[1.02] transition-all duration-500 tech-border group animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="glass-effect-strong hover-lift transition-all duration-500 tech-border-glow group animate-fade-in-up overflow-hidden"
+              style={{ animationDelay: `${index * 0.15}s` }}
             >
-              <div className="relative overflow-hidden rounded-t-lg">
+              <div className="relative overflow-hidden">
                 <img
                   src={project.image}
                   alt={project.title}
-                  className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="w-full h-64 object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
                 />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
                 <div className="absolute top-4 left-4">
-                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-md border border-primary/20">
                     {project.year}
                   </Badge>
                 </div>
                 <div className="absolute top-4 right-4">
-                  <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-primary/30">
+                  <Badge variant="outline" className="bg-background/80 backdrop-blur-md border-primary/40 text-primary">
                     {project.category.charAt(0).toUpperCase() + project.category.slice(1)}
                   </Badge>
                 </div>
               </div>
 
               <CardHeader>
-                <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
+                <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors duration-300">
                   {project.title}
                 </CardTitle>
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 hover:text-primary transition-colors">
                     <MapPin className="h-4 w-4" />
                     {project.location}
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 hover:text-primary transition-colors">
                     <Calendar className="h-4 w-4" />
                     {project.duration}
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 hover:text-primary transition-colors">
                     <Users className="h-4 w-4" />
                     {project.teamSize} {t('portfolio.engineers')}
                   </div>
@@ -205,7 +215,11 @@ const Portfolio = () => {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {project.technologies.map((tech) => (
-                      <Badge key={tech} variant="outline" className="text-xs">
+                      <Badge 
+                        key={tech} 
+                        variant="outline" 
+                        className="text-xs border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300"
+                      >
                         {tech}
                       </Badge>
                     ))}
@@ -217,8 +231,8 @@ const Portfolio = () => {
                   <h4 className="font-semibold mb-3">{t('portfolio.results')}</h4>
                   <ul className="space-y-2">
                     {project.results.map((result, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground group/result hover:text-foreground transition-colors">
+                        <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-accent mt-1.5 flex-shrink-0 group-hover/result:scale-125 transition-transform"></div>
                         {result}
                       </li>
                     ))}
@@ -235,7 +249,7 @@ const Portfolio = () => {
                 {/* Action Button */}
                 <Button 
                   variant="outline" 
-                  className="w-full group-hover:border-primary/50 transition-colors"
+                  className="w-full group-hover:border-primary/50 group-hover:bg-primary/10 transition-all duration-300"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   {t('portfolio.viewCase')}
@@ -246,15 +260,18 @@ const Portfolio = () => {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center mt-16 animate-fade-in">
-          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 backdrop-blur-sm border border-primary/20">
-            <h3 className="text-2xl font-bold mb-4">{t('portfolio.cta.title')}</h3>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+        <div className="text-center mt-16 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="glass-effect-strong rounded-2xl p-8 tech-border-glow relative overflow-hidden">
+            {/* Animated background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 gradient-animate"></div>
+            
+            <h3 className="text-2xl font-bold mb-4 relative z-10">{t('portfolio.cta.title')}</h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto relative z-10">
               {t('portfolio.cta.description')}
             </p>
             <Button 
               size="lg"
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse"
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense relative z-10"
             >
               {t('portfolio.cta.button')}
             </Button>

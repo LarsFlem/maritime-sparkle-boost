@@ -33,23 +33,23 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 glass-effect border-b border-primary/20">
+      <nav className="fixed top-0 w-full z-50 glass-effect-strong border-b border-primary/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link 
               to="/" 
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 group"
               onClick={() => {
                 if (isHomePage) {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
               }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center glow-pulse">
-                <Anchor className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center glow-pulse-intense relative group-hover:scale-110 transition-transform duration-300">
+                <Anchor className="h-6 w-6 text-white relative z-10" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-xl font-bold gradient-text">
                 Maritime Automation
               </span>
             </Link>
