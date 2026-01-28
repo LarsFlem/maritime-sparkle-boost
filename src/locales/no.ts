@@ -44,7 +44,14 @@ export default {
   'services.project.feature1': 'Støtte i prosjektledelse, inkludert estimering av tid og kostnader',
   'services.project.feature2': 'Assistanse i håndtering av programvareoppdateringer og endringer',
   'services.project.feature3': 'FMEA-assistanse (Failure Modes and Effects Analysis)',
-  'services.project.feature4': 'Assistanse ved implementering av nye verktøy som AutoCAD, Vault, TwinCAT',
+'services.project.feature4': 'Assistanse ved implementering av nye verktøy som AutoCAD, Vault, TwinCAT',
+
+  'services.printing.title': '3D Printing og Modellering',
+  'services.printing.description': '3D-printingstjenester med en Bambu P1P-printer som støtter PLA, PETG, TPU og andre materialer.',
+  'services.printing.feature1': 'Modellering og print av spesialtilpassede braketter og komponenter',
+  'services.printing.feature2': 'Rådgivning om riktig filamentvalg basert på applikasjonens krav',
+  'services.printing.feature3': 'Print av skalerte modeller og prototyper for messer',
+  'services.printing.feature4': 'Utstyr kan kjøpes inn for spesielle krav',
 
   'services.readMore': 'Les Mer',
   'services.experience.title': 'Erfaring fra Ledende Maritime Selskaper',
@@ -80,7 +87,15 @@ export default {
   'contact.info.responseTime': 'Responstid',
   'contact.info.responseTimeValue': 'Innen 24 timer',
   'contact.info.certifications': 'Sertifiseringer',
-  'contact.info.certificationsValue': 'Innehaver nødvendige sertifikat og attester for arbeid på sjøen og på rig',
+'contact.info.certificationsValue': 'Innehaver nødvendige sertifikat og attester for arbeid på sjøen og på rig',
+  'contact.info.address': 'Rennesøygata 14A, 4014 Stavanger',
+
+  // About/CV Section
+  'about.title': 'Om Meg',
+  'about.subtitle': 'Mekatronikk-ingeniør med solid erfaring',
+  'about.description': 'Jeg tilbyr konsulent- og engineeringtjenester innen elektro og automasjon, med spesialisering i design og implementering av systemer for bevegelig maskineri, alarmsystemer og generell automasjon.',
+  'about.downloadCV': 'Last ned CV',
+  'about.watchInterview': 'Se Portrettintervju',
 
   'contact.form.name': 'Fullt Navn',
   'contact.form.email': 'E-postadresse',

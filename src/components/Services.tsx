@@ -9,7 +9,8 @@ import {
   Database,
   Monitor,
   Shield,
-  ArrowRight
+  ArrowRight,
+  Printer
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import engineeringIcon from "@/assets/engineering-real.png";
@@ -55,6 +56,19 @@ const Services = () => {
         t('services.project.feature4')
       ],
       color: "from-purple-500 to-primary"
+    },
+    {
+      title: t('services.printing.title'),
+      icon: null, // Will use Printer icon
+      description: t('services.printing.description'),
+      features: [
+        t('services.printing.feature1'),
+        t('services.printing.feature2'),
+        t('services.printing.feature3'),
+        t('services.printing.feature4')
+      ],
+      color: "from-orange-500 to-red-500",
+      useIcon: true
     }
   ];
 
@@ -97,13 +111,19 @@ const Services = () => {
               style={{ animationDelay: `${index * 0.15}s` }}
             >
               <CardHeader className="text-center pb-4">
-                <div className={`w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${service.color} p-1 group-hover:scale-110 transition-all duration-500 relative`}>
+              <div className={`w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${service.color} p-1 group-hover:scale-110 transition-all duration-500 relative`}>
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <img 
-                    src={service.icon} 
-                    alt={service.title}
-                    className="w-full h-full object-cover rounded-xl"
-                  />
+                  {(service as any).useIcon ? (
+                    <div className="w-full h-full flex items-center justify-center bg-background/80 rounded-xl">
+                      <Printer className="h-12 w-12 text-primary" />
+                    </div>
+                  ) : (
+                    <img 
+                      src={service.icon} 
+                      alt={service.title}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  )}
                   <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/30 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
                 </div>
                 <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
