@@ -89,14 +89,34 @@ export default {
   'contact.info.responseTimeValue': 'Within 24 hours',
   'contact.info.certifications': 'Certifications',
 'contact.info.certificationsValue': 'Certified for offshore and maritime work',
-  'contact.info.address': 'Rennesøygata 14A, 4014 Stavanger',
+  'contact.info.address': 'Jørpeland, Rogaland, Norway',
 
   // About/CV Section
   'about.title': 'About Me',
   'about.subtitle': 'Mechatronics Engineer with Solid Experience',
-  'about.description': 'I offer consulting and engineering services in electrical and automation, specializing in design and implementation of systems for moving machinery, alarm systems and general automation.',
+  'about.description': 'Custom electrical & automation systems for maritime projects — from design to delivery.',
   'about.downloadCV': 'Download CV',
   'about.watchInterview': 'Watch Interview',
+  'about.ceo': 'CEO',
+  'about.since': 'since December 2024',
+
+  // Education
+  'education.title': 'Education',
+  'education.uia': "Bachelor's in Mechatronics, Robotics and Automation Engineering",
+  'education.uia.years': '2016 - 2019',
+  'education.ntnu': 'Annual Studies in Economics and Management',
+  'education.ntnu.years': '2015 - 2016',
+  'education.haram': 'Vocational Certificate - Technical General Studies, Automation',
+  'education.haram.years': '2010 - 2015',
+
+  // Skills
+  'skills.title': 'Skills',
+  'skills.solidworks': 'SolidWorks',
+  'skills.computer': 'Computer Proficiency',
+  'skills.leadership': 'Leadership',
+  'skills.languages': 'Languages',
+  'skills.norwegian': 'Norwegian (Native)',
+  'skills.english': 'English (Fluent)',
 
   'contact.form.name': 'Full Name',
   'contact.form.email': 'Email Address',
