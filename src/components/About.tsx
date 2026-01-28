@@ -1,19 +1,31 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Play, Briefcase, Award, MapPin, Calendar } from "lucide-react";
+import { Download, Play, Briefcase, Award, MapPin, GraduationCap, Globe, Wrench } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const About = () => {
   const { t } = useLanguage();
 
   const experience = [
-    { company: "Moreld Apply", role: "Automation Engineer" },
-    { company: "Red Rock", role: "Control Systems" },
-    { company: "HMH", role: "PLC Programming" },
-    { company: "Ocean Infinity Marine", role: "Systems Integration" },
-    { company: "Kongsberg Maritime", role: "Marine Automation" },
-    { company: "Rolls Royce Marine", role: "Engineering" },
-    { company: "Optimar Stette", role: "Automation Solutions" },
+    { company: "Maritime Automation - Flem", role: t('about.ceo'), period: "2024 - Present", highlight: true },
+    { company: "Applica / Moreld Apply", role: "Senior Automasjonsingeniør", period: "2024 - 2026" },
+    { company: "Red Rock AS", role: "Senior Automasjonsingeniør", period: "2023 - 2024" },
+    { company: "HMH", role: "Control System Support Engineer", period: "2022 - 2023" },
+    { company: "Ocean Infinity Marine", role: "Electro - Automation Engineer", period: "2022" },
+    { company: "Red Rock AS", role: "Electro - Automation Engineer", period: "2019 - 2022" },
+    { company: "Rolls-Royce Marine", role: "Test Engineer - Automation", period: "2010 - 2014" },
+  ];
+
+  const education = [
+    { school: "Universitetet i Agder (UiA)", degree: t('education.uia'), years: t('education.uia.years') },
+    { school: "NTNU", degree: t('education.ntnu'), years: t('education.ntnu.years') },
+    { school: "Haram Videregående Skole", degree: t('education.haram'), years: t('education.haram.years') },
+  ];
+
+  const skills = [
+    { name: t('skills.solidworks'), icon: Wrench },
+    { name: t('skills.computer'), icon: Wrench },
+    { name: t('skills.leadership'), icon: Award },
   ];
 
   return (
@@ -38,8 +50,8 @@ const About = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Video and CV */}
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Left side - Video, CV and Skills */}
           <div className="space-y-6">
             {/* YouTube Video Embed */}
             <Card className="glass-effect-strong tech-border-glow overflow-hidden">
@@ -70,35 +82,117 @@ const About = () => {
               <Download className="mr-2 h-5 w-5 group-hover:animate-bounce" />
               {t('about.downloadCV')}
             </Button>
+
+            {/* Skills */}
+            <Card className="glass-effect-strong tech-border-glow">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-primary" />
+                  {t('skills.title')}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {skills.map((skill) => (
+                    <div key={skill.name} className="px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20 hover:border-primary/50 transition-colors">
+                      <span className="text-sm font-medium text-foreground">{skill.name}</span>
+                    </div>
+                  ))}
+                  <div className="px-4 py-2 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-full border border-green-500/20">
+                    <span className="text-sm font-medium text-green-400">TwinCAT / Beckhoff</span>
+                  </div>
+                  <div className="px-4 py-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-full border border-blue-500/20">
+                    <span className="text-sm font-medium text-blue-400">PLC Programming</span>
+                  </div>
+                  <div className="px-4 py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full border border-purple-500/20">
+                    <span className="text-sm font-medium text-purple-400">HMI/SCADA</span>
+                  </div>
+                </div>
+
+                {/* Languages */}
+                <div className="mt-6 pt-4 border-t border-primary/10">
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    {t('skills.languages')}
+                  </h4>
+                  <div className="flex gap-4">
+                    <span className="text-sm text-foreground">{t('skills.norwegian')}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm text-foreground">{t('skills.english')}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Right side - Experience Timeline */}
+          {/* Right side - Experience and Education */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground flex items-center gap-3">
-              <Award className="h-6 w-6 text-primary" />
-              {t('services.experience.title')}
-            </h3>
-            
-            <div className="space-y-4">
-              {experience.map((exp, index) => (
-                <div 
-                  key={exp.company}
-                  className="flex items-center space-x-4 p-4 glass-effect hover-lift rounded-xl group animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:from-primary/40 group-hover:to-accent/40 transition-all duration-300">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {exp.company}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{exp.role}</p>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary transition-colors"></div>
+            {/* Experience */}
+            <Card className="glass-effect-strong tech-border-glow">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                  <Award className="h-5 w-5 text-primary" />
+                  {t('services.experience.title')}
+                </h3>
+                <div className="space-y-3">
+                  {experience.map((exp, index) => (
+                    <div 
+                      key={`${exp.company}-${index}`}
+                      className={`flex items-center space-x-4 p-3 rounded-xl group animate-fade-in-up transition-all duration-300 ${
+                        exp.highlight 
+                          ? 'bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30' 
+                          : 'hover:bg-primary/10'
+                      }`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        exp.highlight 
+                          ? 'bg-gradient-to-br from-primary to-accent' 
+                          : 'bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/40 group-hover:to-accent/40'
+                      }`}>
+                        <Briefcase className={`h-4 w-4 ${exp.highlight ? 'text-white' : 'text-primary'}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`font-semibold truncate ${exp.highlight ? 'text-primary' : 'text-foreground group-hover:text-primary'} transition-colors`}>
+                          {exp.company}
+                        </h4>
+                        <p className="text-xs text-muted-foreground truncate">{exp.role}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{exp.period}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Education */}
+            <Card className="glass-effect-strong tech-border-glow">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  {t('education.title')}
+                </h3>
+                <div className="space-y-4">
+                  {education.map((edu, index) => (
+                    <div 
+                      key={edu.school}
+                      className="p-4 rounded-xl hover:bg-primary/10 transition-all duration-300 group animate-fade-in-up"
+                      style={{ animationDelay: `${index * 0.15}s` }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {edu.school}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mt-1">{edu.degree}</p>
+                        </div>
+                        <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full whitespace-nowrap">
+                          {edu.years}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Location */}
             <div className="flex items-center space-x-3 p-4 glass-effect rounded-xl">

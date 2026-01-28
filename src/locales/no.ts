@@ -88,14 +88,34 @@ export default {
   'contact.info.responseTimeValue': 'Innen 24 timer',
   'contact.info.certifications': 'Sertifiseringer',
 'contact.info.certificationsValue': 'Innehaver nødvendige sertifikat og attester for arbeid på sjøen og på rig',
-  'contact.info.address': 'Rennesøygata 14A, 4014 Stavanger',
+  'contact.info.address': 'Jørpeland, Rogaland, Norge',
 
   // About/CV Section
   'about.title': 'Om Meg',
   'about.subtitle': 'Mekatronikk-ingeniør med solid erfaring',
-  'about.description': 'Jeg tilbyr konsulent- og engineeringtjenester innen elektro og automasjon, med spesialisering i design og implementering av systemer for bevegelig maskineri, alarmsystemer og generell automasjon.',
+  'about.description': 'Skreddersydde elektriske og automasjonssystemer for maritime prosjekter — fra design til levering.',
   'about.downloadCV': 'Last ned CV',
   'about.watchInterview': 'Se Portrettintervju',
+  'about.ceo': 'Daglig leder',
+  'about.since': 'siden desember 2024',
+
+  // Education
+  'education.title': 'Utdanning',
+  'education.uia': 'Bachelor i Mekatronikk, Robotikk og Automatiseringsteknikk',
+  'education.uia.years': '2016 - 2019',
+  'education.ntnu': 'Årsstudium i Økonomi og Ledelse',
+  'education.ntnu.years': '2015 - 2016',
+  'education.haram': 'Fagbrev og Realfagskompetanse - Teknisk Allmenne Fag, Automasjon',
+  'education.haram.years': '2010 - 2015',
+
+  // Skills
+  'skills.title': 'Ferdigheter',
+  'skills.solidworks': 'SolidWorks',
+  'skills.computer': 'Datamaskinkyndighet',
+  'skills.leadership': 'Lederskap',
+  'skills.languages': 'Språk',
+  'skills.norwegian': 'Norsk (Morsmål)',
+  'skills.english': 'Engelsk (Flytende)',
 
   'contact.form.name': 'Fullt Navn',
   'contact.form.email': 'E-postadresse',
