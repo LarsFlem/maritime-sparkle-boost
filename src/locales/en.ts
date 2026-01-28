@@ -45,7 +45,14 @@ export default {
   'services.project.feature1': 'Technical consultation and advisory',
   'services.project.feature2': 'System design review and validation',
   'services.project.feature3': 'Integration planning and execution',
-  'services.project.feature4': 'Quality assurance and testing',
+'services.project.feature4': 'Quality assurance and testing',
+
+  'services.printing.title': '3D Printing and Modeling',
+  'services.printing.description': '3D printing services with a Bambu P1P printer supporting PLA, PETG, TPU and other materials.',
+  'services.printing.feature1': 'Modeling and printing of custom brackets and components',
+  'services.printing.feature2': 'Guidance on filament selection based on application requirements',
+  'services.printing.feature3': 'Printing of scaled models and prototypes for exhibitions',
+  'services.printing.feature4': 'Equipment can be procured for special requirements',
 
   'services.readMore': 'Read More',
   'services.experience.title': 'Experience from Leading Maritime Companies',
@@ -81,7 +88,15 @@ export default {
   'contact.info.responseTime': 'Response Time',
   'contact.info.responseTimeValue': 'Within 24 hours',
   'contact.info.certifications': 'Certifications',
-  'contact.info.certificationsValue': 'DNV GL, ABS, Lloyds Register',
+'contact.info.certificationsValue': 'Certified for offshore and maritime work',
+  'contact.info.address': 'Rennesøygata 14A, 4014 Stavanger',
+
+  // About/CV Section
+  'about.title': 'About Me',
+  'about.subtitle': 'Mechatronics Engineer with Solid Experience',
+  'about.description': 'I offer consulting and engineering services in electrical and automation, specializing in design and implementation of systems for moving machinery, alarm systems and general automation.',
+  'about.downloadCV': 'Download CV',
+  'about.watchInterview': 'Watch Interview',
 
   'contact.form.name': 'Full Name',
   'contact.form.email': 'Email Address',
