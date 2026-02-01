@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
+import { lazy, Suspense } from "react";
+
+const Ship3D = lazy(() => import("@/components/Ship3D"));
 
 const Hero = () => {
   const { t } = useLanguage();
@@ -34,68 +37,84 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="mb-8 animate-fade-in-up">
-          <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-md border border-primary/30 rounded-full px-6 py-2 mb-6 shimmer-effect relative overflow-hidden">
-            <Waves className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">{t('hero.title')}</span>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* Text Content */}
+          <div className="text-center lg:text-left">
+            <div className="mb-8 animate-fade-in-up">
+              <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-md border border-primary/30 rounded-full px-6 py-2 mb-6 shimmer-effect relative overflow-hidden">
+                <Waves className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">{t('hero.title')}</span>
+              </div>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <span className="gradient-text">
+                {t('hero.title')}
+              </span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
+              {t('hero.subtitle')}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense text-lg px-8 py-6 group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center">
+                  {t('hero.cta.services')}
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60 text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300"
+              >
+                {t('hero.cta.contact')}
+              </Button>
+            </div>
+          </div>
+
+          {/* 3D Ship Visualization */}
+          <div className="hidden lg:block h-[500px] animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <Suspense fallback={
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              </div>
+            }>
+              <Ship3D />
+            </Suspense>
           </div>
         </div>
 
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <span className="gradient-text">
-            {t('hero.title')}
-          </span>
-        </h1>
-
-        <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
-          {t('hero.subtitle')}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense text-lg px-8 py-6 group relative overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center">
-              {t('hero.cta.services')}
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60 text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300"
-          >
-            {t('hero.cta.contact')}
-          </Button>
-        </div>
-
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto lg:mx-0 mt-12 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
           <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
             <div className="relative">
               <Settings className="h-8 w-8 text-primary mx-auto mb-3 group-hover:rotate-90 transition-transform duration-500" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('hero.feature1.title')}</h3>
-            <p className="text-muted-foreground text-sm">{t('hero.feature1.desc')}</p>
+            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature1.title')}</h3>
+            <p className="text-muted-foreground text-sm text-center">{t('hero.feature1.desc')}</p>
           </div>
           <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
             <div className="relative">
               <Zap className="h-8 w-8 text-accent mx-auto mb-3 group-hover:scale-125 transition-transform duration-300" />
               <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('hero.feature2.title')}</h3>
-            <p className="text-muted-foreground text-sm">{t('hero.feature2.desc')}</p>
+            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature2.title')}</h3>
+            <p className="text-muted-foreground text-sm text-center">{t('hero.feature2.desc')}</p>
           </div>
           <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
             <div className="relative">
               <Waves className="h-8 w-8 text-primary mx-auto mb-3 wave-animation" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('hero.feature3.title')}</h3>
-            <p className="text-muted-foreground text-sm">{t('hero.feature3.desc')}</p>
+            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature3.title')}</h3>
+            <p className="text-muted-foreground text-sm text-center">{t('hero.feature3.desc')}</p>
           </div>
         </div>
       </div>
