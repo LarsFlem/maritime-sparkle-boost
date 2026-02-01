@@ -1,7 +1,8 @@
-import { useRef, Suspense } from 'react';
+import { useRef, Suspense, useState, useEffect, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Environment, MeshDistortMaterial } from '@react-three/drei';
+import { Float, OrbitControls, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+import { Ship, Anchor, Waves } from 'lucide-react';
 
 // Ship hull component
 const ShipHull = () => {
@@ -9,8 +10,9 @@ const ShipHull = () => {
   
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      // Gentle bobbing motion
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
+      groupRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.3) * 0.02;
     }
   });
 
@@ -81,18 +83,8 @@ const ShipHull = () => {
 
 // Animated water plane
 const WaterPlane = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      (meshRef.current.material as THREE.ShaderMaterial).uniforms = {
-        ...((meshRef.current.material as THREE.ShaderMaterial).uniforms || {}),
-      };
-    }
-  });
-
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.7, 0]}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.7, 0]}>
       <planeGeometry args={[10, 10, 32, 32]} />
       <MeshDistortMaterial
         color="#0369a1"
@@ -138,7 +130,7 @@ const Particles = () => {
   );
 };
 
-// Loading fallback
+// Loading fallback inside Canvas
 const Loader = () => (
   <mesh>
     <boxGeometry args={[1, 1, 1]} />
@@ -146,32 +138,125 @@ const Loader = () => (
   </mesh>
 );
 
+// 2D Fallback component when WebGL is not available
+const Ship2DFallback = () => (
+  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl border border-primary/20 backdrop-blur-sm">
+    <div className="relative">
+      <Ship className="w-32 h-32 text-primary animate-pulse" />
+      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+        <Waves className="w-6 h-6 text-accent animate-bounce" style={{ animationDelay: '0s' }} />
+        <Waves className="w-6 h-6 text-accent animate-bounce" style={{ animationDelay: '0.2s' }} />
+        <Waves className="w-6 h-6 text-accent animate-bounce" style={{ animationDelay: '0.4s' }} />
+      </div>
+    </div>
+    <p className="mt-4 text-muted-foreground text-sm">Maritime Automation</p>
+    <Anchor className="w-8 h-8 text-primary/60 mt-2" />
+  </div>
+);
+
+// Check if WebGL is available
+const isWebGLAvailable = (): boolean => {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!gl;
+  } catch {
+    return false;
+  }
+};
+
+// 3D Scene component
+const Scene = () => {
+  return (
+    <>
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[5, 5, 5]} intensity={1} color="#ffffff" />
+      <directionalLight position={[-5, 3, -5]} intensity={0.5} color="#60a5fa" />
+      <pointLight position={[0, 2, 0]} intensity={0.5} color="#3b82f6" />
+      
+      <Float
+        speed={1.5}
+        rotationIntensity={0.1}
+        floatIntensity={0.2}
+      >
+        <ShipHull />
+      </Float>
+      
+      <WaterPlane />
+      <Particles />
+      
+      {/* OrbitControls for mouse interaction */}
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        minPolarAngle={Math.PI / 4}
+        maxPolarAngle={Math.PI / 2}
+        autoRotate
+        autoRotateSpeed={0.5}
+      />
+    </>
+  );
+};
+
 // Main component
 const Ship3D = () => {
+  const [webGLSupported, setWebGLSupported] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    setWebGLSupported(isWebGLAvailable());
+  }, []);
+
+  // Handle WebGL context loss recovery
+  const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
+    const canvas = gl.domElement;
+    
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      console.log('WebGL context lost, attempting recovery...');
+    };
+    
+    const handleContextRestored = () => {
+      console.log('WebGL context restored');
+      setKey(prev => prev + 1);
+    };
+    
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored);
+    
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+    };
+  }, []);
+
+  if (!webGLSupported || hasError) {
+    return <Ship2DFallback />;
+  }
+
   return (
-    <div className="w-full h-full min-h-[400px]">
+    <div className="w-full h-full min-h-[400px] relative">
+      {/* Drag hint */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-muted-foreground border border-primary/20">
+        🖱️ Dra for å rotere
+      </div>
+      
       <Canvas
+        key={key}
         camera={{ position: [4, 2, 5], fov: 45 }}
         style={{ background: 'transparent' }}
+        onCreated={handleCreated}
+        onError={() => setHasError(true)}
+        gl={{ 
+          antialias: true,
+          alpha: true,
+          powerPreference: 'default',
+          failIfMajorPerformanceCaveat: false
+        }}
       >
         <Suspense fallback={<Loader />}>
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 5, 5]} intensity={1} color="#ffffff" />
-          <directionalLight position={[-5, 3, -5]} intensity={0.5} color="#60a5fa" />
-          <pointLight position={[0, 2, 0]} intensity={0.5} color="#3b82f6" />
-          
-          <Float
-            speed={1.5}
-            rotationIntensity={0.2}
-            floatIntensity={0.3}
-          >
-            <ShipHull />
-          </Float>
-          
-          <WaterPlane />
-          <Particles />
-          
-          <Environment preset="night" />
+          <Scene />
         </Suspense>
       </Canvas>
     </div>
