@@ -11,196 +11,104 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
   };
 
   return (
-    <section id="contact" className="py-20 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-40 left-20 w-48 h-48 bg-primary/10 rounded-full blur-3xl float-animation blob-animation"></div>
-        <div className="absolute bottom-40 right-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl float-delayed-animation blob-animation" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-primary/5 to-transparent rounded-full blur-3xl"></div>
+    <section id="contact" className="py-24 relative">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16 animate-fade-in-up">
-          <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-md border border-primary/30 rounded-full px-6 py-2 mb-6 shimmer-effect">
-            <Mail className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">{t('contact.title')}</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            <span className="text-foreground">{t('contact.subtitle')}</span>
-            <br />
-            <span className="gradient-text">
-              {t('contact.subtitle')}
-            </span>
+          <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('contact.title')}</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+            {t('contact.subtitle')}
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <div className="section-divider mb-6"></div>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {t('contact.description')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Information */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="glass-effect-strong tech-border-glow hover-lift animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Mail className="h-5 w-5 text-primary" />
-                  <span>{t('contact.info.email')}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-300 group cursor-pointer">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform relative">
-                    <Mail className="h-5 w-5 text-white relative z-10" />
-                    <div className="absolute inset-0 rounded-lg bg-primary/50 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{t('contact.info.email')}</p>
-                    <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">Lars@Maritime-Automation.no</p>
-                  </div>
+          <div className="lg:col-span-1 space-y-4">
+            {[
+              { icon: Mail, label: t('contact.info.email'), value: "Lars@Maritime-Automation.no" },
+              { icon: Phone, label: t('contact.info.phone'), value: "+47 917 98 722" },
+              { icon: MapPin, label: t('contact.info.location'), value: "Rennesøygata 14A, 4014 Stavanger" },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center space-x-3 p-4 glass-effect rounded-xl group hover:bg-card/80 transition-all cursor-pointer">
+                <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                  <Icon className="h-4 w-4 text-primary" />
                 </div>
-                
-                <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-300 group cursor-pointer">
-                  <div className="w-10 h-10 bg-gradient-to-r from-accent to-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform relative">
-                    <Phone className="h-5 w-5 text-white relative z-10" />
-                    <div className="absolute inset-0 rounded-lg bg-accent/50 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{t('contact.info.phone')}</p>
-                    <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">+47 917 98 722</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm font-medium text-foreground">{value}</p>
                 </div>
+              </div>
+            ))}
 
-                <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-primary/10 transition-all duration-300 group cursor-pointer">
-                  <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform relative">
-                    <MapPin className="h-5 w-5 text-white relative z-10" />
-                    <div className="absolute inset-0 rounded-lg bg-primary/50 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{t('contact.info.location')}</p>
-                    <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">Rennesøygata 14A, 4014 Stavanger</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="p-4 glass-effect rounded-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <Clock className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">{t('contact.info.responseTime')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs text-muted-foreground">{t('contact.info.responseTimeValue')}</span>
+              </div>
+            </div>
 
-            <Card className="glass-effect-strong tech-border-glow hover-lift animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  <span>{t('contact.info.responseTime')}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {t('contact.info.responseTimeValue')}
-                </p>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full glow-pulse-intense relative">
-                    <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                  </div>
-                  <span className="text-sm font-medium text-green-400">{t('contact.info.responseTimeValue')}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-effect-strong tech-border-glow hover-lift animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Award className="h-5 w-5 text-primary" />
-                  <span>{t('contact.info.certifications')}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {t('contact.info.certificationsValue')}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="p-4 glass-effect rounded-xl">
+              <div className="flex items-center space-x-2 mb-2">
+                <Award className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">{t('contact.info.certifications')}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{t('contact.info.certificationsValue')}</p>
+            </div>
           </div>
 
           {/* Contact Form */}
-          <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <Card className="glass-effect-strong tech-border-glow">
+          <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+            <Card className="glass-effect border-border/30">
               <CardHeader>
-                <CardTitle>{t('contact.form.message')}</CardTitle>
+                <CardTitle className="text-lg">{t('contact.form.message')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">{t('contact.form.name')} *</Label>
-                      <Input 
-                        id="name" 
-                        placeholder={t('contact.form.name')}
-                        className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                        required
-                      />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="name" className="text-xs">{t('contact.form.name')} *</Label>
+                      <Input id="name" placeholder={t('contact.form.name')} className="bg-card/50 border-border/40 text-sm" required />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">{t('contact.form.email')} *</Label>
-                      <Input 
-                        id="email" 
-                        type="email"
-                        placeholder={t('contact.form.email')}
-                        className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                        required
-                      />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email" className="text-xs">{t('contact.form.email')} *</Label>
+                      <Input id="email" type="email" placeholder={t('contact.form.email')} className="bg-card/50 border-border/40 text-sm" required />
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="company">{t('contact.form.company')}</Label>
-                      <Input 
-                        id="company" 
-                        placeholder={t('contact.form.company')}
-                        className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                      />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="company" className="text-xs">{t('contact.form.company')}</Label>
+                      <Input id="company" placeholder={t('contact.form.company')} className="bg-card/50 border-border/40 text-sm" />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">{t('contact.form.phone')}</Label>
-                      <Input 
-                        id="phone" 
-                        placeholder={t('contact.form.phone')}
-                        className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                      />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="phone" className="text-xs">{t('contact.form.phone')}</Label>
+                      <Input id="phone" placeholder={t('contact.form.phone')} className="bg-card/50 border-border/40 text-sm" />
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">{t('contact.form.subject')} *</Label>
-                    <Input 
-                      id="subject" 
-                      placeholder={t('contact.form.subject')}
-                      className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                      required
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="subject" className="text-xs">{t('contact.form.subject')} *</Label>
+                    <Input id="subject" placeholder={t('contact.form.subject')} className="bg-card/50 border-border/40 text-sm" required />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">{t('contact.form.message')} *</Label>
-                    <Textarea 
-                      id="message" 
-                      placeholder={t('contact.form.messagePlaceholder')}
-                      rows={6}
-                      className="bg-card/50 border-primary/20 focus:border-primary focus:ring-primary/20 resize-none transition-all duration-300"
-                      required
-                    />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="message" className="text-xs">{t('contact.form.message')} *</Label>
+                    <Textarea id="message" placeholder={t('contact.form.messagePlaceholder')} rows={5} className="bg-card/50 border-border/40 resize-none text-sm" required />
                   </div>
-
-                  <Button 
-                    type="submit"
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense group relative overflow-hidden"
-                  >
-                    <span className="relative z-10 flex items-center justify-center">
-                      <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                      {t('contact.form.submit')}
-                    </span>
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group">
+                    <Send className="mr-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    {t('contact.form.submit')}
                   </Button>
                 </form>
               </CardContent>
