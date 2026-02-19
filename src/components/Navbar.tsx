@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Anchor } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,9 +9,16 @@ import { QuoteModal } from "@/components/QuoteModal";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { t } = useLanguage();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navItems = [
     { label: t('nav.home'), to: "/", type: "link" },
@@ -25,7 +32,6 @@ const Navbar = () => {
 
   const handleNavClick = (item: any) => {
     if (item.label === t('nav.home') && isHomePage) {
-      // If we're already on home page and clicking home, scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     setIsOpen(false);
@@ -33,69 +39,59 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 glass-effect-strong border-b border-primary/30">
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+        scrolled 
+          ? 'bg-background/90 backdrop-blur-xl border-b border-border/50 shadow-lg shadow-background/20' 
+          : 'bg-transparent'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link 
               to="/" 
-              className="flex items-center space-x-2 group"
+              className="flex items-center space-x-2.5 group"
               onClick={() => {
-                if (isHomePage) {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center glow-pulse-intense relative group-hover:scale-110 transition-transform duration-300">
-                <Anchor className="h-6 w-6 text-white relative z-10" />
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <Anchor className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold gradient-text">
-                Maritime Automation
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                Maritime <span className="text-primary">Automation</span>
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              {navItems.map((item) => (
-                item.type === "link" ? (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
-                    onClick={() => handleNavClick(item)}
-                  >
+            <div className="hidden md:flex items-center space-x-1">
+              {navItems.map((item) => {
+                const className = "px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-md hover:bg-primary/5";
+                return item.type === "link" ? (
+                  <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>
                     {item.label}
                   </Link>
                 ) : (
-                  <a
-                    key={item.label}
-                    href={item.to}
-                    className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium"
-                    onClick={() => handleNavClick(item)}
-                  >
+                  <a key={item.label} href={item.to} className={className} onClick={() => handleNavClick(item)}>
                     {item.label}
                   </a>
-                )
-              ))}
-              <LanguageSwitcher />
-              <Button 
-                size="sm"
-                onClick={() => setIsQuoteModalOpen(true)}
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse"
-              >
-                {t('nav.getQuote')}
-              </Button>
+                );
+              })}
+              <div className="ml-2 pl-2 border-l border-border/50 flex items-center space-x-2">
+                <LanguageSwitcher />
+                <Button 
+                  size="sm"
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4"
+                >
+                  {t('nav.getQuote')}
+                </Button>
+              </div>
             </div>
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-foreground"
-              >
-                {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="text-foreground">
+                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
@@ -103,34 +99,25 @@ const Navbar = () => {
           {/* Mobile Navigation */}
           {isOpen && (
             <div className="md:hidden animate-fade-in-up">
-              <div className="px-2 pt-2 pb-3 space-y-1 bg-card/90 backdrop-blur-md rounded-lg mt-2">
-                {navItems.map((item) => (
-                  item.type === "link" ? (
-                    <Link
-                      key={item.label}
-                      to={item.to}
-                      className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
-                      onClick={() => handleNavClick(item)}
-                    >
+              <div className="px-2 pt-2 pb-3 space-y-1 bg-card/95 backdrop-blur-xl rounded-lg mt-2 border border-border/30">
+                {navItems.map((item) => {
+                  const className = "block px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors";
+                  return item.type === "link" ? (
+                    <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>
                       {item.label}
                     </Link>
                   ) : (
-                    <a
-                      key={item.label}
-                      href={item.to}
-                      className="block px-3 py-2 text-foreground/80 hover:text-primary transition-colors duration-300"
-                      onClick={() => handleNavClick(item)}
-                    >
+                    <a key={item.label} href={item.to} className={className} onClick={() => handleNavClick(item)}>
                       {item.label}
                     </a>
-                  )
-                ))}
+                  );
+                })}
                 <div className="flex items-center justify-between px-3 py-2 gap-2">
                   <LanguageSwitcher />
                   <Button 
                     size="sm"
                     onClick={() => setIsQuoteModalOpen(true)}
-                    className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {t('nav.getQuote')}
                   </Button>

@@ -15,63 +15,49 @@ const Hero = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/80 to-background/90"></div>
-        {/* Aurora effect overlay */}
-        <div className="absolute inset-0 aurora-bg opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/90"></div>
       </div>
 
-      {/* Animated blob elements */}
+      {/* Subtle ambient glow — reduced from 6+ orbs to 2 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Large gradient blobs */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-primary/20 to-accent/10 rounded-full blur-3xl blob-animation"></div>
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-gradient-to-tr from-accent/15 to-primary/10 rounded-full blur-3xl blob-animation" style={{ animationDelay: '-4s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-primary/10 to-transparent rounded-full blur-3xl opacity-50"></div>
-
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-[10%] w-6 h-6 bg-primary/40 rounded-full float-animation glow-pulse-intense"></div>
-        <div className="absolute top-32 right-[15%] w-8 h-8 bg-accent/50 rounded-full float-delayed-animation" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-32 left-[15%] w-4 h-4 bg-primary/60 rounded-full float-animation" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-20 right-[20%] w-10 h-10 bg-accent/30 rounded-full float-delayed-animation blob-animation" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute top-1/3 left-[5%] w-3 h-3 bg-primary/70 rounded-full float-animation" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-1/4 right-[8%] w-5 h-5 bg-accent/40 rounded-full float-delayed-animation" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-gradient-to-tr from-accent/6 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
           <div className="text-center lg:text-left">
-            <div className="mb-8 animate-fade-in-up">
-              <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-md border border-primary/30 rounded-full px-6 py-2 mb-6 shimmer-effect relative overflow-hidden">
-                <Waves className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">{t('hero.title')}</span>
+            <div className="mb-6 animate-fade-in-up">
+              <div className="inline-flex items-center space-x-2 bg-primary/8 border border-primary/15 rounded-full px-5 py-1.5 mb-6">
+                <Waves className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium tracking-wide uppercase text-primary/90">{t('hero.title')}</span>
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up tracking-tight" style={{ animationDelay: '0.15s' }}>
               <span className="gradient-text">
                 {t('hero.title')}
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
+            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.3s' }}>
               {t('hero.subtitle')}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-pulse-intense text-lg px-8 py-6 group relative overflow-hidden"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20"
               >
-                <span className="relative z-10 flex items-center">
-                  {t('hero.cta.services')}
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </span>
+                {t('hero.cta.services')}
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
                 variant="outline" 
                 size="lg"
-                className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60 text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300"
+                className="border-primary/25 text-foreground hover:bg-primary/8 hover:border-primary/40 text-base px-8 py-6 transition-all duration-300"
               >
                 {t('hero.cta.contact')}
               </Button>
@@ -79,10 +65,10 @@ const Hero = () => {
           </div>
 
           {/* 3D Ship Visualization */}
-          <div className="hidden lg:block h-[500px] animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="hidden lg:block h-[500px] animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <Suspense fallback={
               <div className="w-full h-full flex items-center justify-center">
-                <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               </div>
             }>
               <Ship3D />
@@ -90,42 +76,28 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto lg:mx-0 mt-12 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
-          <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
-            <div className="relative">
-              <Settings className="h-8 w-8 text-primary mx-auto mb-3 group-hover:rotate-90 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {/* Features — cleaner cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto lg:mx-0 mt-16 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+          {[
+            { icon: Settings, title: t('hero.feature1.title'), desc: t('hero.feature1.desc'), hoverClass: 'group-hover:rotate-90' },
+            { icon: Zap, title: t('hero.feature2.title'), desc: t('hero.feature2.desc'), hoverClass: 'group-hover:scale-110' },
+            { icon: Waves, title: t('hero.feature3.title'), desc: t('hero.feature3.desc'), hoverClass: '' },
+          ].map((feat, i) => (
+            <div key={i} className="glass-effect rounded-xl p-5 group hover:bg-card/80 transition-all duration-300 hover:-translate-y-1">
+              <feat.icon className={`h-6 w-6 text-primary mb-3 transition-transform duration-500 ${feat.hoverClass}`} />
+              <h3 className="font-semibold text-sm mb-1">{feat.title}</h3>
+              <p className="text-muted-foreground text-xs leading-relaxed">{feat.desc}</p>
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature1.title')}</h3>
-            <p className="text-muted-foreground text-sm text-center">{t('hero.feature1.desc')}</p>
-          </div>
-          <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
-            <div className="relative">
-              <Zap className="h-8 w-8 text-accent mx-auto mb-3 group-hover:scale-125 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature2.title')}</h3>
-            <p className="text-muted-foreground text-sm text-center">{t('hero.feature2.desc')}</p>
-          </div>
-          <div className="glass-effect-strong rounded-xl p-6 tech-border-glow hover-lift group">
-            <div className="relative">
-              <Waves className="h-8 w-8 text-primary mx-auto mb-3 wave-animation" />
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-            <h3 className="font-semibold text-lg mb-2 text-center">{t('hero.feature3.title')}</h3>
-            <p className="text-muted-foreground text-sm text-center">{t('hero.feature3.desc')}</p>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50">
         <div className="flex flex-col items-center">
-          <div className="w-6 h-10 border-2 border-primary/40 rounded-full flex justify-center p-1">
-            <div className="w-1.5 h-3 bg-primary rounded-full animate-bounce"></div>
+          <div className="w-5 h-8 border border-primary/30 rounded-full flex justify-center p-1">
+            <div className="w-1 h-2 bg-primary/60 rounded-full animate-bounce"></div>
           </div>
-          <span className="text-xs text-muted-foreground mt-2 opacity-60">Scroll</span>
         </div>
       </div>
     </section>
