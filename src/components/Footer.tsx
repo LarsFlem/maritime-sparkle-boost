@@ -1,5 +1,6 @@
-import { Anchor, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import logoText from "@/assets/logo-text.png";
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -11,13 +12,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Anchor className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">
-                Maritime <span className="text-primary">Automation</span>
-              </span>
+            <div className="flex items-center mb-4">
+              <img src={logoText} alt="Maritime Automation" className="h-8" />
             </div>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
               Professional maritime automation, engineering og konsulentvirksomhet. 
