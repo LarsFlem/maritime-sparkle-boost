@@ -55,7 +55,7 @@ const Navbar = () => {
                 if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
-              <img src={logoText} alt="Maritime Automation" className="h-8 group-hover:scale-105 transition-transform duration-300" />
+              <img src={logoText} alt="Maritime Automation" className="h-8 group-hover:scale-105 transition-transform duration-300 brightness-0 invert" />
             </Link>
 
             {/* Desktop Navigation */}
