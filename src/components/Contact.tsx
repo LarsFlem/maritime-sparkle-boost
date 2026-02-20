@@ -14,7 +14,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-24 relative">
+    <section id="contact" aria-label="Kontakt" className="py-24 relative">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
       </div>

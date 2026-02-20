@@ -36,11 +36,13 @@ const Index = () => {
     <div className="min-h-screen relative">
       <ParticleBackground />
       <Navbar />
-      <Hero />
-      <Services />
-      <About />
-      <Portfolio />
-      <Contact />
+      <main>
+        <Hero />
+        <Services />
+        <About />
+        <Portfolio />
+        <Contact />
+      </main>
       <Footer />
     </div>
   );

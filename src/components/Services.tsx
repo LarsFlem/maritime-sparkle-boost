@@ -54,7 +54,7 @@ const Services = () => {
   const featureIcons = [Settings, Zap, Shield, Database, Monitor, Cog, Wrench, Users];
 
   return (
-    <section id="services" className="py-24 relative">
+    <section id="services" aria-label="Tjenester" className="py-24 relative">
       {/* Subtle background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
