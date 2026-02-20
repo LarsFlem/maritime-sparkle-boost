@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Anchor } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logoText from "@/assets/logo-text.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Link, useLocation } from "react-router-dom";
@@ -54,12 +55,7 @@ const Navbar = () => {
                 if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                <Anchor className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">
-                Maritime <span className="text-primary">Automation</span>
-              </span>
+              <img src={logoText} alt="Maritime Automation" className="h-8 group-hover:scale-105 transition-transform duration-300" />
             </Link>
 
             {/* Desktop Navigation */}
