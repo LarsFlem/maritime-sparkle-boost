@@ -23,7 +23,7 @@ const About = () => {
   ];
 
   return (
-    <section id="about" className="py-24 relative">
+    <section id="about" aria-label="Om oss" className="py-24 relative">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-primary/3 rounded-full blur-3xl"></div>
       </div>

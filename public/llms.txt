@@ -1,0 +1,38 @@
+# Maritime Automation
+
+> Konsulent- og engineeringtjenester innen elektro og automasjon for den maritime industrien. Basert i Stavanger, Norge.
+
+## Om selskapet
+
+Maritime Automation er eid og drevet av Lars Jørgen Flem, mekatronikk-ingeniør med bachelorgrad fra Universitetet i Agder. Selskapet tilbyr spesialiserte tjenester innen maritim automasjon, med erfaring fra ledende selskaper som Moreld Apply, Red Rock, HMH, Ocean Infinity Marine, Kongsberg Maritime / Rolls Royce Marine og Optimar Stette.
+
+## Tjenester
+
+### Komplette Engineering-pakker
+Design og implementering av automatiseringssystemer for bevegelig maskineri. Inkluderer alarmsystemer, generell automasjon, planlegging og gjennomføring av elektriske systemer i samsvar med IECEx- og ATEX-standarder, og programmering av PLC-er (spesielt TwinCAT for Beckhoff).
+
+### Support og Kommisjoning
+Igangsetting av automasjonsutstyr og maskineri, feilsøking og teknisk støtte på elektrisk og automasjonsutstyr, nettverkskonfigurasjon for routere, access points og brannmurer, samt leveranse av detaljert as-built dokumentasjon.
+
+### Prosjektsupportering og Assistanse
+Støtte i prosjektledelse inkludert estimering av tid og kostnader for tekniske oppgraderinger, assistanse i håndtering av programvareoppdateringer og endringer, FMEA-assistanse (Failure Modes and Effects Analysis), og implementering av verktøy som AutoCAD, Vault og TwinCAT.
+
+### 3D Printing og Modellering
+3D-printingstjenester med Bambu P1P-printer som støtter PLA, PETG, TPU og andre materialer. Modellering og print av spesialtilpassede braketter og komponenter, rådgivning om filamentvalg, og print av skalerte modeller og prototyper.
+
+## Kjernekompetanse
+
+- PLC-programmering (TwinCAT / Beckhoff)
+- HMI / SCADA-systemer
+- IECEx og ATEX-standarder
+- SolidWorks
+- Nettverkskonfigurasjon
+- Prosjektledelse
+- 3D-printing og prototyping
+
+## Kontakt
+
+- E-post: Lars@Maritime-Automation.no
+- Telefon: +47 917 98 722
+- Adresse: Rennesøygata 14A, 4014 Stavanger, Norge
+- Nettside: https://maritime-automation.no
