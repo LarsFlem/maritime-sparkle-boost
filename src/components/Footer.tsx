@@ -13,7 +13,7 @@ const Footer = () => {
           {/* Logo & Description */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <img src={logoText} alt="Maritime Automation" className="h-8" />
+              <img src={logoText} alt="Maritime Automation" className="h-8 brightness-0 invert" />
             </div>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
               Professional maritime automation, engineering og konsulentvirksomhet. 
