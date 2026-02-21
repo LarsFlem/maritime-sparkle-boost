@@ -134,10 +134,10 @@ const Services = () => {
 
         {/* Service Detail Modal */}
         <Dialog open={selectedService !== null} onOpenChange={(open) => !open && setSelectedService(null)}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden glass-effect border-border/30">
+          <DialogContent className="max-w-4xl p-0 overflow-hidden glass-effect border-border/30">
             {active && (
               <>
-                <div className="relative w-full h-64 sm:h-80 overflow-hidden">
+                <div className="relative w-full h-80 sm:h-[28rem] overflow-hidden">
                   {active.useIcon ? (
                     <div className="w-full h-full flex items-center justify-center bg-primary/10">
                       <Printer className="h-20 w-20 text-primary" />
@@ -149,7 +149,7 @@ const Services = () => {
                       className="w-full h-full object-cover" 
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent" />
                   <div className="absolute bottom-4 left-6 right-6">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold text-foreground drop-shadow-lg">
