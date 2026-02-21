@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Settings, Wrench, Users, Cog, Zap, Database, Monitor, Shield, ArrowRight, Printer
 } from "lucide-react";
@@ -10,6 +12,7 @@ import projectIcon from "@/assets/assistanse-real.jpg";
 
 const Services = () => {
   const { t } = useLanguage();
+  const [selectedService, setSelectedService] = useState<number | null>(null);
   
   const services = [
     {
@@ -52,6 +55,7 @@ const Services = () => {
   ];
 
   const featureIcons = [Settings, Zap, Shield, Database, Monitor, Cog, Wrench, Users];
+  const active = selectedService !== null ? services[selectedService] : null;
 
   return (
     <section id="services" aria-label="Tjenester" className="py-24 relative">
@@ -117,6 +121,7 @@ const Services = () => {
                     variant="ghost"
                     size="sm"
                     className="w-full text-primary hover:bg-primary/8 text-xs group/btn"
+                    onClick={() => setSelectedService(index)}
                   >
                     {t('services.readMore')}
                     <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
@@ -126,6 +131,64 @@ const Services = () => {
             </Card>
           ))}
         </div>
+
+        {/* Service Detail Modal */}
+        <Dialog open={selectedService !== null} onOpenChange={(open) => !open && setSelectedService(null)}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden glass-effect border-border/30">
+            {active && (
+              <>
+                <div className="relative w-full h-64 sm:h-80 overflow-hidden">
+                  {active.useIcon ? (
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                      <Printer className="h-20 w-20 text-primary" />
+                    </div>
+                  ) : (
+                    <img 
+                      src={active.icon!} 
+                      alt={active.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <div className="absolute bottom-4 left-6 right-6">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-foreground drop-shadow-lg">
+                        {active.title}
+                      </DialogTitle>
+                    </DialogHeader>
+                  </div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+                    {active.description}
+                  </DialogDescription>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {active.features.map((feature, fi) => {
+                      const Icon = featureIcons[fi % featureIcons.length];
+                      return (
+                        <div key={fi} className="flex items-start space-x-3 p-3 rounded-lg bg-primary/5">
+                          <Icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-foreground">{feature}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="pt-2">
+                    <Button 
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedService(null);
+                        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      {t('services.cta')}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Experience Section */}
         <div className="mt-20 text-center">
