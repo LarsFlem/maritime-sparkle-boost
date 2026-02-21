@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import engineeringIcon from "@/assets/engineering-real.png";
 import supportIcon from "@/assets/commissioning-real.jpg";
 import projectIcon from "@/assets/assistanse-real.jpg";
+import printingIcon from "@/assets/3d-printing-collage.png";
 
 const Services = () => {
   const { t } = useLanguage();
@@ -44,13 +45,12 @@ const Services = () => {
     },
     {
       title: t('services.printing.title'),
-      icon: null,
+      icon: printingIcon,
       description: t('services.printing.description'),
       features: [
         t('services.printing.feature1'), t('services.printing.feature2'),
         t('services.printing.feature3'), t('services.printing.feature4')
       ],
-      useIcon: true,
     }
   ];
 
@@ -84,18 +84,12 @@ const Services = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="relative w-full h-48 overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0" style={{ width: 'calc(100% + 2px)' }}>
-                {service.useIcon ? (
-                  <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                    <Printer className="h-12 w-12 text-primary" />
-                  </div>
-                ) : (
-                  <img 
-                    src={service.icon!} 
+                <img 
+                    src={service.icon} 
                     alt={service.title} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                     loading="lazy"
                   />
-                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
               </div>
               <CardHeader className="text-center pb-3 pt-4">
@@ -138,17 +132,11 @@ const Services = () => {
             {active && (
               <>
                 <div className="relative w-full h-80 sm:h-[28rem] overflow-hidden">
-                  {active.useIcon ? (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Printer className="h-20 w-20 text-primary" />
-                    </div>
-                  ) : (
-                    <img 
-                      src={active.icon!} 
+                  <img 
+                      src={active.icon} 
                       alt={active.title} 
                       className="w-full h-full object-cover" 
                     />
-                  )}
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent" />
                   <div className="absolute bottom-4 left-6 right-6">
                     <DialogHeader>
