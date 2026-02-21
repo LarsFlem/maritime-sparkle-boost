@@ -79,16 +79,22 @@ const Services = () => {
               className="glass-effect hover-lift group transition-all duration-400 animate-fade-in-up border-border/30"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <CardHeader className="text-center pb-3">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-xl overflow-hidden">
-                  {service.useIcon ? (
-                    <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                      <Printer className="h-8 w-8 text-primary" />
-                    </div>
-                  ) : (
-                    <img src={service.icon!} alt={service.title} className="w-full h-full object-cover" />
-                  )}
-                </div>
+              <div className="relative w-full h-48 overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0" style={{ width: 'calc(100% + 2px)' }}>
+                {service.useIcon ? (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                    <Printer className="h-12 w-12 text-primary" />
+                  </div>
+                ) : (
+                  <img 
+                    src={service.icon!} 
+                    alt={service.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    loading="lazy"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+              </div>
+              <CardHeader className="text-center pb-3 pt-4">
                 <CardTitle className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">
                   {service.title}
                 </CardTitle>
