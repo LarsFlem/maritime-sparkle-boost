@@ -379,7 +379,7 @@ const WaterPlane = () => {
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.42, 0]}>
-      <planeGeometry args={[18, 18, 64, 64]} />
+      <circleGeometry args={[9, 128]} />
       <MeshDistortMaterial
         ref={materialRef}
         color="#0a3d62"
