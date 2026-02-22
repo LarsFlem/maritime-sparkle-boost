@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
-  Settings, Wrench, Users, Cog, Zap, Database, Monitor, Shield, ArrowRight, Printer } from
-"lucide-react";
+  Cog, Bell, Shield, Cpu,
+  Rocket, Wrench, Network, FileText,
+  ClipboardList, RefreshCw, SearchCheck, Monitor,
+  Box, Layers, Ruler, ShoppingCart,
+  ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import engineeringIcon from "@/assets/engineering-real.png";
 import supportIcon from "@/assets/commissioning-real.jpg";
@@ -54,7 +57,13 @@ const Services = () => {
   }];
 
 
-  const featureIcons = [Settings, Zap, Shield, Database, Monitor, Cog, Wrench, Users];
+  // Per-service icons matched to feature descriptions
+  const serviceFeatureIcons = [
+    [Cog, Bell, Shield, Cpu],           // Engineering: automation, alarms, standards, PLC
+    [Rocket, Wrench, Network, FileText], // Support: startup, troubleshooting, network, docs
+    [ClipboardList, RefreshCw, SearchCheck, Monitor], // Project: mgmt, software, FMEA, tools
+    [Box, Layers, Ruler, ShoppingCart],  // 3D Printing: components, filament, models, procurement
+  ];
   const active = selectedService !== null ? services[selectedService] : null;
 
   return (
@@ -102,7 +111,7 @@ const Services = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 {service.features.map((feature, fi) => {
-                const Icon = featureIcons[fi % featureIcons.length];
+                const Icon = serviceFeatureIcons[index][fi];
                 return (
                   <div key={fi} className="flex items-start space-x-2.5 p-1.5 rounded-md hover:bg-primary/5 transition-colors">
                       <Icon className="h-3.5 w-3.5 text-primary/70 mt-0.5 flex-shrink-0" />
@@ -152,7 +161,7 @@ const Services = () => {
                   </DialogDescription>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {active.features.map((feature, fi) => {
-                    const Icon = featureIcons[fi % featureIcons.length];
+                    const Icon = serviceFeatureIcons[selectedService!][fi];
                     return (
                       <div key={fi} className="flex items-start space-x-3 p-3 rounded-lg bg-primary/5">
                           <Icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
