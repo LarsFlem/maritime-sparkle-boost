@@ -368,16 +368,26 @@ const SOVHull = () => {
 
 // Animated ocean with better look
 const WaterPlane = () => {
+  const materialRef = useRef<any>(null);
+  const [opacity, setOpacity] = useState(0);
+
+  useFrame((_, delta) => {
+    if (opacity < 0.75) {
+      setOpacity(prev => Math.min(prev + delta * 0.3, 0.75));
+    }
+  });
+
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.42, 0]}>
       <planeGeometry args={[18, 18, 64, 64]} />
       <MeshDistortMaterial
+        ref={materialRef}
         color="#0a3d62"
         speed={1.2}
         distort={0.1}
         radius={1}
         transparent
-        opacity={0.75}
+        opacity={opacity}
       />
     </mesh>
   );
@@ -509,7 +519,7 @@ const Ship3D = () => {
 
       <Canvas
         key={key}
-        camera={{ position: [3.5, 2.5, 4.5], fov: 38 }}
+        camera={{ position: [5, 3.5, 6.5], fov: 38 }}
         style={{ background: 'transparent' }}
         onCreated={handleCreated}
         onError={() => setHasError(true)}
