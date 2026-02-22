@@ -89,7 +89,7 @@ const Services = () => {
           {services.map((service, index) =>
           <Card
             key={service.title}
-            className="glass-effect hover-lift group transition-all duration-400 animate-fade-in-up border-border/30"
+            className="glass-effect hover-lift group transition-all duration-400 animate-fade-in-up border-border/30 flex flex-col"
             style={{ animationDelay: `${index * 0.1}s` }}>
 
               <div className="relative w-full overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0 bg-black/20" style={{ width: 'calc(100% + 2px)' }}>
@@ -109,7 +109,7 @@ const Services = () => {
                   {service.description}
                 </p>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2 flex-1">
                 {service.features.map((feature, fi) => {
                 const Icon = serviceFeatureIcons[index][fi];
                 return (
@@ -119,6 +119,8 @@ const Services = () => {
                     </div>);
 
               })}
+              </CardContent>
+              <div className="p-6 pt-0">
                 <div className="pt-3">
                   <Button
                   variant="ghost"
@@ -130,7 +132,7 @@ const Services = () => {
                     <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                   </Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           )}
         </div>
