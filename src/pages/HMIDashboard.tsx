@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Power, Waves, Battery, Settings, Activity } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { AlertTriangle, Power, Activity, ThermometerSun, Vibrate, Zap, Radio } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Area, AreaChart } from "recharts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
+import GaugeCircular from "@/components/hmi/GaugeCircular";
+import StatusIndicator from "@/components/hmi/StatusIndicator";
+import HMIPanel from "@/components/hmi/HMIPanel";
+import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 
 interface Turbine {
   id: string;
@@ -24,337 +24,291 @@ interface Turbine {
 const HMIDashboard = () => {
   const { t } = useLanguage();
   const [turbines, setTurbines] = useState<Turbine[]>([
-    { id: "T001", name: "Wave Gen Alpha", status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, temperature: 45, vibration: 2.1 },
-    { id: "T002", name: "Wave Gen Beta", status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, temperature: 42, vibration: 1.8 },
-    { id: "T003", name: "Wave Gen Gamma", status: "warning", energyOutput: 1.8, efficiency: 72, health: 76, position: { x: 60, y: 35 }, temperature: 52, vibration: 3.2 },
-    { id: "T004", name: "Wave Gen Delta", status: "operational", energyOutput: 2.3, efficiency: 85, health: 92, position: { x: 80, y: 25 }, temperature: 44, vibration: 2.0 },
-    { id: "T005", name: "Wave Gen Echo", status: "offline", energyOutput: 0, efficiency: 0, health: 45, position: { x: 30, y: 60 }, temperature: 38, vibration: 0.5 },
-    { id: "T006", name: "Wave Gen Foxtrot", status: "operational", energyOutput: 2.2, efficiency: 84, health: 89, position: { x: 70, y: 50 }, temperature: 46, vibration: 2.3 },
+    { id: "T001", name: "WG-Alpha", status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, temperature: 45, vibration: 2.1 },
+    { id: "T002", name: "WG-Beta", status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, temperature: 42, vibration: 1.8 },
+    { id: "T003", name: "WG-Gamma", status: "warning", energyOutput: 1.8, efficiency: 72, health: 76, position: { x: 60, y: 35 }, temperature: 52, vibration: 3.2 },
+    { id: "T004", name: "WG-Delta", status: "operational", energyOutput: 2.3, efficiency: 85, health: 92, position: { x: 80, y: 25 }, temperature: 44, vibration: 2.0 },
+    { id: "T005", name: "WG-Echo", status: "offline", energyOutput: 0, efficiency: 0, health: 45, position: { x: 30, y: 65 }, temperature: 38, vibration: 0.5 },
+    { id: "T006", name: "WG-Foxtrot", status: "operational", energyOutput: 2.2, efficiency: 84, health: 89, position: { x: 70, y: 55 }, temperature: 46, vibration: 2.3 },
   ]);
 
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
   const [totalEnergy, setTotalEnergy] = useState(0);
+  const [trendData, setTrendData] = useState<{ time: string; energy: number }[]>([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Simulate real-time data updates
+  // Clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Simulate real-time data
   useEffect(() => {
     const interval = setInterval(() => {
       setTurbines(prev => prev.map(turbine => ({
         ...turbine,
-        energyOutput: turbine.status === "operational" 
-          ? Math.max(0, turbine.energyOutput + (Math.random() - 0.5) * 0.2)
+        energyOutput: turbine.status === "operational"
+          ? Math.max(0.5, Math.min(3.0, turbine.energyOutput + (Math.random() - 0.5) * 0.15))
           : turbine.energyOutput,
         efficiency: turbine.status === "operational"
-          ? Math.min(100, Math.max(60, turbine.efficiency + (Math.random() - 0.5) * 2))
+          ? Math.min(100, Math.max(60, turbine.efficiency + (Math.random() - 0.5) * 1.5))
           : turbine.efficiency,
-        temperature: Math.max(35, Math.min(60, turbine.temperature + (Math.random() - 0.5) * 2)),
-        vibration: Math.max(0, Math.min(5, turbine.vibration + (Math.random() - 0.5) * 0.3)),
+        temperature: Math.max(35, Math.min(60, turbine.temperature + (Math.random() - 0.5) * 1)),
+        vibration: Math.max(0, Math.min(5, turbine.vibration + (Math.random() - 0.5) * 0.2)),
       })));
     }, 2000);
-
     return () => clearInterval(interval);
   }, []);
 
+  // Update trend data
   useEffect(() => {
-    setTotalEnergy(turbines.reduce((sum, turbine) => sum + turbine.energyOutput, 0));
+    const total = turbines.reduce((sum, t) => sum + t.energyOutput, 0);
+    setTotalEnergy(total);
+    setTrendData(prev => {
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      const next = [...prev, { time: timeStr, energy: parseFloat(total.toFixed(1)) }];
+      return next.slice(-20);
+    });
   }, [turbines]);
+
+  const operationalCount = turbines.filter(t => t.status === "operational").length;
+  const warningCount = turbines.filter(t => t.status === "warning").length;
+  const offlineCount = turbines.filter(t => t.status === "offline").length;
+  const avgEfficiency = Math.round(turbines.reduce((s, t) => s + t.efficiency, 0) / turbines.length);
 
   const getStatusColor = (status: Turbine["status"]) => {
     switch (status) {
-      case "operational": return "hsl(var(--primary))";
+      case "operational": return "hsl(142, 76%, 50%)";
       case "warning": return "hsl(45, 100%, 60%)";
-      case "offline": return "hsl(var(--destructive))";
+      case "offline": return "hsl(0, 84%, 50%)";
     }
   };
-
-  const getStatusBadge = (status: Turbine["status"]) => {
-    switch (status) {
-      case "operational": return <Badge className="bg-green-500 text-white">{t('hmi.details.operational')}</Badge>;
-      case "warning": return <Badge className="bg-yellow-500 text-white">{t('hmi.details.warning')}</Badge>;
-      case "offline": return <Badge className="bg-red-500 text-white">Offline</Badge>;
-    }
-  };
-
-  const energyData = [
-    { time: "00:00", energy: 10.2 },
-    { time: "04:00", energy: 8.5 },
-    { time: "08:00", energy: 12.1 },
-    { time: "12:00", energy: 14.3 },
-    { time: "16:00", energy: 11.8 },
-    { time: "20:00", energy: totalEnergy },
-  ];
-
-  const operationalTurbines = turbines.filter(t => t.status === "operational").length;
-  const warningTurbines = turbines.filter(t => t.status === "warning").length;
-  const offlineTurbines = turbines.filter(t => t.status === "offline").length;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-[hsl(210,25%,5%)] text-foreground font-mono">
       <Navbar />
-      <div className="pt-20 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{t('hmi.title.full')}</h1>
-            <p className="text-slate-400">{t('hmi.subtitle.full')}</p>
+      <div className="pt-16">
+        {/* Top status bar */}
+        <div
+          className="border-b px-6 py-2 flex items-center justify-between"
+          style={{
+            borderColor: "hsl(210, 15%, 15%)",
+            background: "hsl(210, 20%, 6%)",
+          }}
+        >
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Radio className="w-3 h-3 text-primary animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.2em] text-primary" style={{ textShadow: "0 0 8px hsl(200, 100%, 50%)" }}>
+                SCADA LINK ACTIVE
+              </span>
+            </div>
+            <div className="h-4 w-px bg-border" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Station: NORTH SEA — Sector 7G
+            </span>
           </div>
-          <div className="flex gap-4">
-            <Button variant="outline" className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700">
-              <Settings className="w-4 h-4 mr-2" />
-              {t('hmi.settings')}
-            </Button>
-            <Badge className="text-lg px-4 py-2 bg-blue-600">
-              <Activity className="w-4 h-4 mr-2" />
-              {t('hmi.systemOnline')}
-            </Badge>
+          <div className="flex items-center gap-6">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              UTC {currentTime.toISOString().slice(0, 10)}
+            </span>
+            <span
+              className="text-sm font-bold tabular-nums text-primary"
+              style={{ textShadow: "0 0 10px hsl(200, 100%, 50%)" }}
+            >
+              {currentTime.toTimeString().slice(0, 8)}
+            </span>
           </div>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Total Energy Output</CardTitle>
-              <Power className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-400">{totalEnergy.toFixed(1)} MW</div>
-              <p className="text-xs text-slate-400">+2.1% from yesterday</p>
-            </CardContent>
-          </Card>
+        <div className="p-4 space-y-4">
+          {/* Alarm bar */}
+          {warningCount > 0 && (
+            <div
+              className="flex items-center gap-3 px-4 py-2 rounded-sm"
+              style={{
+                background: "hsl(45, 100%, 60% / 0.08)",
+                border: "1px solid hsl(45, 100%, 60% / 0.3)",
+              }}
+            >
+              <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
+              <span className="text-xs text-yellow-400 font-mono uppercase tracking-wider">
+                {warningCount} ACTIVE WARNING{warningCount > 1 ? "S" : ""} — WG-Gamma: HIGH VIBRATION DETECTED
+              </span>
+            </div>
+          )}
 
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Operational</CardTitle>
-              <Waves className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-400">{operationalTurbines}/{turbines.length}</div>
-              <p className="text-xs text-slate-400">Turbines online</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Warnings</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-400">{warningTurbines}</div>
-              <p className="text-xs text-slate-400">Require attention</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Fleet Efficiency</CardTitle>
-              <Battery className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-400">
-                {Math.round(turbines.reduce((sum, t) => sum + t.efficiency, 0) / turbines.length)}%
-              </div>
-              <p className="text-xs text-slate-400">Average performance</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Ocean Map View */}
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Ocean Farm Layout</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative w-full h-80 bg-gradient-to-b from-blue-900 to-blue-950 rounded-lg overflow-hidden">
-                {/* Ocean waves effect */}
-                <div className="absolute inset-0 opacity-30">
-                  <div className="wave-animation"></div>
+          {/* Top row: KPI displays */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <HMIPanel title="Total Output" glowColor="hsl(142, 76%, 50%)">
+              <DigitalDisplay value={totalEnergy} label="Power" unit="MW" color="hsl(142, 76%, 50%)" size="lg" />
+            </HMIPanel>
+            <HMIPanel title="Fleet Status">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <StatusIndicator status="operational" label={`${operationalCount} ONLINE`} size="sm" />
                 </div>
-                
-                {/* Turbines */}
+                <div className="flex items-center justify-between">
+                  <StatusIndicator status="warning" label={`${warningCount} WARNING`} size="sm" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <StatusIndicator status="offline" label={`${offlineCount} OFFLINE`} size="sm" />
+                </div>
+              </div>
+            </HMIPanel>
+            <HMIPanel title="Avg Efficiency" glowColor="hsl(200, 100%, 50%)">
+              <GaugeCircular value={avgEfficiency} max={100} label="" unit="%" color="hsl(200, 100%, 50%)" size={120} />
+            </HMIPanel>
+            <HMIPanel title="System Health" glowColor="hsl(280, 70%, 60%)">
+              <GaugeCircular
+                value={Math.round(turbines.reduce((s, t) => s + t.health, 0) / turbines.length)}
+                max={100}
+                label=""
+                unit="%"
+                color="hsl(280, 70%, 60%)"
+                size={120}
+                warningThreshold={50}
+                criticalThreshold={30}
+              />
+            </HMIPanel>
+          </div>
+
+          {/* Main grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Ocean map */}
+            <HMIPanel title="Ocean Farm — Topological View" className="lg:col-span-1">
+              <div className="relative w-full h-72 rounded-sm overflow-hidden" style={{ background: "radial-gradient(ellipse at center, hsl(210, 50%, 12%), hsl(210, 30%, 5%))" }}>
+                {/* Grid overlay */}
+                <svg className="absolute inset-0 w-full h-full opacity-10">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <line key={`h${i}`} x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`} stroke="hsl(200, 100%, 50%)" strokeWidth="0.5" />
+                  ))}
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <line key={`v${i}`} x1={`${i * 10}%`} y1="0" x2={`${i * 10}%`} y2="100%" stroke="hsl(200, 100%, 50%)" strokeWidth="0.5" />
+                  ))}
+                </svg>
+                {/* Turbine nodes */}
                 {turbines.map((turbine) => (
                   <div
                     key={turbine.id}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform hover:scale-110"
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{ left: `${turbine.position.x}%`, top: `${turbine.position.y}%` }}
                     onClick={() => setSelectedTurbine(turbine)}
                   >
-                    <div className="relative">
-                      <div 
-                        className="w-6 h-6 rounded-full border-2 animate-pulse"
-                        style={{ 
+                    {/* Outer ring */}
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-125"
+                      style={{
+                        border: `2px solid ${getStatusColor(turbine.status)}`,
+                        boxShadow: `0 0 15px ${getStatusColor(turbine.status)}, inset 0 0 8px ${getStatusColor(turbine.status)}33`,
+                        background: `${getStatusColor(turbine.status)}15`,
+                      }}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{
                           backgroundColor: getStatusColor(turbine.status),
-                          borderColor: "white",
-                          boxShadow: `0 0 10px ${getStatusColor(turbine.status)}`
+                          boxShadow: `0 0 8px ${getStatusColor(turbine.status)}`,
                         }}
                       />
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap bg-black/70 px-2 py-1 rounded">
-                        {turbine.name}
-                      </div>
-                      {turbine.status === "operational" && (
-                        <div className="absolute -bottom-2 -left-1 w-8 h-1 bg-green-400 opacity-60 animate-ping" />
-                      )}
+                    </div>
+                    {/* Label */}
+                    <div
+                      className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] whitespace-nowrap font-mono uppercase tracking-wider"
+                      style={{ color: getStatusColor(turbine.status), textShadow: `0 0 6px ${getStatusColor(turbine.status)}` }}
+                    >
+                      {turbine.id}
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </HMIPanel>
 
-          {/* Energy Production Chart */}
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Energy Production (24h)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={energyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="time" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1e293b', 
-                      border: '1px solid #334155',
-                      color: 'white'
-                    }} 
+            {/* Live trend */}
+            <HMIPanel title="Power Output — Live Trend" className="lg:col-span-2">
+              <ResponsiveContainer width="100%" height={272}>
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(142, 76%, 50%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(142, 76%, 50%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 15%, 15%)" />
+                  <XAxis dataKey="time" stroke="hsl(210, 10%, 35%)" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="hsl(210, 10%, 35%)" tick={{ fontSize: 10, fontFamily: "monospace" }} domain={['auto', 'auto']} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(210, 20%, 8%)",
+                      border: "1px solid hsl(210, 15%, 20%)",
+                      color: "hsl(142, 76%, 50%)",
+                      fontFamily: "monospace",
+                      fontSize: 12,
+                    }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="energy" 
-                    stroke="#22c55e" 
-                    strokeWidth={2}
-                    dot={{ fill: '#22c55e', strokeWidth: 2 }}
-                  />
-                </LineChart>
+                  <Area type="monotone" dataKey="energy" stroke="hsl(142, 76%, 50%)" strokeWidth={2} fill="url(#energyGrad)" dot={false} />
+                </AreaChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+            </HMIPanel>
+          </div>
 
-        {/* Turbine Details */}
-        <div className="mt-8">
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-800">
-              <TabsTrigger value="overview" className="text-white data-[state=active]:bg-slate-700">Fleet Overview</TabsTrigger>
-              <TabsTrigger value="details" className="text-white data-[state=active]:bg-slate-700">Detailed View</TabsTrigger>
-              <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-slate-700">Analytics</TabsTrigger>
-            </TabsList>
+          {/* Unit detail panels */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {turbines.map((turbine) => (
+              <HMIPanel
+                key={turbine.id}
+                title={turbine.id}
+                glowColor={getStatusColor(turbine.status)}
+                className={`cursor-pointer transition-all ${selectedTurbine?.id === turbine.id ? "ring-1 ring-primary/50" : ""}`}
+              >
+                <div className="space-y-3" onClick={() => setSelectedTurbine(turbine)}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground">{turbine.name}</span>
+                    <StatusIndicator status={turbine.status} size="sm" label="" />
+                  </div>
+                  <GaugeCircular value={turbine.energyOutput} max={3} label="" unit="MW" color={getStatusColor(turbine.status)} size={90} warningThreshold={85} criticalThreshold={95} />
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                    <div className="flex items-center gap-1">
+                      <ThermometerSun className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{Math.round(turbine.temperature)}°C</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Vibrate className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{turbine.vibration.toFixed(1)}Hz</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{Math.round(turbine.efficiency)}%</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Activity className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{turbine.health}%</span>
+                    </div>
+                  </div>
+                </div>
+              </HMIPanel>
+            ))}
+          </div>
 
-            <TabsContent value="overview" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {turbines.map((turbine) => (
-                  <Card key={turbine.id} className="bg-slate-800 border-slate-700 hover:bg-slate-750 transition-colors cursor-pointer" onClick={() => setSelectedTurbine(turbine)}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm text-white">{turbine.name}</CardTitle>
-                        {getStatusBadge(turbine.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Energy Output:</span>
-                        <span className="text-green-400 font-medium">{turbine.energyOutput.toFixed(1)} MW</span>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">Efficiency:</span>
-                          <span className="text-white">{turbine.efficiency}%</span>
-                        </div>
-                        <Progress value={turbine.efficiency} className="h-2" />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">Health:</span>
-                          <span className="text-white">{turbine.health}%</span>
-                        </div>
-                        <Progress value={turbine.health} className="h-2" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          {/* Selected unit detail */}
+          {selectedTurbine && (
+            <HMIPanel title={`${selectedTurbine.id} — ${selectedTurbine.name} — DIAGNOSTICS`} glowColor={getStatusColor(selectedTurbine.status)}>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center">
+                <GaugeCircular value={selectedTurbine.energyOutput} max={3} label="Output" unit="MW" color="hsl(142, 76%, 50%)" size={130} />
+                <GaugeCircular value={selectedTurbine.efficiency} max={100} label="Efficiency" unit="%" color="hsl(200, 100%, 50%)" size={130} />
+                <GaugeCircular value={selectedTurbine.health} max={100} label="Health" unit="%" color="hsl(280, 70%, 60%)" size={130} warningThreshold={50} criticalThreshold={30} />
+                <GaugeCircular value={selectedTurbine.temperature} max={60} label="Temperature" unit="°C" color="hsl(30, 100%, 55%)" size={130} warningThreshold={75} criticalThreshold={90} />
+                <GaugeCircular value={selectedTurbine.vibration} max={5} label="Vibration" unit="Hz" color="hsl(45, 100%, 60%)" size={130} warningThreshold={60} criticalThreshold={80} />
+                <div className="flex flex-col gap-3">
+                  <DigitalDisplay value={selectedTurbine.id} label="Unit ID" color="hsl(200, 100%, 50%)" size="sm" />
+                  <StatusIndicator status={selectedTurbine.status} size="lg" />
+                </div>
               </div>
-            </TabsContent>
-
-            <TabsContent value="details" className="mt-6">
-              {selectedTurbine ? (
-                <Card className="bg-slate-800 border-slate-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white">{selectedTurbine.name} - Detailed Diagnostics</CardTitle>
-                      {getStatusBadge(selectedTurbine.status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-slate-400">Power Generation</h3>
-                        <p className="text-2xl font-bold text-green-400">{selectedTurbine.energyOutput.toFixed(2)} MW</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-slate-400">Temperature</h3>
-                        <p className="text-2xl font-bold text-blue-400">{selectedTurbine.temperature}°C</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-slate-400">Vibration</h3>
-                        <p className="text-2xl font-bold text-yellow-400">{selectedTurbine.vibration.toFixed(1)} Hz</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-slate-400">Overall Health</h3>
-                        <p className="text-2xl font-bold text-purple-400">{selectedTurbine.health}%</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-slate-800 border-slate-700">
-                  <CardContent className="py-12 text-center">
-                    <p className="text-slate-400">Select a turbine from the ocean map or overview to view detailed diagnostics</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="analytics" className="mt-6">
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Performance Analytics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={turbines}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#64748b" angle={-45} textAnchor="end" height={80} />
-                      <YAxis stroke="#64748b" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1e293b', 
-                          border: '1px solid #334155',
-                          color: 'white'
-                        }} 
-                      />
-                      <Bar dataKey="energyOutput" fill="#22c55e" name="Energy (MW)" />
-                      <Bar dataKey="efficiency" fill="#3b82f6" name="Efficiency %" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </HMIPanel>
+          )}
         </div>
-      </div>
-
-      <style>{`
-        .wave-animation {
-          background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.1) 50%, transparent 70%);
-          animation: wave 3s ease-in-out infinite;
-        }
-        
-        @keyframes wave {
-          0%, 100% { transform: translateX(-100px); }
-          50% { transform: translateX(100px); }
-        }
-      `}</style>
       </div>
     </div>
   );
