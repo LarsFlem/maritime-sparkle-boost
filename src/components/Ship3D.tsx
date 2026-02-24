@@ -512,31 +512,34 @@ const Ship3D = () => {
   }
 
   return (
-    <div className="w-full h-full min-h-[400px] relative">
+    <div className="w-full h-full min-h-[400px] relative flex items-center justify-center">
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-muted-foreground border border-primary/20">
         🖱️ Dra for å rotere
       </div>
 
-      <Canvas
-        key={key}
-        camera={{ position: [5, 3.5, 6.5], fov: 38 }}
-        style={{ background: 'transparent' }}
-        onCreated={handleCreated}
-        onError={() => setHasError(true)}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'default',
-          failIfMajorPerformanceCaveat: false,
-        }}
-      >
-        <Suspense fallback={<Loader />}>
-          <Scene />
-        </Suspense>
-      </Canvas>
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 70% 60% at center, transparent 40%, hsl(var(--background)) 100%)'
-      }} />
+      <div className="relative w-full aspect-square max-w-[600px] max-h-[600px] rounded-full overflow-hidden">
+        <Canvas
+          key={key}
+          camera={{ position: [5, 3.5, 6.5], fov: 38 }}
+          style={{ background: 'transparent' }}
+          onCreated={handleCreated}
+          onError={() => setHasError(true)}
+          gl={{
+            antialias: true,
+            alpha: true,
+            powerPreference: 'default',
+            failIfMajorPerformanceCaveat: false,
+          }}
+        >
+          <Suspense fallback={<Loader />}>
+            <Scene />
+          </Suspense>
+        </Canvas>
+        {/* Radial fade to blend edges */}
+        <div className="absolute inset-0 pointer-events-none rounded-full" style={{
+          background: 'radial-gradient(circle at center, transparent 35%, hsl(var(--background) / 0.4) 60%, hsl(var(--background)) 75%)'
+        }} />
+      </div>
     </div>
   );
 };
