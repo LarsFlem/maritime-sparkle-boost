@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,25 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const Contact = () => {
   const { t } = useLanguage();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
+  const [phone, setPhone] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const body = [
+      `Name: ${name}`,
+      company ? `Company: ${company}` : "",
+      phone ? `Phone: ${phone}` : "",
+      email ? `Reply-to: ${email}` : "",
+      "",
+      message,
+    ].filter(Boolean).join("\n");
+
+    window.location.href = `mailto:Lars@Maritime-Automation.no?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -81,30 +98,30 @@ const Contact = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="name" className="text-xs">{t('contact.form.name')} *</Label>
-                      <Input id="name" placeholder={t('contact.form.name')} className="bg-card/50 border-border/40 text-sm" required />
+                      <Input id="name" placeholder={t('contact.form.name')} className="bg-card/50 border-border/40 text-sm" required value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="text-xs">{t('contact.form.email')} *</Label>
-                      <Input id="email" type="email" placeholder={t('contact.form.email')} className="bg-card/50 border-border/40 text-sm" required />
+                      <Input id="email" type="email" placeholder={t('contact.form.email')} className="bg-card/50 border-border/40 text-sm" required value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="company" className="text-xs">{t('contact.form.company')}</Label>
-                      <Input id="company" placeholder={t('contact.form.company')} className="bg-card/50 border-border/40 text-sm" />
+                      <Input id="company" placeholder={t('contact.form.company')} className="bg-card/50 border-border/40 text-sm" value={company} onChange={(e) => setCompany(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="phone" className="text-xs">{t('contact.form.phone')}</Label>
-                      <Input id="phone" placeholder={t('contact.form.phone')} className="bg-card/50 border-border/40 text-sm" />
+                      <Input id="phone" placeholder={t('contact.form.phone')} className="bg-card/50 border-border/40 text-sm" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="subject" className="text-xs">{t('contact.form.subject')} *</Label>
-                    <Input id="subject" placeholder={t('contact.form.subject')} className="bg-card/50 border-border/40 text-sm" required />
+                      <Input id="subject" placeholder={t('contact.form.subject')} className="bg-card/50 border-border/40 text-sm" required value={subject} onChange={(e) => setSubject(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="message" className="text-xs">{t('contact.form.message')} *</Label>
-                    <Textarea id="message" placeholder={t('contact.form.messagePlaceholder')} rows={5} className="bg-card/50 border-border/40 resize-none text-sm" required />
+                    <Textarea id="message" placeholder={t('contact.form.messagePlaceholder')} rows={5} className="bg-card/50 border-border/40 resize-none text-sm" required value={message} onChange={(e) => setMessage(e.target.value)} />
                   </div>
                   <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group">
                     <Send className="mr-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
