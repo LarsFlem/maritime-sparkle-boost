@@ -48,18 +48,24 @@ const Hero = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
               <Button 
+                asChild
                 size="lg" 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20"
               >
-                {t('hero.cta.services')}
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <a href="#services">
+                  {t('hero.cta.services')}
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </a>
               </Button>
               <Button 
+                asChild
                 variant="outline" 
                 size="lg"
                 className="border-primary/25 text-foreground hover:bg-primary/8 hover:border-primary/40 text-base px-8 py-6 transition-all duration-300"
               >
-                {t('hero.cta.contact')}
+                <a href="#contact">
+                  {t('hero.cta.contact')}
+                </a>
               </Button>
             </div>
           </div>
