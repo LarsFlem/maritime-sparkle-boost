@@ -23,7 +23,7 @@ const Footer = () => {
               {[
                 { icon: Mail, text: "post@maritime-automation.no" },
                 { icon: Phone, text: "+47 917 98 722" },
-                { icon: MapPin, text: "Stavanger, Norge" },
+                { icon: MapPin, text: "Jørpeland, Norge" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                   <Icon className="h-3.5 w-3.5 text-primary/70" />

@@ -37,7 +37,7 @@ const Contact = () => {
             {[
               { icon: Mail, label: t('contact.info.email'), value: "Lars@Maritime-Automation.no" },
               { icon: Phone, label: t('contact.info.phone'), value: "+47 917 98 722" },
-              { icon: MapPin, label: t('contact.info.location'), value: "Rennesøygata 14A, 4014 Stavanger" },
+              { icon: MapPin, label: t('contact.info.location'), value: "Jørpeland, Rogaland, Norge" },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-center space-x-3 p-4 glass-effect rounded-xl group hover:bg-card/80 transition-all cursor-pointer">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/15 transition-colors">
