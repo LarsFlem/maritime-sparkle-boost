@@ -517,7 +517,13 @@ const Ship3D = () => {
         🖱️ Dra for å rotere
       </div>
 
-      <div className="relative w-full aspect-square max-w-[600px] max-h-[600px] rounded-full overflow-hidden">
+      <div 
+        className="relative w-full aspect-square max-w-[600px] max-h-[600px] rounded-full overflow-hidden"
+        style={{
+          mask: 'radial-gradient(circle at center, black 40%, transparent 70%)',
+          WebkitMask: 'radial-gradient(circle at center, black 40%, transparent 70%)',
+        }}
+      >
         <Canvas
           key={key}
           camera={{ position: [5, 3.5, 6.5], fov: 38 }}
@@ -535,10 +541,6 @@ const Ship3D = () => {
             <Scene />
           </Suspense>
         </Canvas>
-        {/* Radial fade to blend edges */}
-        <div className="absolute inset-0 pointer-events-none rounded-full" style={{
-          background: 'radial-gradient(circle at center, transparent 35%, hsl(var(--background) / 0.4) 60%, hsl(var(--background)) 75%)'
-        }} />
       </div>
     </div>
   );
