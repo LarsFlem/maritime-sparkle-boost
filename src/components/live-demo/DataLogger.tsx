@@ -80,7 +80,7 @@ export const DataLogger = ({ currentData, isRunning }: DataLoggerProps) => {
   ] as const;
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] hover:border-primary/30 transition-all duration-500">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center text-white">

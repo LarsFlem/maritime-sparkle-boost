@@ -110,7 +110,7 @@ export const IOMonitor = ({ isRunning, position }: IOMonitorProps) => {
   );
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] hover:border-primary/30 transition-all duration-500">
       <CardHeader>
         <CardTitle className="flex items-center text-white">
           <Zap className="w-5 h-5 mr-2" />
