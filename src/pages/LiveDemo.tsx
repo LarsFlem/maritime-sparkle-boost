@@ -163,25 +163,50 @@ const LiveDemo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated background grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(hsl(200_100%_50%/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(200_100%_50%/0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-[radial-gradient(ellipse,hsl(200_100%_50%/0.08),transparent_70%)] pointer-events-none" />
+      
       <Navbar />
       
-      <div className="container mx-auto px-4 pt-20 pb-8">
+      <div className="container mx-auto px-4 pt-20 pb-8 relative z-10">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">
+        <div className="mb-10 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium mb-4">
+            <span className={`w-2 h-2 rounded-full ${plcState.isRunning ? 'bg-green-400 animate-pulse' : 'bg-muted-foreground'}`} />
+            {plcState.isRunning ? t('liveDemo.status.running') : t('liveDemo.status.stopped')}
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 font-['Space_Grotesk']">
             {t('liveDemo.title')}
           </h1>
-          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             {t('liveDemo.subtitle')}
           </p>
-          <Badge 
-            variant={plcState.isRunning ? "default" : "secondary"} 
-            className="mt-4 px-4 py-2 text-lg"
-          >
-            <Activity className="w-4 h-4 mr-2" />
-            {plcState.isRunning ? t('liveDemo.status.running') : t('liveDemo.status.stopped')}
-          </Badge>
+          
+          {/* Live stats bar */}
+          <div className="flex items-center justify-center gap-6 mt-6 flex-wrap">
+            <div className="flex items-center gap-2 text-sm">
+              <Thermometer className="w-4 h-4 text-orange-400" />
+              <span className="text-muted-foreground">Temp:</span>
+              <span className="font-mono text-foreground">{plcState.temperature.toFixed(1)}°C</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Gauge className="w-4 h-4 text-blue-400" />
+              <span className="text-muted-foreground">RPM:</span>
+              <span className="font-mono text-foreground">{plcState.motorRpm.toFixed(0)}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <span className="text-muted-foreground">Power:</span>
+              <span className="font-mono text-foreground">{plcState.power.toFixed(1)} kW</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Activity className="w-4 h-4 text-green-400" />
+              <span className="text-muted-foreground">Cycles:</span>
+              <span className="font-mono text-foreground">{plcState.cycleCount}</span>
+            </div>
+          </div>
         </div>
 
         {/* Main Grid Layout */}
