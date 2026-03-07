@@ -314,26 +314,26 @@ const LiveDemo = () => {
             <CardContent>
               <Tabs defaultValue="control" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 bg-muted">
-                  <TabsTrigger value="control" className="text-white data-[state=active]:bg-primary">
+                  <TabsTrigger value="control" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     {t('liveDemo.hmi.tabs.control')}
                   </TabsTrigger>
-                  <TabsTrigger value="monitoring" className="text-white data-[state=active]:bg-primary">
+                  <TabsTrigger value="monitoring" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     {t('liveDemo.hmi.tabs.monitoring')}
                   </TabsTrigger>
-                  <TabsTrigger value="settings" className="text-white data-[state=active]:bg-primary">
+                  <TabsTrigger value="settings" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     {t('liveDemo.hmi.tabs.settings')}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="control" className="space-y-6 mt-6">
                   {/* Emergency Stop */}
-                  <div className="flex items-center justify-between p-4 bg-red-900/20 rounded-lg border border-red-800">
-                    <span className="text-white font-medium">Emergency Stop</span>
+                  <div className="flex items-center justify-between p-4 bg-destructive/10 rounded-lg border border-destructive/30">
+                    <span className="text-foreground font-medium">Emergency Stop</span>
                     <Button
                       onClick={handleEmergencyStop}
                       variant={emergencyStop ? "destructive" : "outline"}
                       size="lg"
-                      className={emergencyStop ? "bg-red-600" : "border-red-600 text-red-600"}
+                      className={emergencyStop ? "bg-destructive shadow-[0_0_20px_hsl(0_84%_60%/0.4)]" : "border-destructive text-destructive hover:bg-destructive/10"}
                     >
                       <AlertTriangle className="w-5 h-5 mr-2" />
                       {emergencyStop ? 'RESET E-STOP' : 'E-STOP'}
@@ -345,7 +345,7 @@ const LiveDemo = () => {
                     <Button 
                       onClick={handleStart}
                       disabled={emergencyStop}
-                      className="bg-green-600 hover:bg-green-700 text-white h-12"
+                      className="bg-green-600 hover:bg-green-700 text-white h-12 shadow-[0_0_15px_hsl(142_76%_36%/0.3)]"
                     >
                       <Play className="w-5 h-5 mr-2" />
                       START
@@ -361,7 +361,7 @@ const LiveDemo = () => {
                     <Button 
                       onClick={handleReset}
                       variant="outline"
-                      className="border-slate-600 text-white h-12"
+                      className="border-border text-foreground h-12"
                     >
                       <RotateCw className="w-5 h-5 mr-2" />
                       RESET
@@ -371,7 +371,7 @@ const LiveDemo = () => {
                   {/* Mode Controls */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <label className="text-white font-medium">Auto Mode</label>
+                      <label className="text-foreground font-medium">Auto Mode</label>
                       <Switch 
                         checked={autoMode}
                         onCheckedChange={setAutoMode}
@@ -382,7 +382,7 @@ const LiveDemo = () => {
                     {!autoMode && (
                       <>
                         <div className="space-y-2">
-                          <label className="text-white text-sm">Target Position: {targetPosition[0]}%</label>
+                          <label className="text-foreground text-sm">Target Position: {targetPosition[0]}%</label>
                           <Slider
                             value={targetPosition}
                             onValueChange={setTargetPosition}
@@ -394,7 +394,7 @@ const LiveDemo = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-white text-sm">Speed: {targetSpeed[0]}%</label>
+                          <label className="text-foreground text-sm">Speed: {targetSpeed[0]}%</label>
                           <Slider
                             value={targetSpeed}
                             onValueChange={setTargetSpeed}
@@ -410,91 +410,91 @@ const LiveDemo = () => {
                 </TabsContent>
 
                 <TabsContent value="monitoring" className="space-y-4 mt-6">
-                  {/* Status Indicators */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-300">Position</span>
-                        <span className="text-white font-mono">{plcState.position.toFixed(1)}%</span>
+                        <span className="text-muted-foreground text-sm">Position</span>
+                        <span className="text-foreground font-mono text-sm">{plcState.position.toFixed(1)}%</span>
                       </div>
                       <Progress value={plcState.position} className="mt-2" />
                     </div>
 
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-300">Speed</span>
-                        <span className="text-white font-mono">{plcState.speed.toFixed(1)}%</span>
+                        <span className="text-muted-foreground text-sm">Speed</span>
+                        <span className="text-foreground font-mono text-sm">{plcState.speed.toFixed(1)}%</span>
                       </div>
                       <Progress value={plcState.speed} className="mt-2" />
                     </div>
 
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center">
-                        <Thermometer className="w-5 h-5 text-orange-400 mr-2" />
-                        <span className="text-slate-300">Temperature</span>
+                        <Thermometer className="w-4 h-4 text-orange-400 mr-2" />
+                        <span className="text-muted-foreground text-sm">Temperature</span>
                       </div>
-                      <span className="text-white font-mono text-lg">{plcState.temperature.toFixed(1)}°C</span>
+                      <span className="text-foreground font-mono text-lg">{plcState.temperature.toFixed(1)}°C</span>
                     </div>
 
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center">
-                        <Gauge className="w-5 h-5 text-blue-400 mr-2" />
-                        <span className="text-slate-300">Pressure</span>
+                        <Gauge className="w-4 h-4 text-blue-400 mr-2" />
+                        <span className="text-muted-foreground text-sm">Pressure</span>
                       </div>
-                      <span className="text-white font-mono text-lg">{plcState.pressure.toFixed(2)} bar</span>
+                      <span className="text-foreground font-mono text-lg">{plcState.pressure.toFixed(2)} bar</span>
                     </div>
 
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center">
-                        <Zap className="w-5 h-5 text-yellow-400 mr-2" />
-                        <span className="text-slate-300">Motor RPM</span>
+                        <Zap className="w-4 h-4 text-yellow-400 mr-2" />
+                        <span className="text-muted-foreground text-sm">Motor RPM</span>
                       </div>
-                      <span className="text-white font-mono text-lg">{plcState.motorRpm.toFixed(0)}</span>
+                      <span className="text-foreground font-mono text-lg">{plcState.motorRpm.toFixed(0)}</span>
                     </div>
 
-                    <div className="bg-slate-700/50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                       <div className="flex items-center">
-                        <RotateCw className="w-5 h-5 text-green-400 mr-2" />
-                        <span className="text-slate-300">Cycles</span>
+                        <RotateCw className="w-4 h-4 text-green-400 mr-2" />
+                        <span className="text-muted-foreground text-sm">Cycles</span>
                       </div>
-                      <span className="text-white font-mono text-lg">{plcState.cycleCount}</span>
+                      <span className="text-foreground font-mono text-lg">{plcState.cycleCount}</span>
                     </div>
                   </div>
 
-                  {/* System Status */}
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
-                    <h4 className="text-white font-medium mb-3 flex items-center">
+                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
+                    <h4 className="text-foreground font-medium mb-3 flex items-center">
                       <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" />
                       System Status
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-300">PLC Status:</span>
-                        <span className="text-green-400">Online</span>
+                        <span className="text-muted-foreground">PLC Status:</span>
+                        <span className="text-green-400 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                          Online
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Communication:</span>
+                        <span className="text-muted-foreground">Communication:</span>
                         <span className="text-green-400">Connected</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Last Update:</span>
-                        <span className="text-slate-300">{plcState.lastUpdate.toLocaleTimeString()}</span>
+                        <span className="text-muted-foreground">Last Update:</span>
+                        <span className="text-muted-foreground font-mono">{plcState.lastUpdate.toLocaleTimeString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Errors:</span>
-                        <span className={plcState.errors.length > 0 ? "text-red-400" : "text-green-400"}>
+                        <span className="text-muted-foreground">Errors:</span>
+                        <span className={plcState.errors.length > 0 ? "text-destructive" : "text-green-400"}>
                           {plcState.errors.length}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Errors */}
                   {plcState.errors.length > 0 && (
-                    <div className="bg-red-900/20 p-4 rounded-lg border border-red-800">
-                      <h4 className="text-red-400 font-medium mb-2">Active Errors</h4>
+                    <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/30">
+                      <h4 className="text-destructive font-medium mb-2">Active Errors</h4>
                       {plcState.errors.map((error, index) => (
-                        <div key={index} className="text-red-300 text-sm">
+                        <div key={index} className="text-destructive/80 text-sm">
                           • {error}
                         </div>
                       ))}
@@ -503,56 +503,56 @@ const LiveDemo = () => {
                 </TabsContent>
 
                 <TabsContent value="settings" className="space-y-4 mt-6">
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                     <div className="flex items-center mb-4">
-                      <Settings className="w-5 h-5 text-slate-300 mr-2" />
-                      <span className="text-white font-medium">PLC Configuration</span>
+                      <Settings className="w-5 h-5 text-primary mr-2" />
+                      <span className="text-foreground font-medium">PLC Configuration</span>
                     </div>
-                    <div className="space-y-4 text-sm">
+                    <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-300">PLC Model:</span>
-                        <span className="text-white">Siemens S7-1200</span>
+                        <span className="text-muted-foreground">PLC Model:</span>
+                        <span className="text-foreground font-mono">Siemens S7-1200</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Firmware:</span>
-                        <span className="text-white">v4.2.3</span>
+                        <span className="text-muted-foreground">Firmware:</span>
+                        <span className="text-foreground font-mono">v4.2.3</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">IP Address:</span>
-                        <span className="text-white">192.168.1.100</span>
+                        <span className="text-muted-foreground">IP Address:</span>
+                        <span className="text-foreground font-mono">192.168.1.100</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Scan Rate:</span>
-                        <span className="text-white">100ms</span>
+                        <span className="text-muted-foreground">Scan Rate:</span>
+                        <span className="text-foreground font-mono">100ms</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Protocol:</span>
-                        <span className="text-white">Modbus TCP</span>
+                        <span className="text-muted-foreground">Protocol:</span>
+                        <span className="text-foreground font-mono">Modbus TCP</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-slate-700/50 p-4 rounded-lg">
+                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
                     <div className="flex items-center mb-4">
-                      <Power className="w-5 h-5 text-slate-300 mr-2" />
-                      <span className="text-white font-medium">System Information</span>
+                      <Power className="w-5 h-5 text-primary mr-2" />
+                      <span className="text-foreground font-medium">System Information</span>
                     </div>
-                    <div className="space-y-4 text-sm">
+                    <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Runtime:</span>
-                        <span className="text-white">24h 15m</span>
+                        <span className="text-muted-foreground">Runtime:</span>
+                        <span className="text-foreground font-mono">24h 15m</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">CPU Usage:</span>
-                        <span className="text-white">12%</span>
+                        <span className="text-muted-foreground">CPU Usage:</span>
+                        <span className="text-foreground font-mono">12%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Memory:</span>
-                        <span className="text-white">45% (2.1GB)</span>
+                        <span className="text-muted-foreground">Memory:</span>
+                        <span className="text-foreground font-mono">45% (2.1GB)</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-300">Temperature:</span>
-                        <span className="text-white">42°C</span>
+                        <span className="text-muted-foreground">Temperature:</span>
+                        <span className="text-foreground font-mono">42°C</span>
                       </div>
                     </div>
                   </div>
