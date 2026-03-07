@@ -304,16 +304,16 @@ const LiveDemo = () => {
           />
 
           {/* PLC HMI Control Panel */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] hover:border-primary/30 transition-all duration-500">
             <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <Cpu className="w-5 h-5 mr-2" />
+              <CardTitle className="flex items-center text-foreground">
+                <Cpu className="w-5 h-5 mr-2 text-primary" />
                 {t('liveDemo.hmi.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="control" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-slate-700">
+                <TabsList className="grid w-full grid-cols-3 bg-muted">
                   <TabsTrigger value="control" className="text-white data-[state=active]:bg-primary">
                     {t('liveDemo.hmi.tabs.control')}
                   </TabsTrigger>
