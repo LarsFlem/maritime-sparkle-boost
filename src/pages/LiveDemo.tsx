@@ -211,34 +211,73 @@ const LiveDemo = () => {
 
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Video Feed */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          {/* Video Feed with Robot Arm Visualization */}
+          <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] group hover:border-primary/30 transition-all duration-500">
             <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <Camera className="w-5 h-5 mr-2" />
+              <CardTitle className="flex items-center text-foreground">
+                <Camera className="w-5 h-5 mr-2 text-primary" />
                 {t('liveDemo.videoFeed.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-                  <div className="text-center text-slate-400">
-                    <Camera className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium">{t('liveDemo.videoFeed.placeholder')}</p>
-                    <p className="text-sm mt-2">{t('liveDemo.videoFeed.description')}</p>
-                  </div>
-                </div>
+              <div className="relative bg-background rounded-lg overflow-hidden aspect-video border border-border/30">
+                {/* Robot Arm SVG Visualization */}
+                <svg viewBox="0 0 400 250" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                  {/* Grid background */}
+                  <defs>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="hsl(200 100% 50% / 0.06)" strokeWidth="0.5"/>
+                    </pattern>
+                    <linearGradient id="armGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="hsl(200, 100%, 50%)" stopOpacity="0.8"/>
+                      <stop offset="100%" stopColor="hsl(180, 100%, 50%)" stopOpacity="0.6"/>
+                    </linearGradient>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <rect width="400" height="250" fill="url(#grid)"/>
+                  
+                  {/* Base */}
+                  <rect x="170" y="200" width="60" height="30" rx="4" fill="hsl(210, 15%, 25%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1" opacity="0.8"/>
+                  
+                  {/* Arm segment 1 */}
+                  <g style={{ transform: `rotate(${-30 + (plcState.position * 0.6)}deg)`, transformOrigin: '200px 200px', transition: 'transform 0.3s ease' }}>
+                    <rect x="190" y="120" width="20" height="80" rx="4" fill="url(#armGrad)" filter="url(#glow)"/>
+                    
+                    {/* Arm segment 2 */}
+                    <g style={{ transform: `rotate(${-20 + (plcState.speed * 0.4)}deg)`, transformOrigin: '200px 120px', transition: 'transform 0.3s ease' }}>
+                      <rect x="190" y="60" width="20" height="60" rx="4" fill="url(#armGrad)" opacity="0.9" filter="url(#glow)"/>
+                      
+                      {/* Gripper */}
+                      <circle cx="200" cy="55" r="8" fill="none" stroke="hsl(180, 100%, 50%)" strokeWidth="2" filter="url(#glow)"/>
+                      <circle cx="200" cy="55" r="3" fill={plcState.isRunning ? "hsl(142, 76%, 50%)" : "hsl(210, 15%, 40%)"} className={plcState.isRunning ? "animate-pulse" : ""}/>
+                    </g>
+                    
+                    {/* Joint */}
+                    <circle cx="200" cy="120" r="6" fill="hsl(210, 15%, 20%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1.5"/>
+                  </g>
+                  
+                  {/* Base joint */}
+                  <circle cx="200" cy="200" r="8" fill="hsl(210, 15%, 20%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1.5"/>
+                  
+                  {/* Status text */}
+                  <text x="20" y="20" fill="hsl(200, 100%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">POS: {plcState.position.toFixed(1)}%</text>
+                  <text x="20" y="35" fill="hsl(180, 100%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">SPD: {plcState.speed.toFixed(1)}%</text>
+                  <text x="20" y="50" fill="hsl(142, 76%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">RPM: {plcState.motorRpm.toFixed(0)}</text>
+                </svg>
                 
-                {/* Simulated robot position indicator */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black/50 rounded p-2">
-                    <div className="flex justify-between text-white text-sm mb-2">
+                {/* Overlay HUD */}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <div className="bg-background/70 backdrop-blur-sm rounded-lg p-2.5 border border-border/30">
+                    <div className="flex justify-between text-foreground text-xs font-mono mb-1.5">
                       <span>Position: {plcState.position.toFixed(1)}%</span>
                       <span>Speed: {plcState.speed.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-slate-700 rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-1.5">
                       <div 
-                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        className="bg-primary h-1.5 rounded-full transition-all duration-300 shadow-[0_0_8px_hsl(200_100%_50%/0.5)]"
                         style={{ width: `${plcState.position}%` }}
                       />
                     </div>
@@ -247,8 +286,8 @@ const LiveDemo = () => {
 
                 {/* Recording indicator */}
                 {plcState.isRunning && (
-                  <div className="absolute top-4 right-4 flex items-center bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                    <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse" />
+                  <div className="absolute top-3 right-3 flex items-center bg-destructive text-destructive-foreground px-2.5 py-1 rounded-full text-xs font-medium">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse" />
                     LIVE
                   </div>
                 )}
