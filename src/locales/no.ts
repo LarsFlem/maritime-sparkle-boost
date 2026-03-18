@@ -96,8 +96,14 @@ export default {
   'about.description': 'Skreddersydde elektriske og automasjonssystemer for maritime prosjekter — fra design til levering.',
   'about.downloadCV': 'Last ned CV',
   'about.watchInterview': 'Se Portrettintervju',
-  'about.ceo': 'Daglig leder',
+  'about.ceo': 'Daglig leder - Enkeltpersonforetak',
   'about.since': 'siden desember 2024',
+  'about.role.moreld': 'Senior Automasjonsingeniør',
+  'about.role.redrock': 'Senior Elektro-Automasjonsingeniør',
+  'about.role.hmh': 'Senior Kontrollsystem Support Ingeniør',
+  'about.role.ocean': 'Elektro-Automasjonsingeniør, Senere Teamleder',
+  'about.role.kongsberg': 'Montør, Testingeniør, Senere Reservedelskoordinator',
+  'about.tagline': 'Senior Elektro-Automasjonsingeniør',
 
   // Education
   'education.title': 'Utdanning',
