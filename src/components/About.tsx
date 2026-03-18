@@ -7,13 +7,12 @@ const About = () => {
   const { t } = useLanguage();
 
   const experience = [
-    { company: "Maritime Automation - Flem", role: t('about.ceo'), period: "2024 - Present", highlight: true },
-    { company: "Applica / Moreld Apply", role: "Senior Automasjonsingeniør", period: "2024 - 2026" },
-    { company: "Red Rock AS", role: "Senior Automasjonsingeniør", period: "2023 - 2024" },
-    { company: "HMH", role: "Control System Support Engineer", period: "2022 - 2023" },
-    { company: "Ocean Infinity Marine", role: "Electro - Automation Engineer", period: "2022" },
-    { company: "Red Rock AS", role: "Electro - Automation Engineer", period: "2019 - 2022" },
-    { company: "Rolls-Royce Marine", role: "Test Engineer - Automation", period: "2010 - 2014" },
+    { company: "Maritime Automation - Flem", role: t('about.ceo'), period: "Dec 2024 - Present", highlight: true },
+    { company: "Moreld Apply / via Applica", role: t('about.role.moreld'), period: "Sep 2024 - Dec 2025" },
+    { company: "Red Rock", role: t('about.role.redrock'), period: "Apr 2023 - Sep 2024" },
+    { company: "HMH (Formerly MHWirth)", role: t('about.role.hmh'), period: "Sep 2022 - Apr 2023" },
+    { company: "Ocean Infinity Marine", role: t('about.role.ocean'), period: "Jun 2019 - Sep 2022" },
+    { company: "Kongsberg Maritime / Rolls-Royce Marine", role: t('about.role.kongsberg'), period: "Aug 2010 - Jun 2015" },
   ];
 
   const education = [
@@ -82,12 +81,14 @@ const About = () => {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { name: t('skills.solidworks'), color: '' },
-                    { name: t('skills.computer'), color: '' },
-                    { name: t('skills.leadership'), color: '' },
                     { name: "TwinCAT / Beckhoff", color: '' },
                     { name: "PLC Programming", color: '' },
                     { name: "HMI/SCADA", color: '' },
+                    { name: t('skills.solidworks'), color: '' },
+                    { name: "IECEx / ATEX", color: '' },
+                    { name: t('skills.network'), color: '' },
+                    { name: t('skills.leadership'), color: '' },
+                    { name: "SQL / HTML / CSS / JS", color: '' },
                   ].map((skill) => (
                     <span key={skill.name} className="px-3 py-1.5 bg-primary/8 rounded-full border border-primary/10 text-xs font-medium text-foreground/80">
                       {skill.name}

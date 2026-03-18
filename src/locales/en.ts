@@ -97,8 +97,14 @@ export default {
   'about.description': 'Custom electrical & automation systems for maritime projects — from design to delivery.',
   'about.downloadCV': 'Download CV',
   'about.watchInterview': 'Watch Interview',
-  'about.ceo': 'CEO',
+  'about.ceo': 'CEO - Sole Proprietorship',
   'about.since': 'since December 2024',
+  'about.role.moreld': 'Senior Automation Engineer',
+  'about.role.redrock': 'Senior Electro-Automation Engineer',
+  'about.role.hmh': 'Senior Control System Support Engineer',
+  'about.role.ocean': 'Electro-Automation Engineer, Later Team Lead',
+  'about.role.kongsberg': 'Assembler, Test Engineer, Later Spare Parts Coordinator',
+  'about.tagline': 'Senior Electro-Automation Engineer',
 
   // Education
   'education.title': 'Education',
@@ -112,7 +118,7 @@ export default {
   // Skills
   'skills.title': 'Skills',
   'skills.solidworks': 'SolidWorks',
-  'skills.computer': 'Computer Proficiency',
+  'skills.network': 'Network Configuration',
   'skills.leadership': 'Leadership',
   'skills.languages': 'Languages',
   'skills.norwegian': 'Norwegian (Native)',
