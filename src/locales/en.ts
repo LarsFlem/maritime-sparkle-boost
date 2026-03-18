@@ -118,7 +118,7 @@ export default {
   // Skills
   'skills.title': 'Skills',
   'skills.solidworks': 'SolidWorks',
-  'skills.computer': 'Computer Proficiency',
+  'skills.network': 'Network Configuration',
   'skills.leadership': 'Leadership',
   'skills.languages': 'Languages',
   'skills.norwegian': 'Norwegian (Native)',

@@ -117,7 +117,7 @@ export default {
   // Skills
   'skills.title': 'Ferdigheter',
   'skills.solidworks': 'SolidWorks',
-  'skills.computer': 'Datamaskinkyndighet',
+  'skills.network': 'Nettverkskonfigurasjon',
   'skills.leadership': 'Lederskap',
   'skills.languages': 'Språk',
   'skills.norwegian': 'Norsk (Morsmål)',

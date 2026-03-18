@@ -81,12 +81,14 @@ const About = () => {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { name: t('skills.solidworks'), color: '' },
-                    { name: t('skills.computer'), color: '' },
-                    { name: t('skills.leadership'), color: '' },
                     { name: "TwinCAT / Beckhoff", color: '' },
                     { name: "PLC Programming", color: '' },
                     { name: "HMI/SCADA", color: '' },
+                    { name: t('skills.solidworks'), color: '' },
+                    { name: "IECEx / ATEX", color: '' },
+                    { name: t('skills.network'), color: '' },
+                    { name: t('skills.leadership'), color: '' },
+                    { name: "SQL / HTML / CSS / JS", color: '' },
                   ].map((skill) => (
                     <span key={skill.name} className="px-3 py-1.5 bg-primary/8 rounded-full border border-primary/10 text-xs font-medium text-foreground/80">
                       {skill.name}
