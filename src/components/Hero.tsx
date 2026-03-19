@@ -3,6 +3,7 @@ import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
 import { lazy, Suspense } from "react";
+import { motion } from "framer-motion";
 
 const Ship3D = lazy(() => import("@/components/Ship3D"));
 
@@ -18,7 +19,7 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/90"></div>
       </div>
 
-      {/* Subtle ambient glow — reduced from 6+ orbs to 2 */}
+      {/* Subtle ambient glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-primary/8 to-transparent rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-gradient-to-tr from-accent/6 to-transparent rounded-full blur-3xl"></div>
@@ -29,24 +30,42 @@ const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
           <div className="text-center lg:text-left">
-            <div className="mb-6 animate-fade-in-up">
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
               <div className="inline-flex items-center space-x-2 bg-primary/8 border border-primary/15 rounded-full px-5 py-1.5 mb-6">
                 <Waves className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-medium tracking-wide uppercase text-primary/90">{t('hero.title')}</span>
               </div>
-            </div>
+            </motion.div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up tracking-tight" style={{ animationDelay: '0.15s' }}>
-              <span className="gradient-text">
-                {t('hero.title')}
-              </span>
-            </h1>
+            <motion.h1
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <span className="gradient-text">{t('hero.title')}</span>
+            </motion.h1>
 
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.3s' }}>
+            <motion.p
+              className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+            >
               {t('hero.subtitle')}
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
               <Button 
                 asChild
                 size="lg" 
@@ -63,15 +82,18 @@ const Hero = () => {
                 size="lg"
                 className="border-primary/25 text-foreground hover:bg-primary/8 hover:border-primary/40 text-base px-8 py-6 transition-all duration-300"
               >
-                <a href="#contact">
-                  {t('hero.cta.contact')}
-                </a>
+                <a href="#contact">{t('hero.cta.contact')}</a>
               </Button>
-            </div>
+            </motion.div>
           </div>
 
           {/* 3D Ship Visualization */}
-          <div className="hidden lg:block h-[500px] animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <motion.div
+            className="hidden lg:block h-[500px]"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
             <Suspense fallback={
               <div className="w-full h-full flex items-center justify-center">
                 <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
@@ -79,33 +101,53 @@ const Hero = () => {
             }>
               <Ship3D />
             </Suspense>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Features — cleaner cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto lg:mx-0 mt-16 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+        {/* Features */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto lg:mx-0 mt-16"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.12, delayChildren: 0.7 } },
+          }}
+        >
           {[
             { icon: Settings, title: t('hero.feature1.title'), desc: t('hero.feature1.desc'), hoverClass: 'group-hover:rotate-90' },
             { icon: Zap, title: t('hero.feature2.title'), desc: t('hero.feature2.desc'), hoverClass: 'group-hover:scale-110' },
             { icon: Waves, title: t('hero.feature3.title'), desc: t('hero.feature3.desc'), hoverClass: '' },
           ].map((feat, i) => (
-            <div key={i} className="glass-effect rounded-xl p-5 group hover:bg-card/80 transition-all duration-300 hover:-translate-y-1">
+            <motion.div
+              key={i}
+              className="glass-effect rounded-xl p-5 group hover:bg-card/80 transition-all duration-300 hover:-translate-y-1"
+              variants={{
+                hidden: { opacity: 0, y: 25 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+              }}
+            >
               <feat.icon className={`h-6 w-6 text-primary mb-3 transition-transform duration-500 ${feat.hoverClass}`} />
               <h3 className="font-semibold text-sm mb-1">{feat.title}</h3>
               <p className="text-muted-foreground text-xs leading-relaxed">{feat.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50">
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ delay: 1.2, duration: 0.6 }}
+      >
         <div className="flex flex-col items-center">
           <div className="w-5 h-8 border border-primary/30 rounded-full flex justify-center p-1">
             <div className="w-1 h-2 bg-primary/60 rounded-full animate-bounce"></div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
