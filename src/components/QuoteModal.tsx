@@ -104,35 +104,39 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
     setIsLoading(true);
 
     try {
-      // Prepare data for submission
-      const quoteData = {
-        ...formData,
-        timestamp: new Date().toISOString(),
-        source: "Maritime Automation Website",
-        projectScopeText: formData.projectScope.map(id => 
-          scopeOptions.find(opt => opt.id === id)?.label
-        ).join(", ")
-      };
+      const scopeText = formData.projectScope.map(id => 
+        scopeOptions.find(opt => opt.id === id)?.label
+      ).filter(Boolean).join(", ");
 
-      // If Zapier webhook URL is provided, send to Zapier
-      if (formData.zapierWebhookUrl) {
-        try {
-          await fetch(formData.zapierWebhookUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            mode: "no-cors",
-            body: JSON.stringify(quoteData),
-          });
-        } catch (zapierError) {
-          console.warn("Zapier webhook failed:", zapierError);
-        }
-      }
+      const projectTypeLabel = projectTypes.find(t => t.value === formData.projectType)?.label || formData.projectType;
+      const vesselTypeLabel = vesselTypes.find(t => t.value === formData.vesselType)?.label || formData.vesselType;
 
-      // For now, we'll simulate sending the quote request
-      // In a real application, this would send to your backend
-      console.log("Quote request submitted:", quoteData);
+      const subject = encodeURIComponent(`Quote Request: ${projectTypeLabel} - ${formData.company}`);
+      const body = encodeURIComponent(
+        `QUOTE REQUEST — Maritime Automation\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `CONTACT\n` +
+        `Name: ${formData.fullName}\n` +
+        `Email: ${formData.email}\n` +
+        `Phone: ${formData.phone || "N/A"}\n` +
+        `Company: ${formData.company}\n` +
+        `Position: ${formData.position || "N/A"}\n\n` +
+        `PROJECT\n` +
+        `Type: ${projectTypeLabel}\n` +
+        `Vessel: ${vesselTypeLabel || "N/A"}\n` +
+        `Scope: ${scopeText || "N/A"}\n` +
+        `Timeline: ${formData.timeline || "N/A"}\n` +
+        `Budget: ${formData.budget || "N/A"}\n` +
+        `Urgency: ${formData.urgency || "N/A"}\n\n` +
+        `TECHNICAL\n` +
+        `Systems: ${formData.systemType || "N/A"}\n` +
+        `Certifications: ${formData.certificationRequirements || "N/A"}\n\n` +
+        `DESCRIPTION\n` +
+        `${formData.projectDescription || "N/A"}\n\n` +
+        `Preferred contact: ${formData.preferredContact || "N/A"}\n`
+      );
+
+      window.location.href = `mailto:Lars@Maritime-Automation.no?subject=${subject}&body=${body}`;
 
       toast({
         title: "Quote Request Submitted",
@@ -411,22 +415,6 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
             </div>
           </div>
 
-          {/* Optional Zapier Integration */}
-          <div className="space-y-2 p-4 bg-muted/30 rounded-lg">
-            <Label htmlFor="zapierWebhook" className="text-sm font-medium">
-              Zapier Webhook URL (Optional)
-            </Label>
-            <Input
-              id="zapierWebhook"
-              value={formData.zapierWebhookUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, zapierWebhookUrl: e.target.value }))}
-              placeholder="https://hooks.zapier.com/hooks/catch/..."
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              If you have a Zapier workflow, paste your webhook URL here to automatically receive quote requests in your preferred tools.
-            </p>
-          </div>
 
           {/* Submit Button */}
           <div className="flex justify-end gap-4 pt-4">
