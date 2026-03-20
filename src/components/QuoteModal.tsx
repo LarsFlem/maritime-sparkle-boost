@@ -415,22 +415,6 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
             </div>
           </div>
 
-          {/* Optional Zapier Integration */}
-          <div className="space-y-2 p-4 bg-muted/30 rounded-lg">
-            <Label htmlFor="zapierWebhook" className="text-sm font-medium">
-              Zapier Webhook URL (Optional)
-            </Label>
-            <Input
-              id="zapierWebhook"
-              value={formData.zapierWebhookUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, zapierWebhookUrl: e.target.value }))}
-              placeholder="https://hooks.zapier.com/hooks/catch/..."
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              If you have a Zapier workflow, paste your webhook URL here to automatically receive quote requests in your preferred tools.
-            </p>
-          </div>
 
           {/* Submit Button */}
           <div className="flex justify-end gap-4 pt-4">
