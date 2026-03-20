@@ -1,34 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Zap, Activity, BarChart3, TrendingUp } from 'lucide-react';
+import { Download, Zap, Activity, BarChart3, TrendingUp, TrendingDown, Gauge, Thermometer, Waves, Wind, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import AdvancedFilters, { FilterConfig } from '@/components/charts/AdvancedFilters';
 import CorrelationChart from '@/components/charts/CorrelationChart';
 import MultiAxisChart from '@/components/charts/MultiAxisChart';
 import TrendAnalysis from '@/components/charts/TrendAnalysis';
+import StatisticalSummary from '@/components/charts/StatisticalSummary';
+import AnomalyChart from '@/components/charts/AnomalyChart';
+import HeatmapChart from '@/components/charts/HeatmapChart';
+import DataTable from '@/components/charts/DataTable';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 
-// Generate demo historical data
+// Enhanced data generation with more variables and realistic seasonal patterns
 const generateHistoricalData = (days: number) => {
   const data = [];
   const startDate = new Date();
@@ -37,42 +29,111 @@ const generateHistoricalData = (days: number) => {
   for (let i = 0; i < days; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);
+    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
     
+    // Seasonal factors
+    const seasonalWave = Math.sin((dayOfYear - 80) * 2 * Math.PI / 365); // peaks in winter
+    const weatherCycle = Math.sin(i / 5) * 0.3 + Math.sin(i / 13) * 0.2;
+    
+    const waveHeight = Math.max(0.3, 2.5 + seasonalWave * 1.2 + weatherCycle * 0.8 + (Math.random() - 0.5) * 0.6);
+    const windSpeed = Math.max(1, 12 + seasonalWave * 4 + weatherCycle * 3 + (Math.random() - 0.5) * 4);
+    const seaTemp = 10 - seasonalWave * 5 + (Math.random() - 0.5) * 1.5;
+    const currentSpeed = Math.max(0.1, 1.2 + Math.sin(i / 8) * 0.4 + (Math.random() - 0.5) * 0.3);
+    
+    // Power is correlated with wave height and wind
+    const basePower = (waveHeight * 120 + windSpeed * 15);
+    const wg1_power = Math.max(0, basePower + (Math.random() - 0.5) * 80 + Math.sin(i / 10) * 30);
+    const wg2_power = Math.max(0, basePower * 0.92 + (Math.random() - 0.5) * 90 + Math.sin(i / 8) * 25);
+    const wg3_power = Math.max(0, basePower * 1.05 + (Math.random() - 0.5) * 70 + Math.sin(i / 12) * 35);
+    const wg4_power = Math.max(0, basePower * 0.97 + (Math.random() - 0.5) * 85 + Math.sin(i / 15) * 28);
+    const total_power = wg1_power + wg2_power + wg3_power + wg4_power;
+    
+    // Efficiency affected by conditions
+    const efficiency = Math.min(98, Math.max(55, 82 + (waveHeight > 3.5 ? -8 : 0) + (windSpeed > 18 ? -5 : 0) + (Math.random() - 0.5) * 6));
+    
+    // Vibration (correlates with wave height, occasional spikes = anomalies)
+    const vibration = 2.5 + waveHeight * 0.8 + (Math.random() < 0.03 ? Math.random() * 8 : (Math.random() - 0.5) * 1.2);
+    
+    // Bearing temperature
+    const bearingTemp = 45 + total_power / 200 + (Math.random() - 0.5) * 5 + (Math.random() < 0.02 ? Math.random() * 15 : 0);
+
     data.push({
       date: date.toISOString().split('T')[0],
       timestamp: date.getTime(),
-      wg1_power: Math.random() * 500 + 300 + Math.sin(i / 10) * 100,
-      wg2_power: Math.random() * 500 + 280 + Math.sin(i / 8) * 120,
-      wg3_power: Math.random() * 500 + 320 + Math.sin(i / 12) * 90,
-      wg4_power: Math.random() * 500 + 290 + Math.sin(i / 15) * 110,
-      total_power: 0,
-      wave_height: Math.random() * 3 + 1.5 + Math.sin(i / 7) * 0.5,
-      wind_speed: Math.random() * 15 + 8 + Math.sin(i / 9) * 3,
-      efficiency: Math.random() * 20 + 75 + Math.sin(i / 6) * 5,
+      wg1_power: +wg1_power.toFixed(1),
+      wg2_power: +wg2_power.toFixed(1),
+      wg3_power: +wg3_power.toFixed(1),
+      wg4_power: +wg4_power.toFixed(1),
+      total_power: +total_power.toFixed(1),
+      wave_height: +waveHeight.toFixed(2),
+      wind_speed: +windSpeed.toFixed(1),
+      sea_temp: +seaTemp.toFixed(1),
+      current_speed: +currentSpeed.toFixed(2),
+      efficiency: +efficiency.toFixed(1),
+      vibration: +vibration.toFixed(2),
+      bearing_temp: +bearingTemp.toFixed(1),
     });
   }
-  
-  // Calculate total power
-  data.forEach(item => {
-    item.total_power = item.wg1_power + item.wg2_power + item.wg3_power + item.wg4_power;
-  });
-  
   return data;
 };
 
 const performanceData = [
-  { name: 'WG-1', efficiency: 87, uptime: 94, energy: 2.3 },
-  { name: 'WG-2', efficiency: 83, uptime: 91, energy: 2.1 },
-  { name: 'WG-3', efficiency: 89, uptime: 96, energy: 2.4 },
-  { name: 'WG-4', efficiency: 85, uptime: 93, energy: 2.2 },
+  { name: 'WG-1', efficiency: 87.3, uptime: 94.2, energy: 2.31, availability: 96.1, mtbf: 312 },
+  { name: 'WG-2', efficiency: 83.7, uptime: 91.4, energy: 2.08, availability: 93.5, mtbf: 287 },
+  { name: 'WG-3', efficiency: 89.1, uptime: 96.3, energy: 2.44, availability: 97.8, mtbf: 345 },
+  { name: 'WG-4', efficiency: 85.2, uptime: 93.0, energy: 2.19, availability: 95.2, mtbf: 298 },
+];
+
+const radarData = [
+  { metric: 'Efficiency', WG1: 87, WG2: 84, WG3: 89, WG4: 85 },
+  { metric: 'Uptime', WG1: 94, WG2: 91, WG3: 96, WG4: 93 },
+  { metric: 'Availability', WG1: 96, WG2: 94, WG3: 98, WG4: 95 },
+  { metric: 'Reliability', WG1: 88, WG2: 82, WG3: 91, WG4: 86 },
+  { metric: 'Output', WG1: 85, WG2: 80, WG3: 90, WG4: 83 },
 ];
 
 const maintenanceData = [
-  { name: 'Planned', value: 15, color: '#22c55e' },
-  { name: 'Predictive', value: 8, color: '#3b82f6' },
-  { name: 'Emergency', value: 3, color: '#ef4444' },
-  { name: 'Completed', value: 42, color: '#6b7280' },
+  { name: 'Planned', value: 15, color: 'hsl(142, 71%, 45%)' },
+  { name: 'Predictive', value: 8, color: 'hsl(217, 91%, 60%)' },
+  { name: 'Emergency', value: 3, color: 'hsl(0, 84%, 60%)' },
+  { name: 'Completed', value: 42, color: 'hsl(215, 14%, 50%)' },
 ];
+
+const maintenanceLog = [
+  { date: 'Tomorrow', item: 'WG-1 Blade Inspection', type: 'Planned', severity: 'low' },
+  { date: 'In 3 days', item: 'WG-3 Generator Bearing Replacement', type: 'Predictive', severity: 'medium' },
+  { date: 'Next Week', item: 'WG-2 Gearbox Oil Analysis', type: 'Planned', severity: 'low' },
+  { date: 'Yesterday', item: 'WG-4 Hydraulic Pump Seal', type: 'Emergency', severity: 'high' },
+  { date: '3 days ago', item: 'WG-2 Vibration Sensor Calibration', type: 'Completed', severity: 'low' },
+  { date: '1 week ago', item: 'WG-1 Control System Update', type: 'Completed', severity: 'medium' },
+];
+
+// KPI card component
+function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
+  label: string; value: string; unit?: string; icon: any; delta?: number; deltaLabel?: string;
+}) {
+  return (
+    <Card className="relative overflow-hidden">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">{value}<span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span></p>
+            {delta !== undefined && (
+              <div className={`flex items-center gap-0.5 mt-1 text-xs font-medium ${delta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {delta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                {Math.abs(delta).toFixed(1)}% {deltaLabel || 'vs prev. period'}
+              </div>
+            )}
+          </div>
+          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Icon className="h-4.5 w-4.5 text-primary" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DataAnalysis() {
   const { t } = useLanguage();
@@ -87,167 +148,155 @@ export default function DataAnalysis() {
   const historicalData = useMemo(() => generateHistoricalData(parseInt(filters.timeRange)), [filters.timeRange]);
   
   const filteredData = useMemo(() => {
-    let data = historicalData;
-    
-    // Filter by turbines if specific ones are selected
-    if (filters.turbines.length > 0) {
-      data = data.map(item => {
-        const filteredItem = { ...item };
-        // Keep only selected turbine data
-        const selectedPower = filters.turbines.reduce((sum, turbine) => {
-          return sum + (item[`${turbine}_power` as keyof typeof item] as number || 0);
-        }, 0);
-        filteredItem.filtered_power = selectedPower;
-        return filteredItem;
-      });
-    }
-    
-    return data;
+    if (filters.turbines.length === 0) return historicalData;
+    return historicalData.map(item => {
+      const selectedPower = filters.turbines.reduce((sum, turbine) => {
+        return sum + ((item as any)[`${turbine}_power`] || 0);
+      }, 0);
+      return { ...item, filtered_power: selectedPower };
+    });
   }, [historicalData, filters.turbines]);
 
-  const totalEnergyGenerated = useMemo(() => {
-    return historicalData.reduce((acc, item) => acc + item.total_power, 0) / 1000; // Convert to MWh
+  const stats = useMemo(() => {
+    const totalEnergy = historicalData.reduce((acc, item) => acc + item.total_power, 0) / 1000;
+    const avgEff = historicalData.reduce((acc, item) => acc + item.efficiency, 0) / historicalData.length;
+    const peakPower = Math.max(...historicalData.map(d => d.total_power));
+    const avgVibration = historicalData.reduce((acc, item) => acc + item.vibration, 0) / historicalData.length;
+    const avgBearingTemp = historicalData.reduce((acc, item) => acc + item.bearing_temp, 0) / historicalData.length;
+    const avgWave = historicalData.reduce((acc, item) => acc + item.wave_height, 0) / historicalData.length;
+    
+    // Simulate deltas
+    const halfLen = Math.floor(historicalData.length / 2);
+    const firstHalf = historicalData.slice(0, halfLen);
+    const secondHalf = historicalData.slice(halfLen);
+    const effDelta = ((secondHalf.reduce((s, d) => s + d.efficiency, 0) / secondHalf.length) - 
+                     (firstHalf.reduce((s, d) => s + d.efficiency, 0) / firstHalf.length));
+    const powerDelta = ((secondHalf.reduce((s, d) => s + d.total_power, 0) / secondHalf.length) - 
+                       (firstHalf.reduce((s, d) => s + d.total_power, 0) / firstHalf.length)) / 
+                       (firstHalf.reduce((s, d) => s + d.total_power, 0) / firstHalf.length) * 100;
+
+    return { totalEnergy, avgEff, peakPower, avgVibration, avgBearingTemp, avgWave, effDelta, powerDelta };
   }, [historicalData]);
 
-  const avgEfficiency = useMemo(() => {
-    return historicalData.reduce((acc, item) => acc + item.efficiency, 0) / historicalData.length;
-  }, [historicalData]);
-
-  // Multi-axis chart configuration
   const multiAxisMetrics = useMemo(() => [
     { key: 'total_power', name: 'Total Power', type: 'bar' as const, color: 'hsl(var(--primary))', yAxisId: 'left' as const },
-    { key: 'wave_height', name: 'Wave Height', type: 'line' as const, color: 'hsl(var(--destructive))', yAxisId: 'right' as const },
-    { key: 'wind_speed', name: 'Wind Speed', type: 'line' as const, color: 'hsl(var(--secondary))', yAxisId: 'right' as const },
-    { key: 'efficiency', name: 'Efficiency', type: 'line' as const, color: 'hsl(var(--accent))', yAxisId: 'left' as const }
+    { key: 'wave_height', name: 'Wave Height', type: 'line' as const, color: 'hsl(0, 84%, 60%)', yAxisId: 'right' as const },
+    { key: 'wind_speed', name: 'Wind Speed', type: 'line' as const, color: 'hsl(217, 91%, 60%)', yAxisId: 'right' as const },
+    { key: 'efficiency', name: 'Efficiency', type: 'line' as const, color: 'hsl(142, 71%, 45%)', yAxisId: 'left' as const }
+  ], []);
+
+  const statMetrics = useMemo(() => [
+    { key: 'total_power', label: 'Total Power', unit: 'kW', decimals: 0 },
+    { key: 'efficiency', label: 'Efficiency', unit: '%', decimals: 1 },
+    { key: 'wave_height', label: 'Wave Height', unit: 'm', decimals: 2 },
+    { key: 'wind_speed', label: 'Wind Speed', unit: 'm/s', decimals: 1 },
+    { key: 'vibration', label: 'Vibration', unit: 'mm/s', decimals: 2 },
+    { key: 'bearing_temp', label: 'Bearing Temp', unit: '°C', decimals: 1 },
+    { key: 'sea_temp', label: 'Sea Temp', unit: '°C', decimals: 1 },
+    { key: 'current_speed', label: 'Current Speed', unit: 'm/s', decimals: 2 },
+  ], []);
+
+  const tableColumns = useMemo(() => [
+    { key: 'date', label: 'Date', decimals: 0 },
+    { key: 'wg1_power', label: 'WG-1', unit: 'kW', decimals: 0 },
+    { key: 'wg2_power', label: 'WG-2', unit: 'kW', decimals: 0 },
+    { key: 'wg3_power', label: 'WG-3', unit: 'kW', decimals: 0 },
+    { key: 'wg4_power', label: 'WG-4', unit: 'kW', decimals: 0 },
+    { key: 'total_power', label: 'Total', unit: 'kW', decimals: 0 },
+    { key: 'efficiency', label: 'Eff.', unit: '%', decimals: 1 },
+    { key: 'wave_height', label: 'Wave', unit: 'm', decimals: 2 },
+    { key: 'wind_speed', label: 'Wind', unit: 'm/s', decimals: 1 },
+    { key: 'vibration', label: 'Vibration', unit: 'mm/s', decimals: 2 },
+    { key: 'bearing_temp', label: 'Bear. T', unit: '°C', decimals: 1 },
   ], []);
 
   const exportData = () => {
+    const headers = tableColumns.map(c => `${c.label}${c.unit ? ` (${c.unit})` : ''}`);
     const csv = [
-      ['Date', 'WG-1 Power', 'WG-2 Power', 'WG-3 Power', 'WG-4 Power', 'Total Power', 'Wave Height', 'Wind Speed', 'Efficiency'].join(','),
-      ...historicalData.map(item => [
-        item.date,
-        item.wg1_power.toFixed(2),
-        item.wg2_power.toFixed(2),
-        item.wg3_power.toFixed(2),
-        item.wg4_power.toFixed(2),
-        item.total_power.toFixed(2),
-        item.wave_height.toFixed(2),
-        item.wind_speed.toFixed(2),
-        item.efficiency.toFixed(2)
-      ].join(','))
+      headers.join(','),
+      ...historicalData.map(item =>
+        tableColumns.map(c => {
+          const v = (item as any)[c.key];
+          return typeof v === 'number' ? v.toFixed(c.decimals ?? 2) : v;
+        }).join(',')
+      )
     ].join('\n');
     
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `turbine_data_${filters.timeRange}days.csv`;
+    a.download = `turbine_data_${filters.timeRange}d_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-20 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">{t('dataAnalysis.title')}</h1>
-            <p className="text-muted-foreground">{t('dataAnalysis.subtitle')}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('dataAnalysis.title')}</h1>
+            <p className="text-muted-foreground mt-1">{t('dataAnalysis.subtitle')}</p>
           </div>
-          <Button onClick={exportData} className="flex items-center gap-2">
+          <Button onClick={exportData} variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
-            {t('dataAnalysis.exportData')}
+            Export CSV
           </Button>
         </div>
 
-        {/* Advanced Filters */}
+        {/* Filters */}
         <div className="mb-6">
           <AdvancedFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.totalEnergy')}</p>
-                  <p className="text-2xl font-bold">{totalEnergyGenerated.toFixed(1)} MWh</p>
-                </div>
-                <Zap className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.avgEfficiency')}</p>
-                  <p className="text-2xl font-bold">{avgEfficiency.toFixed(1)}%</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.activeTurbines')}</p>
-                  <p className="text-2xl font-bold">4/4</p>
-                </div>
-                <Activity className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('dataAnalysis.dataPoints')}</p>
-                  <p className="text-2xl font-bold">{historicalData.length}</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <KPICard label="Total Energy" value={stats.totalEnergy.toFixed(1)} unit="MWh" icon={Zap} delta={stats.powerDelta} />
+          <KPICard label="Avg Efficiency" value={stats.avgEff.toFixed(1)} unit="%" icon={Gauge} delta={stats.effDelta} />
+          <KPICard label="Peak Power" value={stats.peakPower.toFixed(0)} unit="kW" icon={TrendingUp} />
+          <KPICard label="Avg Vibration" value={stats.avgVibration.toFixed(1)} unit="mm/s" icon={Activity} />
+          <KPICard label="Bearing Temp" value={stats.avgBearingTemp.toFixed(1)} unit="°C" icon={Thermometer} />
+          <KPICard label="Avg Wave Ht." value={stats.avgWave.toFixed(2)} unit="m" icon={Waves} />
         </div>
 
         <Tabs defaultValue="power" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="power">{t('dataAnalysis.powerGeneration')}</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="power">Power</TabsTrigger>
             <TabsTrigger value="correlation">Correlation</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="multiaxis">Multi-Axis</TabsTrigger>
-            <TabsTrigger value="performance">{t('dataAnalysis.performance')}</TabsTrigger>
-            <TabsTrigger value="maintenance">{t('dataAnalysis.maintenance')}</TabsTrigger>
+            <TabsTrigger value="anomaly">Anomaly</TabsTrigger>
+            <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+            <TabsTrigger value="rawdata">Raw Data</TabsTrigger>
           </TabsList>
 
+          {/* Power */}
           <TabsContent value="power">
             <Card>
-              <CardHeader>
-                <CardTitle>{t('dataAnalysis.powerGenerationTrends')}</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Power Generation — Stacked Area</CardTitle></CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={historicalData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
+                <ResponsiveContainer width="100%" height={420}>
+                  <AreaChart data={filteredData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} label={{ value: 'kW', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
                     <Tooltip />
                     <Legend />
                     {filters.turbines.length === 0 ? (
                       <>
-                        <Area type="monotone" dataKey="wg1_power" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} name="WG-1" />
-                        <Area type="monotone" dataKey="wg2_power" stackId="1" stroke="hsl(var(--secondary))" fill="hsl(var(--secondary))" fillOpacity={0.6} name="WG-2" />
-                        <Area type="monotone" dataKey="wg3_power" stackId="1" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.6} name="WG-3" />
-                        <Area type="monotone" dataKey="wg4_power" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.6} name="WG-4" />
+                        <Area type="monotone" dataKey="wg1_power" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.7} name="WG-1" />
+                        <Area type="monotone" dataKey="wg2_power" stackId="1" stroke="hsl(217, 91%, 60%)" fill="hsl(217, 91%, 60%)" fillOpacity={0.6} name="WG-2" />
+                        <Area type="monotone" dataKey="wg3_power" stackId="1" stroke="hsl(142, 71%, 45%)" fill="hsl(142, 71%, 45%)" fillOpacity={0.6} name="WG-3" />
+                        <Area type="monotone" dataKey="wg4_power" stackId="1" stroke="hsl(32, 95%, 50%)" fill="hsl(32, 95%, 50%)" fillOpacity={0.6} name="WG-4" />
                       </>
                     ) : (
-                      <Area type="monotone" dataKey="filtered_power" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} name="Selected Turbines" />
+                      <Area type="monotone" dataKey="filtered_power" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} name="Selected" />
                     )}
                   </AreaChart>
                 </ResponsiveContainer>
@@ -255,6 +304,7 @@ export default function DataAnalysis() {
             </Card>
           </TabsContent>
 
+          {/* Correlation */}
           <TabsContent value="correlation">
             {filters.correlationPair && (
               <CorrelationChart
@@ -268,6 +318,7 @@ export default function DataAnalysis() {
             )}
           </TabsContent>
 
+          {/* Trends */}
           <TabsContent value="trends">
             {filters.trendMetric && (
               <TrendAnalysis
@@ -277,92 +328,95 @@ export default function DataAnalysis() {
                 unit={filters.trendMetric.includes('power') ? 'kW' : 
                       filters.trendMetric === 'efficiency' ? '%' :
                       filters.trendMetric === 'wave_height' ? 'm' :
-                      filters.trendMetric === 'wind_speed' ? 'm/s' : ''}
+                      filters.trendMetric === 'wind_speed' ? 'm/s' :
+                      filters.trendMetric === 'vibration' ? 'mm/s' :
+                      filters.trendMetric === 'bearing_temp' ? '°C' : ''}
               />
             )}
           </TabsContent>
 
+          {/* Multi-Axis */}
           <TabsContent value="multiaxis">
             <MultiAxisChart
               data={historicalData}
-              title="Multi-Axis Analysis: Power vs Environmental Factors"
+              title="Multi-Axis: Power vs Environmental Factors"
               metrics={multiAxisMetrics}
               leftAxisLabel="Power (kW) / Efficiency (%)"
-              rightAxisLabel="Environmental (m, m/s)"
+              rightAxisLabel="Wave (m) / Wind (m/s)"
             />
           </TabsContent>
 
-          <TabsContent value="environmental">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.waveHeightTrends')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={historicalData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="wave_height" stroke="hsl(var(--primary))" strokeWidth={2} name="Wave Height (m)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.windSpeedAnalysis')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={historicalData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="wind_speed" stroke="hsl(var(--secondary))" strokeWidth={2} name="Wind Speed (m/s)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+          {/* Anomaly Detection */}
+          <TabsContent value="anomaly">
+            <div className="grid grid-cols-1 gap-6">
+              <AnomalyChart data={historicalData} dataKey="vibration" title="Vibration Anomaly Detection" unit="mm/s" sensitivity={2} />
+              <AnomalyChart data={historicalData} dataKey="bearing_temp" title="Bearing Temperature Anomaly Detection" unit="°C" sensitivity={2.5} />
             </div>
           </TabsContent>
 
+          {/* Heatmap */}
+          <TabsContent value="heatmap">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <HeatmapChart data={historicalData} title="Power Output Heatmap (Day × Hour)" metric="total_power" unit="kW" />
+              <HeatmapChart data={historicalData} title="Efficiency Heatmap (Day × Hour)" metric="efficiency" unit="%" />
+            </div>
+          </TabsContent>
+
+          {/* Statistical Summary */}
+          <TabsContent value="stats">
+            <StatisticalSummary data={historicalData} metrics={statMetrics} />
+          </TabsContent>
+
+          {/* Performance */}
           <TabsContent value="performance">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.turbinePerformanceComparison')}</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Turbine Performance Comparison</CardTitle></CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={320}>
                     <BarChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="efficiency" fill="hsl(var(--primary))" name="Efficiency %" />
-                      <Bar dataKey="uptime" fill="hsl(var(--secondary))" name="Uptime %" />
+                      <Bar dataKey="efficiency" fill="hsl(var(--primary))" name="Efficiency %" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="uptime" fill="hsl(217, 91%, 60%)" name="Uptime %" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="availability" fill="hsl(142, 71%, 45%)" name="Availability %" radius={[3, 3, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.energyOutputByTurbine')}</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Turbine Radar Profile</CardTitle></CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11 }} />
+                      <PolarRadiusAxis angle={90} domain={[70, 100]} tick={{ fontSize: 10 }} />
+                      <Radar name="WG-1" dataKey="WG1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.15} strokeWidth={2} />
+                      <Radar name="WG-3" dataKey="WG3" stroke="hsl(142, 71%, 45%)" fill="hsl(142, 71%, 45%)" fillOpacity={0.15} strokeWidth={2} />
+                      <Legend />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-2">
+                <CardHeader><CardTitle>Energy Output & MTBF</CardTitle></CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="name" />
-                      <YAxis />
+                      <YAxis yAxisId="left" label={{ value: 'Energy (MWh)', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
+                      <YAxis yAxisId="right" orientation="right" label={{ value: 'MTBF (hours)', angle: 90, position: 'insideRight', style: { fontSize: 11 } }} />
                       <Tooltip />
-                      <Bar dataKey="energy" fill="hsl(var(--accent))" name="Energy (MWh)" />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="energy" fill="hsl(32, 95%, 50%)" name="Energy (MWh)" radius={[3, 3, 0, 0]} />
+                      <Bar yAxisId="right" dataKey="mtbf" fill="hsl(var(--primary))" name="MTBF (hrs)" radius={[3, 3, 0, 0]} fillOpacity={0.6} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -370,14 +424,13 @@ export default function DataAnalysis() {
             </div>
           </TabsContent>
 
+          {/* Maintenance */}
           <TabsContent value="maintenance">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.maintenanceActivityDistribution')}</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Maintenance Activity Distribution</CardTitle></CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={320}>
                     <PieChart>
                       <Pie
                         data={maintenanceData}
@@ -385,9 +438,10 @@ export default function DataAnalysis() {
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
+                        outerRadius={100}
+                        innerRadius={50}
                         dataKey="value"
+                        paddingAngle={2}
                       >
                         {maintenanceData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -400,36 +454,32 @@ export default function DataAnalysis() {
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>{t('dataAnalysis.maintenanceSchedule')}</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Maintenance Schedule & Log</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">WG-1 Blade Inspection</p>
-                        <p className="text-sm text-muted-foreground">Scheduled: Tomorrow</p>
+                  <div className="space-y-3">
+                    {maintenanceLog.map((item, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{item.item}</p>
+                          <p className="text-xs text-muted-foreground">{item.date}</p>
+                        </div>
+                        <Badge
+                          variant={item.severity === 'high' ? 'destructive' : item.type === 'Completed' ? 'secondary' : 'default'}
+                          className="ml-2 shrink-0"
+                        >
+                          {item.type}
+                        </Badge>
                       </div>
-                      <Badge variant="secondary">Planned</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">WG-3 Generator Service</p>
-                        <p className="text-sm text-muted-foreground">Due: Next Week</p>
-                      </div>
-                      <Badge variant="default">Predictive</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">WG-2 Gearbox Check</p>
-                        <p className="text-sm text-muted-foreground">Completed: Yesterday</p>
-                      </div>
-                      <Badge variant="outline">Completed</Badge>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Raw Data Table */}
+          <TabsContent value="rawdata">
+            <DataTable data={historicalData} columns={tableColumns} title="Raw Sensor Data" />
           </TabsContent>
         </Tabs>
       </div>
