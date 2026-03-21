@@ -14,10 +14,11 @@ import StatisticalSummary from '@/components/charts/StatisticalSummary';
 import AnomalyChart from '@/components/charts/AnomalyChart';
 import HeatmapChart from '@/components/charts/HeatmapChart';
 import DataTable from '@/components/charts/DataTable';
+import ComparisonOverlay from '@/components/charts/ComparisonOverlay';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis
+  PolarAngleAxis, PolarRadiusAxis, Brush, ReferenceArea
 } from 'recharts';
 
 // Enhanced data generation with more variables and realistic seasonal patterns
@@ -31,8 +32,7 @@ const generateHistoricalData = (days: number) => {
     date.setDate(startDate.getDate() + i);
     const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
     
-    // Seasonal factors
-    const seasonalWave = Math.sin((dayOfYear - 80) * 2 * Math.PI / 365); // peaks in winter
+    const seasonalWave = Math.sin((dayOfYear - 80) * 2 * Math.PI / 365);
     const weatherCycle = Math.sin(i / 5) * 0.3 + Math.sin(i / 13) * 0.2;
     
     const waveHeight = Math.max(0.3, 2.5 + seasonalWave * 1.2 + weatherCycle * 0.8 + (Math.random() - 0.5) * 0.6);
@@ -40,7 +40,6 @@ const generateHistoricalData = (days: number) => {
     const seaTemp = 10 - seasonalWave * 5 + (Math.random() - 0.5) * 1.5;
     const currentSpeed = Math.max(0.1, 1.2 + Math.sin(i / 8) * 0.4 + (Math.random() - 0.5) * 0.3);
     
-    // Power is correlated with wave height and wind
     const basePower = (waveHeight * 120 + windSpeed * 15);
     const wg1_power = Math.max(0, basePower + (Math.random() - 0.5) * 80 + Math.sin(i / 10) * 30);
     const wg2_power = Math.max(0, basePower * 0.92 + (Math.random() - 0.5) * 90 + Math.sin(i / 8) * 25);
@@ -48,13 +47,8 @@ const generateHistoricalData = (days: number) => {
     const wg4_power = Math.max(0, basePower * 0.97 + (Math.random() - 0.5) * 85 + Math.sin(i / 15) * 28);
     const total_power = wg1_power + wg2_power + wg3_power + wg4_power;
     
-    // Efficiency affected by conditions
     const efficiency = Math.min(98, Math.max(55, 82 + (waveHeight > 3.5 ? -8 : 0) + (windSpeed > 18 ? -5 : 0) + (Math.random() - 0.5) * 6));
-    
-    // Vibration (correlates with wave height, occasional spikes = anomalies)
     const vibration = 2.5 + waveHeight * 0.8 + (Math.random() < 0.03 ? Math.random() * 8 : (Math.random() - 0.5) * 1.2);
-    
-    // Bearing temperature
     const bearingTemp = 45 + total_power / 200 + (Math.random() - 0.5) * 5 + (Math.random() < 0.02 ? Math.random() * 15 : 0);
 
     data.push({
@@ -108,7 +102,6 @@ const maintenanceLog = [
   { date: '1 week ago', item: 'WG-1 Control System Update', type: 'Completed', severity: 'medium' },
 ];
 
-// KPI card component
 function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
   label: string; value: string; unit?: string; icon: any; delta?: number; deltaLabel?: string;
 }) {
@@ -135,27 +128,65 @@ function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
   );
 }
 
+const UNIT_MAP: Record<string, string> = {
+  total_power: 'kW', wg1_power: 'kW', wg2_power: 'kW', wg3_power: 'kW', wg4_power: 'kW',
+  efficiency: '%', wave_height: 'm', wind_speed: 'm/s', vibration: 'mm/s',
+  bearing_temp: '°C', sea_temp: '°C', current_speed: 'm/s',
+};
+
 export default function DataAnalysis() {
   const { t } = useLanguage();
   const [filters, setFilters] = useState<FilterConfig>({
-    timeRange: '30',
+    timeRange: '90',
     turbines: [],
     metrics: ['power'],
     correlationPair: { x: 'wave_height', y: 'total_power' },
-    trendMetric: 'total_power'
+    trendMetric: 'total_power',
+    comparisonMetric: 'total_power',
   });
-  
-  const historicalData = useMemo(() => generateHistoricalData(parseInt(filters.timeRange)), [filters.timeRange]);
-  
+
+  // Zoom state for Power chart
+  const [zoomLeft, setZoomLeft] = useState<string | null>(null);
+  const [zoomRight, setZoomRight] = useState<string | null>(null);
+  const [zoomArea, setZoomArea] = useState<{ left: string; right: string } | null>(null);
+
+  const allData = useMemo(() => generateHistoricalData(parseInt(filters.timeRange)), [filters.timeRange]);
+
+  // Apply custom date filter
+  const historicalData = useMemo(() => {
+    if (!filters.customDateFrom && !filters.customDateTo) return allData;
+    return allData.filter(d => {
+      const t = new Date(d.date).getTime();
+      if (filters.customDateFrom && t < filters.customDateFrom.getTime()) return false;
+      if (filters.customDateTo && t > filters.customDateTo.getTime()) return false;
+      return true;
+    });
+  }, [allData, filters.customDateFrom, filters.customDateTo]);
+
+  // Apply zoom
+  const zoomedData = useMemo(() => {
+    if (!zoomArea) return historicalData;
+    const li = historicalData.findIndex(d => d.date === zoomArea.left);
+    const ri = historicalData.findIndex(d => d.date === zoomArea.right);
+    if (li >= 0 && ri >= 0) return historicalData.slice(Math.min(li, ri), Math.max(li, ri) + 1);
+    return historicalData;
+  }, [historicalData, zoomArea]);
+
   const filteredData = useMemo(() => {
-    if (filters.turbines.length === 0) return historicalData;
-    return historicalData.map(item => {
+    if (filters.turbines.length === 0) return zoomedData;
+    return zoomedData.map(item => {
       const selectedPower = filters.turbines.reduce((sum, turbine) => {
         return sum + ((item as any)[`${turbine}_power`] || 0);
       }, 0);
       return { ...item, filtered_power: selectedPower };
     });
-  }, [historicalData, filters.turbines]);
+  }, [zoomedData, filters.turbines]);
+
+  // Split data for comparison: first half vs second half
+  const { currentPeriod, previousPeriod } = useMemo(() => {
+    const half = Math.floor(historicalData.length / 2);
+    return { currentPeriod: historicalData.slice(half), previousPeriod: historicalData.slice(0, half) };
+  }, [historicalData]);
 
   const stats = useMemo(() => {
     const totalEnergy = historicalData.reduce((acc, item) => acc + item.total_power, 0) / 1000;
@@ -165,7 +196,6 @@ export default function DataAnalysis() {
     const avgBearingTemp = historicalData.reduce((acc, item) => acc + item.bearing_temp, 0) / historicalData.length;
     const avgWave = historicalData.reduce((acc, item) => acc + item.wave_height, 0) / historicalData.length;
     
-    // Simulate deltas
     const halfLen = Math.floor(historicalData.length / 2);
     const firstHalf = historicalData.slice(0, halfLen);
     const secondHalf = historicalData.slice(halfLen);
@@ -231,11 +261,28 @@ export default function DataAnalysis() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Drag-to-zoom handlers for Power chart
+  const handleMouseDown = (e: any) => {
+    if (e?.activeLabel) setZoomLeft(e.activeLabel);
+  };
+  const handleMouseMove = (e: any) => {
+    if (zoomLeft && e?.activeLabel) setZoomRight(e.activeLabel);
+  };
+  const handleMouseUp = () => {
+    if (zoomLeft && zoomRight && zoomLeft !== zoomRight) {
+      setZoomArea({ left: zoomLeft, right: zoomRight });
+    }
+    setZoomLeft(null);
+    setZoomRight(null);
+  };
+  const resetZoom = () => { setZoomArea(null); setZoomLeft(null); setZoomRight(null); };
+
+  const compMetric = filters.comparisonMetric || 'total_power';
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-20 container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('dataAnalysis.title')}</h1>
@@ -247,12 +294,10 @@ export default function DataAnalysis() {
           </Button>
         </div>
 
-        {/* Filters */}
         <div className="mb-6">
           <AdvancedFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <KPICard label="Total Energy" value={stats.totalEnergy.toFixed(1)} unit="MWh" icon={Zap} delta={stats.powerDelta} />
           <KPICard label="Avg Efficiency" value={stats.avgEff.toFixed(1)} unit="%" icon={Gauge} delta={stats.effDelta} />
@@ -265,6 +310,7 @@ export default function DataAnalysis() {
         <Tabs defaultValue="power" className="space-y-6">
           <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="power">Power</TabsTrigger>
+            <TabsTrigger value="comparison">Comparison</TabsTrigger>
             <TabsTrigger value="correlation">Correlation</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="multiaxis">Multi-Axis</TabsTrigger>
@@ -276,13 +322,26 @@ export default function DataAnalysis() {
             <TabsTrigger value="rawdata">Raw Data</TabsTrigger>
           </TabsList>
 
-          {/* Power */}
+          {/* Power — with drag-to-zoom + Brush */}
           <TabsContent value="power">
             <Card>
-              <CardHeader><CardTitle>Power Generation — Stacked Area</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Power Generation — Stacked Area
+                  {zoomArea && (
+                    <Button variant="outline" size="sm" onClick={resetZoom}>Reset Zoom</Button>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Click and drag on the chart to zoom in. Use the brush slider below to pan.</p>
+              </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={420}>
-                  <AreaChart data={filteredData}>
+                  <AreaChart
+                    data={filteredData}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} label={{ value: 'kW', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
@@ -298,10 +357,27 @@ export default function DataAnalysis() {
                     ) : (
                       <Area type="monotone" dataKey="filtered_power" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} name="Selected" />
                     )}
+                    {zoomLeft && zoomRight && (
+                      <ReferenceArea x1={zoomLeft} x2={zoomRight} strokeOpacity={0.3} fill="hsl(var(--primary))" fillOpacity={0.1} />
+                    )}
+                    <Brush dataKey="date" height={30} stroke="hsl(var(--primary))" travellerWidth={8} />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Period Comparison */}
+          <TabsContent value="comparison">
+            <ComparisonOverlay
+              currentData={currentPeriod}
+              previousData={previousPeriod}
+              metric={compMetric}
+              metricLabel={compMetric.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              unit={UNIT_MAP[compMetric] || ''}
+              currentLabel="Second Half"
+              previousLabel="First Half"
+            />
           </TabsContent>
 
           {/* Correlation */}
@@ -311,9 +387,9 @@ export default function DataAnalysis() {
                 data={historicalData}
                 xKey={filters.correlationPair.x}
                 yKey={filters.correlationPair.y}
-                title={`Correlation: ${filters.correlationPair.x} vs ${filters.correlationPair.y}`}
-                xLabel={filters.correlationPair.x}
-                yLabel={filters.correlationPair.y}
+                title={`Correlation: ${filters.correlationPair.x.replace(/_/g, ' ')} vs ${filters.correlationPair.y.replace(/_/g, ' ')}`}
+                xLabel={filters.correlationPair.x.replace(/_/g, ' ')}
+                yLabel={filters.correlationPair.y.replace(/_/g, ' ')}
               />
             )}
           </TabsContent>
@@ -324,13 +400,8 @@ export default function DataAnalysis() {
               <TrendAnalysis
                 data={historicalData}
                 dataKey={filters.trendMetric}
-                title={`Trend Analysis: ${filters.trendMetric}`}
-                unit={filters.trendMetric.includes('power') ? 'kW' : 
-                      filters.trendMetric === 'efficiency' ? '%' :
-                      filters.trendMetric === 'wave_height' ? 'm' :
-                      filters.trendMetric === 'wind_speed' ? 'm/s' :
-                      filters.trendMetric === 'vibration' ? 'mm/s' :
-                      filters.trendMetric === 'bearing_temp' ? '°C' : ''}
+                title={`Trend Analysis: ${filters.trendMetric.replace(/_/g, ' ')}`}
+                unit={UNIT_MAP[filters.trendMetric] || ''}
               />
             )}
           </TabsContent>
