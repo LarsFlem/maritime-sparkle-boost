@@ -49,16 +49,24 @@ export default function CorrelationChart({ data, xKey, yKey, title, xLabel, yLab
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <ScatterChart data={data}>
+          <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xKey} name={xLabel} />
-            <YAxis dataKey={yKey} name={yLabel} />
+            <XAxis type="number" dataKey={xKey} name={xLabel} label={{ value: xLabel, position: 'insideBottom', offset: -5 }} />
+            <YAxis type="number" dataKey={yKey} name={yLabel} label={{ value: yLabel, angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               cursor={{ strokeDasharray: '3 3' }}
-              formatter={(value, name) => [value, name]}
-              labelFormatter={() => ''}
+              content={({ payload }) => {
+                if (!payload || payload.length === 0) return null;
+                const point = payload[0]?.payload;
+                return (
+                  <div className="bg-background border border-border rounded p-2 text-sm shadow-md">
+                    <p>{xLabel}: <strong>{point?.[xKey]?.toFixed(2)}</strong></p>
+                    <p>{yLabel}: <strong>{point?.[yKey]?.toFixed(2)}</strong></p>
+                  </div>
+                );
+              }}
             />
-            <Scatter dataKey={yKey} fill="hsl(var(--primary))" fillOpacity={0.6} />
+            <Scatter name={title} data={data} fill="hsl(var(--primary))" fillOpacity={0.6} />
           </ScatterChart>
         </ResponsiveContainer>
       </CardContent>
