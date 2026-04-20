@@ -6,7 +6,21 @@ export default {
   'nav.contact': 'Kontakt',
   'nav.hmi': 'HMI Dashboard',
   'nav.dataAnalysis': 'Dataanalyse',
+  'nav.liveDemo': 'Live Demo',
   'nav.getQuote': 'Få Tilbud',
+
+  // Live Demo
+  'liveDemo.title': 'Live PLC- og Robot-demo',
+  'liveDemo.subtitle': 'Sanntidsovervåking og styring av et industrielt automasjonssystem med live videofeed',
+  'liveDemo.status.running': 'System kjører',
+  'liveDemo.status.stopped': 'System stoppet',
+  'liveDemo.videoFeed.title': 'Live videofeed',
+  'liveDemo.videoFeed.placeholder': 'Plassholder for videofeed',
+  'liveDemo.videoFeed.description': 'Live kameravisning av det industrielle robotsystemet',
+  'liveDemo.hmi.title': 'PLC-styringsgrensesnitt',
+  'liveDemo.hmi.tabs.control': 'Styring',
+  'liveDemo.hmi.tabs.monitoring': 'Overvåking',
+  'liveDemo.hmi.tabs.settings': 'Innstillinger',
 
   // Hero Section
   'hero.title': 'Maritime Automation',
