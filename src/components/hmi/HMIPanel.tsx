@@ -7,36 +7,25 @@ interface HMIPanelProps {
   glowColor?: string;
 }
 
-const HMIPanel = ({ title, children, className, glowColor = "hsl(200, 100%, 50%)" }: HMIPanelProps) => {
+const HMIPanel = ({ title, children, className, glowColor }: HMIPanelProps) => {
+  const accent = glowColor ?? "hsl(var(--primary))";
   return (
     <div
       className={cn(
-        "relative rounded-sm overflow-hidden",
-        "bg-[hsl(210,20%,8%)]",
+        "relative rounded-lg overflow-hidden bg-card/60 backdrop-blur-sm border border-border/60",
         className
       )}
-      style={{
-        border: `1px solid hsl(210, 15%, 20%)`,
-        boxShadow: `inset 0 1px 0 hsl(210, 15%, 25%), 0 0 20px hsl(210, 25%, 5%)`,
-      }}
     >
-      {/* Top accent line */}
+      {/* Subtle top accent line */}
       <div
-        className="absolute top-0 left-0 right-0 h-[2px]"
+        className="absolute top-0 left-0 right-0 h-px opacity-40"
         style={{
-          background: `linear-gradient(90deg, transparent, ${glowColor}, transparent)`,
-          boxShadow: `0 0 10px ${glowColor}`,
+          background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
         }}
       />
       {title && (
         <div
-          className="px-4 py-2 border-b font-mono text-xs uppercase tracking-[0.2em]"
-          style={{
-            borderColor: "hsl(210, 15%, 18%)",
-            color: glowColor,
-            textShadow: `0 0 8px ${glowColor}`,
-            background: "hsl(210, 20%, 6%)",
-          }}
+          className="px-4 py-2 border-b border-border/40 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground bg-background/40"
         >
           {title}
         </div>

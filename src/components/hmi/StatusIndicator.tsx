@@ -6,23 +6,23 @@ interface StatusIndicatorProps {
 
 const statusConfig = {
   operational: {
-    color: "hsl(142, 76%, 50%)",
+    color: "hsl(142, 60%, 55%)",
     label: "ONLINE",
     pulse: true,
   },
   warning: {
-    color: "hsl(45, 100%, 60%)",
+    color: "hsl(38, 92%, 60%)",
     label: "WARNING",
     pulse: true,
   },
   offline: {
-    color: "hsl(0, 84%, 50%)",
+    color: "hsl(0, 70%, 55%)",
     label: "OFFLINE",
     pulse: false,
   },
 };
 
-const sizeMap = { sm: 8, md: 12, lg: 16 };
+const sizeMap = { sm: 8, md: 10, lg: 14 };
 
 const StatusIndicator = ({ status, label, size = "md" }: StatusIndicatorProps) => {
   const config = statusConfig[status];
@@ -35,7 +35,7 @@ const StatusIndicator = ({ status, label, size = "md" }: StatusIndicatorProps) =
           className="absolute inset-0 rounded-full"
           style={{
             backgroundColor: config.color,
-            boxShadow: `0 0 ${s}px ${config.color}, 0 0 ${s * 2}px ${config.color}`,
+            boxShadow: `0 0 6px ${config.color}80`,
           }}
         />
         {config.pulse && (
@@ -43,14 +43,13 @@ const StatusIndicator = ({ status, label, size = "md" }: StatusIndicatorProps) =
             className="absolute inset-0 rounded-full animate-ping"
             style={{
               backgroundColor: config.color,
-              opacity: 0.4,
+              opacity: 0.25,
             }}
           />
         )}
       </div>
       <span
-        className="font-mono text-xs uppercase tracking-wider"
-        style={{ color: config.color, textShadow: `0 0 8px ${config.color}` }}
+        className="font-mono text-xs uppercase tracking-wider text-muted-foreground"
       >
         {label || config.label}
       </span>

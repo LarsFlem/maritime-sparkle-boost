@@ -30,8 +30,8 @@ const GaugeCircular = ({
   const filledLength = (percentage / 100) * arcLength;
 
   const getColor = () => {
-    if (percentage >= criticalThreshold) return "hsl(0, 84%, 60%)";
-    if (percentage >= warningThreshold) return "hsl(45, 100%, 60%)";
+    if (percentage >= criticalThreshold) return "hsl(0, 70%, 55%)";
+    if (percentage >= warningThreshold) return "hsl(38, 92%, 60%)";
     return color;
   };
 
@@ -47,7 +47,7 @@ const GaugeCircular = ({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="hsl(210, 15%, 15%)"
+            stroke="hsl(var(--border))"
             strokeWidth={8}
             strokeDasharray={`${arcLength} ${circumference - arcLength}`}
             strokeDashoffset={-((360 - sweepAngle) / 2 / 360) * circumference + circumference / 4}
@@ -67,7 +67,7 @@ const GaugeCircular = ({
             strokeLinecap="round"
             transform={`rotate(${startAngle} ${size / 2} ${size / 2})`}
             style={{
-              filter: `drop-shadow(0 0 6px ${activeColor})`,
+              filter: `drop-shadow(0 0 2px ${activeColor}66)`,
               transition: "stroke-dasharray 0.5s ease, stroke 0.3s ease",
             }}
           />
@@ -75,8 +75,8 @@ const GaugeCircular = ({
         {/* Center value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="font-mono text-xl font-bold tabular-nums"
-            style={{ color: activeColor, textShadow: `0 0 10px ${activeColor}` }}
+            className="font-mono text-xl font-semibold tabular-nums"
+            style={{ color: activeColor }}
           >
             {typeof value === "number" ? value.toFixed(1) : value}
           </span>
