@@ -72,7 +72,7 @@ const BluetoothController = ({
           });
           setDeviceName(device.name || "Maritime Robot Controller");
         } catch (error) {
-          console.log("Bluetooth pairing cancelled or failed:", error);
+          // Bluetooth pairing cancelled or failed - silent fail in demo mode
         }
       }
     } catch (error) {
