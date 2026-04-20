@@ -80,44 +80,35 @@ const HMIDashboard = () => {
 
   const getStatusColor = (status: Turbine["status"]) => {
     switch (status) {
-      case "operational": return "hsl(142, 76%, 50%)";
-      case "warning": return "hsl(45, 100%, 60%)";
-      case "offline": return "hsl(0, 84%, 50%)";
+      case "operational": return "hsl(142, 60%, 55%)";
+      case "warning": return "hsl(38, 92%, 60%)";
+      case "offline": return "hsl(0, 70%, 55%)";
     }
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(210,25%,5%)] text-foreground font-mono">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <div className="pt-16">
         {/* Top status bar */}
-        <div
-          className="border-b px-6 py-2 flex items-center justify-between"
-          style={{
-            borderColor: "hsl(210, 15%, 15%)",
-            background: "hsl(210, 20%, 6%)",
-          }}
-        >
+        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <Radio className="w-3 h-3 text-primary animate-pulse" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-primary" style={{ textShadow: "0 0 8px hsl(200, 100%, 50%)" }}>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
                 SCADA LINK ACTIVE
               </span>
             </div>
             <div className="h-4 w-px bg-border" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
               Station: NORTH SEA — Sector 7G
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
               UTC {currentTime.toISOString().slice(0, 10)}
             </span>
-            <span
-              className="text-sm font-bold tabular-nums text-primary"
-              style={{ textShadow: "0 0 10px hsl(200, 100%, 50%)" }}
-            >
+            <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
               {currentTime.toTimeString().slice(0, 8)}
             </span>
           </div>
@@ -126,15 +117,9 @@ const HMIDashboard = () => {
         <div className="p-4 space-y-4">
           {/* Alarm bar */}
           {warningCount > 0 && (
-            <div
-              className="flex items-center gap-3 px-4 py-2 rounded-sm"
-              style={{
-                background: "hsl(45, 100%, 60% / 0.08)",
-                border: "1px solid hsl(45, 100%, 60% / 0.3)",
-              }}
-            >
-              <AlertTriangle className="w-4 h-4 text-yellow-400 animate-pulse" />
-              <span className="text-xs text-yellow-400 font-mono uppercase tracking-wider">
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-card/50 border border-border/60">
+              <AlertTriangle className="w-4 h-4 text-amber-400/90" />
+              <span className="font-mono text-xs text-amber-400/90 uppercase tracking-wider">
                 {warningCount} ACTIVE WARNING{warningCount > 1 ? "S" : ""} — WG-Gamma: HIGH VIBRATION DETECTED
               </span>
             </div>
@@ -179,14 +164,14 @@ const HMIDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Ocean map */}
             <HMIPanel title="Ocean Farm — Topological View" className="lg:col-span-1">
-              <div className="relative w-full h-72 rounded-sm overflow-hidden" style={{ background: "radial-gradient(ellipse at center, hsl(210, 50%, 12%), hsl(210, 30%, 5%))" }}>
+              <div className="relative w-full h-72 rounded-md overflow-hidden bg-background/60 border border-border/40">
                 {/* Grid overlay */}
-                <svg className="absolute inset-0 w-full h-full opacity-10">
+                <svg className="absolute inset-0 w-full h-full opacity-[0.06]">
                   {Array.from({ length: 10 }).map((_, i) => (
-                    <line key={`h${i}`} x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`} stroke="hsl(200, 100%, 50%)" strokeWidth="0.5" />
+                    <line key={`h${i}`} x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`} stroke="hsl(var(--primary))" strokeWidth="0.5" />
                   ))}
                   {Array.from({ length: 10 }).map((_, i) => (
-                    <line key={`v${i}`} x1={`${i * 10}%`} y1="0" x2={`${i * 10}%`} y2="100%" stroke="hsl(200, 100%, 50%)" strokeWidth="0.5" />
+                    <line key={`v${i}`} x1={`${i * 10}%`} y1="0" x2={`${i * 10}%`} y2="100%" stroke="hsl(var(--primary))" strokeWidth="0.5" />
                   ))}
                 </svg>
                 {/* Turbine nodes */}
@@ -199,25 +184,21 @@ const HMIDashboard = () => {
                   >
                     {/* Outer ring */}
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-125"
+                      className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
                       style={{
-                        border: `2px solid ${getStatusColor(turbine.status)}`,
-                        boxShadow: `0 0 15px ${getStatusColor(turbine.status)}, inset 0 0 8px ${getStatusColor(turbine.status)}33`,
-                        background: `${getStatusColor(turbine.status)}15`,
+                        border: `1px solid ${getStatusColor(turbine.status)}`,
+                        boxShadow: `0 0 6px ${getStatusColor(turbine.status)}40`,
+                        background: `${getStatusColor(turbine.status)}10`,
                       }}
                     >
                       <div
-                        className="w-3 h-3 rounded-full"
-                        style={{
-                          backgroundColor: getStatusColor(turbine.status),
-                          boxShadow: `0 0 8px ${getStatusColor(turbine.status)}`,
-                        }}
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: getStatusColor(turbine.status) }}
                       />
                     </div>
                     {/* Label */}
                     <div
-                      className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] whitespace-nowrap font-mono uppercase tracking-wider"
-                      style={{ color: getStatusColor(turbine.status), textShadow: `0 0 6px ${getStatusColor(turbine.status)}` }}
+                      className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] whitespace-nowrap font-mono uppercase tracking-wider text-muted-foreground"
                     >
                       {turbine.id}
                     </div>
@@ -232,23 +213,24 @@ const HMIDashboard = () => {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(142, 76%, 50%)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(142, 76%, 50%)" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 15%, 15%)" />
-                  <XAxis dataKey="time" stroke="hsl(210, 10%, 35%)" tick={{ fontSize: 10, fontFamily: "monospace" }} />
-                  <YAxis stroke="hsl(210, 10%, 35%)" tick={{ fontSize: 10, fontFamily: "monospace" }} domain={['auto', 'auto']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10, fontFamily: "monospace" }} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10, fontFamily: "monospace" }} domain={['auto', 'auto']} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(210, 20%, 8%)",
-                      border: "1px solid hsl(210, 15%, 20%)",
-                      color: "hsl(142, 76%, 50%)",
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      color: "hsl(var(--foreground))",
                       fontFamily: "monospace",
                       fontSize: 12,
+                      borderRadius: 8,
                     }}
                   />
-                  <Area type="monotone" dataKey="energy" stroke="hsl(142, 76%, 50%)" strokeWidth={2} fill="url(#energyGrad)" dot={false} />
+                  <Area type="monotone" dataKey="energy" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#energyGrad)" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </HMIPanel>
