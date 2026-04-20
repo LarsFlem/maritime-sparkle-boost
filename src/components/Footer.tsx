@@ -23,7 +23,7 @@ const Footer = () => {
               </p>
               <div className="space-y-2.5">
                 {[
-                  { icon: Mail, text: "post@maritime-automation.no" },
+                  { icon: Mail, text: "Lars@Maritime-Automation.no" },
                   { icon: Phone, text: "+47 917 98 722" },
                   { icon: MapPin, text: "Jørpeland, Norge" },
                 ].map(({ icon: Icon, text }) => (

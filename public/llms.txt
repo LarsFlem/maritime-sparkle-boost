@@ -1,6 +1,6 @@
 # Maritime Automation
 
-> Konsulent- og engineeringtjenester innen elektro og automasjon for den maritime industrien. Basert i Stavanger, Norge.
+> Konsulent- og engineeringtjenester innen elektro og automasjon for den maritime industrien. Basert i Jørpeland, Rogaland, Norge.
 
 ## Om selskapet
 
@@ -34,5 +34,5 @@ Støtte i prosjektledelse inkludert estimering av tid og kostnader for tekniske 
 
 - E-post: Lars@Maritime-Automation.no
 - Telefon: +47 917 98 722
-- Adresse: Rennesøygata 14A, 4014 Stavanger, Norge
+- Adresse: Jørpeland, Rogaland, Norge
 - Nettside: https://maritime-automation.no
