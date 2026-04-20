@@ -90,6 +90,10 @@ export default {
   'contact.info.certifications': 'Certifications',
 'contact.info.certificationsValue': 'Certified for offshore and maritime work',
   'contact.info.address': 'Jørpeland, Rogaland, Norway',
+  'portfolio.engineers': 'engineers',
+  'notFound.title': '404',
+  'notFound.message': 'Oops! Page not found',
+  'notFound.returnHome': 'Return to Home',
 
   // About/CV Section
   'about.title': 'About Me',
