@@ -44,10 +44,22 @@ const HMIDashboard = () => {
   ]);
 
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
-  const [trendData, setTrendData] = useState<{ time: string; energy: number }[]>([]);
+  type TrendPoint = { time: string; total: number } & Record<string, number | string>;
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
+
+  // Per-turbine colors for trend lines
+  const TURBINE_COLORS: Record<string, string> = {
+    T001: "hsl(200, 100%, 65%)",
+    T002: "hsl(180, 90%, 55%)",
+    T003: "hsl(38, 90%, 60%)",
+    T004: "hsl(160, 80%, 55%)",
+    T005: "hsl(210, 15%, 55%)",
+    T006: "hsl(220, 90%, 65%)",
+  };
 
   // Clock
   useEffect(() => {
