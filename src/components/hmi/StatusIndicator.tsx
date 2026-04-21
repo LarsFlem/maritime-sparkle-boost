@@ -6,17 +6,17 @@ interface StatusIndicatorProps {
 
 const statusConfig = {
   operational: {
-    color: "hsl(142, 60%, 55%)",
+    color: "hsl(180, 70%, 55%)",
     label: "ONLINE",
     pulse: true,
   },
   warning: {
-    color: "hsl(38, 92%, 60%)",
+    color: "hsl(38, 85%, 60%)",
     label: "WARNING",
     pulse: true,
   },
   offline: {
-    color: "hsl(0, 70%, 55%)",
+    color: "hsl(210, 15%, 45%)",
     label: "OFFLINE",
     pulse: false,
   },
