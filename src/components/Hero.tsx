@@ -43,7 +43,7 @@ const Hero = () => {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight uppercase"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
