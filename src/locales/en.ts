@@ -10,7 +10,7 @@ export default {
   'nav.getQuote': 'Get Quote',
 
   // Hero Section
-  'hero.title': 'Maritime Automation Expert',
+  'hero.title': 'Maritime Automation',
   'hero.subtitle': 'Specialized in control systems, automation solutions, and digital transformation for the maritime industry',
   'hero.cta.services': 'View My Services',
   'hero.cta.contact': 'Contact Me',
