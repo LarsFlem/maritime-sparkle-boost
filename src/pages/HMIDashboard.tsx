@@ -131,13 +131,18 @@ const HMIDashboard = () => {
   }, [turbines]);
 
   // Slow-moving trend graph — sample every 3s, keep 30 points (~90s window)
+  // Records total + per-turbine series so user can toggle visibility
   useEffect(() => {
     const interval = setInterval(() => {
-      const total = turbines.reduce((sum, t) => sum + t.energyOutput, 0);
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      const total = turbines.reduce((sum, t) => sum + t.energyOutput, 0);
+      const point: TrendPoint = { time: timeStr, total: parseFloat(total.toFixed(2)) };
+      turbines.forEach(t => {
+        point[t.id] = parseFloat(t.energyOutput.toFixed(2));
+      });
       setTrendData(prev => {
-        const next = [...prev, { time: timeStr, energy: parseFloat(total.toFixed(2)) }];
+        const next = [...prev, point];
         return next.slice(-30);
       });
     }, 3000);
