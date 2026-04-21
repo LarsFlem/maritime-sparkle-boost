@@ -320,16 +320,57 @@ const HMIDashboard = () => {
               )}
             </HMIPanel>
 
-            {/* Live trend — slow & smooth */}
+            {/* Live trend — slow & smooth, multi-series with toggle */}
             <HMIPanel title="Power Output — Live Trend (90s)" className="lg:col-span-2">
-              <ResponsiveContainer width="100%" height={272}>
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+              {/* Series toggles */}
+              <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                {(() => {
+                  const showAll = selectedSeries.size === 0;
+                  const toggle = (key: string) => {
+                    setSelectedSeries(prev => {
+                      const next = new Set(prev);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      return next;
+                    });
+                  };
+                  const chip = (key: string, label: string, color: string) => {
+                    const active = showAll || selectedSeries.has(key);
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => toggle(key)}
+                        className={`flex items-center gap-1.5 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider border transition-colors ${
+                          active
+                            ? "bg-background/60 border-border text-foreground"
+                            : "bg-background/20 border-border/40 text-muted-foreground/60 line-through"
+                        }`}
+                        title={active ? "Click to hide" : "Click to show"}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: color, opacity: active ? 1 : 0.35 }} />
+                        {label}
+                      </button>
+                    );
+                  };
+                  return (
+                    <>
+                      {chip("total", "Total", "hsl(var(--primary))")}
+                      {turbines.map(t => chip(t.id, t.id, TURBINE_COLORS[t.id] ?? "hsl(var(--primary))"))}
+                      {selectedSeries.size > 0 && (
+                        <button
+                          onClick={() => setSelectedSeries(new Set())}
+                          className="ml-1 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider text-primary hover:bg-primary/10"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={trendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="time"
@@ -342,6 +383,7 @@ const HMIDashboard = () => {
                     stroke="hsl(var(--muted-foreground))"
                     tick={{ fontSize: 10, fontFamily: "monospace" }}
                     domain={['auto', 'auto']}
+                    label={{ value: "MW", angle: -90, position: "insideLeft", style: { fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" } }}
                   />
                   <Tooltip
                     contentStyle={{
@@ -353,18 +395,48 @@ const HMIDashboard = () => {
                       borderRadius: 8,
                     }}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="energy"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    fill="url(#energyGrad)"
-                    dot={false}
-                    isAnimationActive={true}
-                    animationDuration={2800}
-                    animationEasing="ease-in-out"
-                  />
-                </AreaChart>
+                  {(() => {
+                    const showAll = selectedSeries.size === 0;
+                    const showTotal = showAll || selectedSeries.has("total");
+                    return (
+                      <>
+                        {showTotal && (
+                          <Line
+                            key="total"
+                            type="monotone"
+                            dataKey="total"
+                            name="Total"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={2.5}
+                            dot={false}
+                            isAnimationActive
+                            animationDuration={1500}
+                            animationEasing="ease-in-out"
+                          />
+                        )}
+                        {turbines.map(t => {
+                          const visible = showAll || selectedSeries.has(t.id);
+                          if (!visible) return null;
+                          return (
+                            <Line
+                              key={t.id}
+                              type="monotone"
+                              dataKey={t.id}
+                              name={t.id}
+                              stroke={TURBINE_COLORS[t.id] ?? "hsl(var(--primary))"}
+                              strokeWidth={1.5}
+                              strokeOpacity={0.9}
+                              dot={false}
+                              isAnimationActive
+                              animationDuration={1500}
+                              animationEasing="ease-in-out"
+                            />
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
+                </LineChart>
               </ResponsiveContainer>
             </HMIPanel>
           </div>
