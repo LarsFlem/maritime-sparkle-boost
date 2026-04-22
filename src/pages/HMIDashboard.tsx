@@ -169,12 +169,48 @@ const HMIDashboard = () => {
     setTotalEnergy(total);
   }, [turbines]);
 
-  // Slow-moving trend graph — sample every 3s, keep 30 points (~90s window)
-  // Records total + per-turbine series so user can toggle visibility
-  // Append a trend point whenever turbine data updates
+  // Live trend — fixed sample rate, scrolls right→left within the chosen window.
+  // Empty (null) seed values produce no line until real data arrives.
   useEffect(() => {
-    setTrendData((prev) => [...prev, buildTrendPoint(turbines)].slice(-TREND_MAX_POINTS));
-  }, [turbines]);
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const cutoff = now - windowSeconds * 1000;
+      setTrendData(prev => {
+        const next = [...prev, buildTrendPoint(turbinesRef.current, now)];
+        // Drop points older than the window
+        let i = 0;
+        while (i < next.length && next[i].t < cutoff) i++;
+        return i > 0 ? next.slice(i) : next;
+      });
+    }, SAMPLE_MS);
+    return () => clearInterval(interval);
+  }, [windowSeconds]);
+
+  // When the user changes the window, reseed with empty points but keep
+  // any existing real samples that still fall inside the new window.
+  useEffect(() => {
+    setTrendData(prev => {
+      const now = Date.now();
+      const cutoff = now - windowSeconds * 1000;
+      const kept = prev.filter(p => p.t >= cutoff && p.total !== null);
+      const seed = buildEmptyPoints(windowSeconds, now);
+      // Merge: replace seed slots that overlap kept timestamps
+      const keptMap = new Map(kept.map(p => [p.t, p]));
+      // Simpler: append kept after seed, then sort + cap
+      const merged = [...seed, ...kept].sort((a, b) => a.t - b.t);
+      // Deduplicate by timestamp (kept wins over seed)
+      const dedup: TrendPoint[] = [];
+      for (const p of merged) {
+        if (dedup.length && dedup[dedup.length - 1].t === p.t) {
+          // prefer the one with real data
+          if (p.total !== null) dedup[dedup.length - 1] = p;
+        } else {
+          dedup.push(p);
+        }
+      }
+      return dedup;
+    });
+  }, [windowSeconds]);
 
   const operationalCount = turbines.filter(t => t.status === "operational").length;
   const warningCount = turbines.filter(t => t.status === "warning").length;
