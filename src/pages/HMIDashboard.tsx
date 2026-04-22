@@ -383,8 +383,8 @@ const HMIDashboard = () => {
               )}
             </HMIPanel>
 
-            {/* Live trend — slow & smooth, multi-series with toggle */}
-            <HMIPanel title="Power Output — Live Trend (90s)" className="lg:col-span-2">
+            {/* Live trend — fixed window, scrolls right→left */}
+            <HMIPanel title={`Power Output — Live Trend (${windowSeconds}s)`} className="lg:col-span-2">
               {/* Series toggles */}
               <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 {(() => {
