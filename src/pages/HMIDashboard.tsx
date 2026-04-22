@@ -153,13 +153,10 @@ const HMIDashboard = () => {
 
   // Slow-moving trend graph — sample every 3s, keep 30 points (~90s window)
   // Records total + per-turbine series so user can toggle visibility
+  // Append a trend point whenever turbine data updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-TREND_MAX_POINTS));
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, []);
+    setTrendData((prev) => [...prev, buildTrendPoint(turbines)].slice(-TREND_MAX_POINTS));
+  }, [turbines]);
 
   const operationalCount = turbines.filter(t => t.status === "operational").length;
   const warningCount = turbines.filter(t => t.status === "warning").length;
