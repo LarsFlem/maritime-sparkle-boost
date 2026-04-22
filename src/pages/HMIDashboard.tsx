@@ -32,22 +32,39 @@ const COLOR_WARNING = "hsl(38, 85%, 60%)";     // amber (kept for safety semanti
 const COLOR_OFFLINE = "hsl(210, 15%, 45%)";    // muted slate (less neon)
 const COLOR_HEALTH = "hsl(195, 90%, 60%)";
 
-type TrendPoint = { time: string; total: number } & Record<string, number | string>;
+type TrendPoint = { t: number } & Record<string, number | null>;
 
-const buildTrendPoint = (fleet: Turbine[], timestamp = new Date()): TrendPoint => {
-  const timeStr = `${timestamp.getHours().toString().padStart(2, "0")}:${timestamp.getMinutes().toString().padStart(2, "0")}:${timestamp.getSeconds().toString().padStart(2, "0")}`;
+const SAMPLE_MS = 200; // 0.2s sampling
+const WINDOW_OPTIONS = [30, 60, 90, 180, 300] as const;
+const DEFAULT_WINDOW = 90; // seconds
+
+const TURBINE_IDS = ["T001", "T002", "T003", "T004", "T005", "T006"] as const;
+
+const buildTrendPoint = (fleet: Turbine[], timestamp = Date.now()): TrendPoint => {
   const total = fleet.reduce((sum, turbine) => sum + turbine.energyOutput, 0);
-  const point: TrendPoint = { time: timeStr, total: parseFloat(total.toFixed(2)) };
-
+  const point: TrendPoint = { t: timestamp, total: parseFloat(total.toFixed(2)) };
   fleet.forEach((turbine) => {
     point[turbine.id] = parseFloat(turbine.energyOutput.toFixed(2));
   });
-
   return point;
 };
 
-// Window: 90s at 0.2s sample rate => 450 points
-const TREND_MAX_POINTS = 450;
+// Pre-seed with empty (null) points so the chart scrolls from the start
+// but no lines are drawn until real data arrives.
+const buildEmptyPoints = (windowSeconds: number, now = Date.now()): TrendPoint[] => {
+  const count = Math.floor((windowSeconds * 1000) / SAMPLE_MS);
+  return Array.from({ length: count }, (_, i) => {
+    const t = now - (count - 1 - i) * SAMPLE_MS;
+    const point: TrendPoint = { t, total: null };
+    TURBINE_IDS.forEach(id => { point[id] = null; });
+    return point;
+  });
+};
+
+const formatClock = (ms: number) => {
+  const d = new Date(ms);
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
+};
 
 const HMIDashboard = () => {
   const { t } = useLanguage();
