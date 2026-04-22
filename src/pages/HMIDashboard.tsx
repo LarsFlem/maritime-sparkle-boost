@@ -448,20 +448,34 @@ const HMIDashboard = () => {
                 })()}
               </div>
 
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="t"
-                    type="number"
-                    scale="time"
-                    domain={[(dataMin: number) => dataMin, (dataMax: number) => dataMax]}
-                    stroke="hsl(var(--muted-foreground))"
-                    tick={{ fontSize: 10, fontFamily: "monospace" }}
-                    interval="preserveStartEnd"
-                    minTickGap={40}
-                    tickFormatter={formatClock}
-                  />
+              {(() => {
+                const latestT = trendData.length ? trendData[trendData.length - 1].t : Date.now();
+                const domainEnd = Math.floor(latestT / 1000) * 1000;
+                const domainStart = domainEnd - windowSeconds * 1000;
+                // Aim for ~6 ticks; snap step to a "nice" whole-second value.
+                const rawStep = windowSeconds / 6;
+                const niceSteps = [1, 2, 5, 10, 15, 20, 30, 60, 120, 300, 600];
+                const step = niceSteps.find(s => s >= rawStep) ?? rawStep;
+                const ticks: number[] = [];
+                const firstTick = Math.ceil(domainStart / 1000 / step) * step * 1000;
+                for (let tick = firstTick; tick <= domainEnd; tick += step * 1000) {
+                  ticks.push(tick);
+                }
+                return (
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="t"
+                        type="number"
+                        scale="time"
+                        domain={[domainStart, domainEnd]}
+                        ticks={ticks}
+                        allowDataOverflow
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={{ fontSize: 10, fontFamily: "monospace" }}
+                        tickFormatter={formatClock}
+                      />
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"
                     tick={{ fontSize: 10, fontFamily: "monospace" }}
