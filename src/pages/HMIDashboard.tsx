@@ -46,13 +46,8 @@ const buildTrendPoint = (fleet: Turbine[], timestamp = new Date()): TrendPoint =
   return point;
 };
 
-const createInitialTrendData = (fleet: Turbine[]) => {
-  const now = Date.now();
-  return Array.from({ length: 30 }, (_, index) => {
-    const offsetMs = (29 - index) * 3000;
-    return buildTrendPoint(fleet, new Date(now - offsetMs));
-  });
-};
+// Window: 90s at 0.2s sample rate => 450 points
+const TREND_MAX_POINTS = 450;
 
 const HMIDashboard = () => {
   const { t } = useLanguage();
@@ -68,14 +63,7 @@ const HMIDashboard = () => {
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
-  const [trendData, setTrendData] = useState<TrendPoint[]>(() => createInitialTrendData([
-    { id: "T001", name: "WG-Alpha",   status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, lat: 59.10, lng: 1.85, temperature: 45, vibration: 2.1 },
-    { id: "T002", name: "WG-Beta",    status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, lat: 59.05, lng: 2.15, temperature: 42, vibration: 1.8 },
-    { id: "T003", name: "WG-Gamma",   status: "warning",     energyOutput: 1.8, efficiency: 72, health: 76, position: { x: 60, y: 35 }, lat: 58.85, lng: 2.45, temperature: 52, vibration: 3.2 },
-    { id: "T004", name: "WG-Delta",   status: "operational", energyOutput: 2.3, efficiency: 85, health: 92, position: { x: 80, y: 25 }, lat: 58.95, lng: 2.75, temperature: 44, vibration: 2.0 },
-    { id: "T005", name: "WG-Echo",    status: "offline",     energyOutput: 0,   efficiency: 0,  health: 45, position: { x: 30, y: 65 }, lat: 58.55, lng: 2.05, temperature: 38, vibration: 0.5 },
-    { id: "T006", name: "WG-Foxtrot", status: "operational", energyOutput: 2.2, efficiency: 84, health: 89, position: { x: 70, y: 55 }, lat: 58.50, lng: 2.55, temperature: 46, vibration: 2.3 },
-  ]));
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
 
@@ -167,8 +155,8 @@ const HMIDashboard = () => {
   // Records total + per-turbine series so user can toggle visibility
   useEffect(() => {
     const interval = setInterval(() => {
-      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-30));
-    }, 3000);
+      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-TREND_MAX_POINTS));
+    }, 200);
 
     return () => clearInterval(interval);
   }, []);
