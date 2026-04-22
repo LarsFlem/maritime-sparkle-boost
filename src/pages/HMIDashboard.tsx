@@ -32,22 +32,39 @@ const COLOR_WARNING = "hsl(38, 85%, 60%)";     // amber (kept for safety semanti
 const COLOR_OFFLINE = "hsl(210, 15%, 45%)";    // muted slate (less neon)
 const COLOR_HEALTH = "hsl(195, 90%, 60%)";
 
-type TrendPoint = { time: string; total: number } & Record<string, number | string>;
+type TrendPoint = { t: number } & Record<string, number | null>;
 
-const buildTrendPoint = (fleet: Turbine[], timestamp = new Date()): TrendPoint => {
-  const timeStr = `${timestamp.getHours().toString().padStart(2, "0")}:${timestamp.getMinutes().toString().padStart(2, "0")}:${timestamp.getSeconds().toString().padStart(2, "0")}`;
+const SAMPLE_MS = 200; // 0.2s sampling
+const WINDOW_OPTIONS = [30, 60, 90, 180, 300] as const;
+const DEFAULT_WINDOW = 90; // seconds
+
+const TURBINE_IDS = ["T001", "T002", "T003", "T004", "T005", "T006"] as const;
+
+const buildTrendPoint = (fleet: Turbine[], timestamp = Date.now()): TrendPoint => {
   const total = fleet.reduce((sum, turbine) => sum + turbine.energyOutput, 0);
-  const point: TrendPoint = { time: timeStr, total: parseFloat(total.toFixed(2)) };
-
+  const point: TrendPoint = { t: timestamp, total: parseFloat(total.toFixed(2)) };
   fleet.forEach((turbine) => {
     point[turbine.id] = parseFloat(turbine.energyOutput.toFixed(2));
   });
-
   return point;
 };
 
-// Window: 90s at 0.2s sample rate => 450 points
-const TREND_MAX_POINTS = 450;
+// Pre-seed with empty (null) points so the chart scrolls from the start
+// but no lines are drawn until real data arrives.
+const buildEmptyPoints = (windowSeconds: number, now = Date.now()): TrendPoint[] => {
+  const count = Math.floor((windowSeconds * 1000) / SAMPLE_MS);
+  return Array.from({ length: count }, (_, i) => {
+    const t = now - (count - 1 - i) * SAMPLE_MS;
+    const point: TrendPoint = { t, total: null };
+    TURBINE_IDS.forEach(id => { point[id] = null; });
+    return point;
+  });
+};
+
+const formatClock = (ms: number) => {
+  const d = new Date(ms);
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
+};
 
 const HMIDashboard = () => {
   const { t } = useLanguage();
@@ -63,7 +80,8 @@ const HMIDashboard = () => {
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
-  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [windowSeconds, setWindowSeconds] = useState<number>(DEFAULT_WINDOW);
+  const [trendData, setTrendData] = useState<TrendPoint[]>(() => buildEmptyPoints(DEFAULT_WINDOW));
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
 
@@ -151,12 +169,48 @@ const HMIDashboard = () => {
     setTotalEnergy(total);
   }, [turbines]);
 
-  // Slow-moving trend graph — sample every 3s, keep 30 points (~90s window)
-  // Records total + per-turbine series so user can toggle visibility
-  // Append a trend point whenever turbine data updates
+  // Live trend — fixed sample rate, scrolls right→left within the chosen window.
+  // Empty (null) seed values produce no line until real data arrives.
   useEffect(() => {
-    setTrendData((prev) => [...prev, buildTrendPoint(turbines)].slice(-TREND_MAX_POINTS));
-  }, [turbines]);
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const cutoff = now - windowSeconds * 1000;
+      setTrendData(prev => {
+        const next = [...prev, buildTrendPoint(turbinesRef.current, now)];
+        // Drop points older than the window
+        let i = 0;
+        while (i < next.length && next[i].t < cutoff) i++;
+        return i > 0 ? next.slice(i) : next;
+      });
+    }, SAMPLE_MS);
+    return () => clearInterval(interval);
+  }, [windowSeconds]);
+
+  // When the user changes the window, reseed with empty points but keep
+  // any existing real samples that still fall inside the new window.
+  useEffect(() => {
+    setTrendData(prev => {
+      const now = Date.now();
+      const cutoff = now - windowSeconds * 1000;
+      const kept = prev.filter(p => p.t >= cutoff && p.total !== null);
+      const seed = buildEmptyPoints(windowSeconds, now);
+      // Merge: replace seed slots that overlap kept timestamps
+      const keptMap = new Map(kept.map(p => [p.t, p]));
+      // Simpler: append kept after seed, then sort + cap
+      const merged = [...seed, ...kept].sort((a, b) => a.t - b.t);
+      // Deduplicate by timestamp (kept wins over seed)
+      const dedup: TrendPoint[] = [];
+      for (const p of merged) {
+        if (dedup.length && dedup[dedup.length - 1].t === p.t) {
+          // prefer the one with real data
+          if (p.total !== null) dedup[dedup.length - 1] = p;
+        } else {
+          dedup.push(p);
+        }
+      }
+      return dedup;
+    });
+  }, [windowSeconds]);
 
   const operationalCount = turbines.filter(t => t.status === "operational").length;
   const warningCount = turbines.filter(t => t.status === "warning").length;
@@ -329,8 +383,8 @@ const HMIDashboard = () => {
               )}
             </HMIPanel>
 
-            {/* Live trend — slow & smooth, multi-series with toggle */}
-            <HMIPanel title="Power Output — Live Trend (90s)" className="lg:col-span-2">
+            {/* Live trend — fixed window, scrolls right→left */}
+            <HMIPanel title={`Power Output — Live Trend (${windowSeconds}s)`} className="lg:col-span-2">
               {/* Series toggles */}
               <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 {(() => {
@@ -373,6 +427,22 @@ const HMIDashboard = () => {
                           Reset
                         </button>
                       )}
+                      <div className="ml-auto flex items-center gap-1 p-1 rounded-md bg-background/40 border border-border/40">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-1.5">Window</span>
+                        {WINDOW_OPTIONS.map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setWindowSeconds(s)}
+                            className={`px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                              windowSeconds === s
+                                ? "bg-primary/15 text-primary"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {s}s
+                          </button>
+                        ))}
+                      </div>
                     </>
                   );
                 })()}
@@ -382,11 +452,15 @@ const HMIDashboard = () => {
                 <LineChart data={trendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
-                    dataKey="time"
+                    dataKey="t"
+                    type="number"
+                    scale="time"
+                    domain={[(dataMin: number) => dataMin, (dataMax: number) => dataMax]}
                     stroke="hsl(var(--muted-foreground))"
                     tick={{ fontSize: 10, fontFamily: "monospace" }}
                     interval="preserveStartEnd"
                     minTickGap={40}
+                    tickFormatter={formatClock}
                   />
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"
@@ -395,6 +469,7 @@ const HMIDashboard = () => {
                     label={{ value: "MW", angle: -90, position: "insideLeft", style: { fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" } }}
                   />
                   <Tooltip
+                    labelFormatter={(label: number) => formatClock(label)}
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
