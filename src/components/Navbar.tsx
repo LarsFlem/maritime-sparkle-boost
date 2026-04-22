@@ -24,12 +24,12 @@ const Navbar = () => {
 
   const navItems = [
     { label: t('nav.home'), to: "/", type: "link" },
-    { label: t('nav.services'), to: isHomePage ? "#services" : "/#services", type: isHomePage ? "anchor" : "link" },
-    { label: t('nav.portfolio'), to: isHomePage ? "#portfolio" : "/#portfolio", type: isHomePage ? "anchor" : "link" },
+    { label: t('nav.services'), to: isHomePage ? "#services" : "/", type: isHomePage ? "anchor" : "link" },
+    { label: t('nav.portfolio'), to: isHomePage ? "#portfolio" : "/", type: isHomePage ? "anchor" : "link" },
     { label: t('nav.hmi'), to: "/hmi", type: "link" },
     { label: t('nav.dataAnalysis'), to: "/data-analysis", type: "link" },
     { label: t('nav.liveDemo'), to: "/live-demo", type: "link" },
-    { label: t('nav.contact'), to: isHomePage ? "#contact" : "/#contact", type: isHomePage ? "anchor" : "link" },
+    { label: t('nav.contact'), to: isHomePage ? "#contact" : "/", type: isHomePage ? "anchor" : "link" },
   ];
 
   const handleNavClick = (item: any) => {
