@@ -32,9 +32,14 @@ const Navbar = () => {
     { label: t('nav.contact'), to: isHomePage ? "#contact" : "/", type: isHomePage ? "anchor" : "link" },
   ];
 
-  const handleNavClick = (item: any) => {
+  const handleNavClick = (item: any, e?: React.MouseEvent) => {
     if (item.label === t('nav.home') && isHomePage) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (item.type === "anchor" && e) {
+      e.preventDefault();
+      const id = item.to.replace("#", "");
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     }
     setIsOpen(false);
   };
@@ -63,7 +68,7 @@ const Navbar = () => {
                 return item.type === "link" ? (
                   <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
                 ) : (
-                  <a key={item.label} href={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</a>
+                  <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
                 );
               })}
               <div className="ml-2 pl-2 border-l border-border/50 flex items-center space-x-2">
@@ -98,7 +103,7 @@ const Navbar = () => {
                     return item.type === "link" ? (
                       <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
                     ) : (
-                      <a key={item.label} href={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</a>
+                      <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
                     );
                   })}
                   <div className="flex items-center justify-between px-3 py-2 gap-2">
