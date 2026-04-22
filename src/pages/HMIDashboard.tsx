@@ -155,8 +155,8 @@ const HMIDashboard = () => {
   // Records total + per-turbine series so user can toggle visibility
   useEffect(() => {
     const interval = setInterval(() => {
-      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-30));
-    }, 3000);
+      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-TREND_MAX_POINTS));
+    }, 200);
 
     return () => clearInterval(interval);
   }, []);
