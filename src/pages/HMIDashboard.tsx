@@ -452,11 +452,15 @@ const HMIDashboard = () => {
                 <LineChart data={trendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
-                    dataKey="time"
+                    dataKey="t"
+                    type="number"
+                    scale="time"
+                    domain={[(dataMin: number) => dataMin, (dataMax: number) => dataMax]}
                     stroke="hsl(var(--muted-foreground))"
                     tick={{ fontSize: 10, fontFamily: "monospace" }}
                     interval="preserveStartEnd"
                     minTickGap={40}
+                    tickFormatter={formatClock}
                   />
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"
