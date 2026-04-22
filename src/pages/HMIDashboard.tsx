@@ -469,6 +469,7 @@ const HMIDashboard = () => {
                     label={{ value: "MW", angle: -90, position: "insideLeft", style: { fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" } }}
                   />
                   <Tooltip
+                    labelFormatter={(label: number) => formatClock(label)}
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
