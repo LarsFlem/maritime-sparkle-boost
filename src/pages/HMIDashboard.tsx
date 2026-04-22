@@ -32,6 +32,28 @@ const COLOR_WARNING = "hsl(38, 85%, 60%)";     // amber (kept for safety semanti
 const COLOR_OFFLINE = "hsl(210, 15%, 45%)";    // muted slate (less neon)
 const COLOR_HEALTH = "hsl(195, 90%, 60%)";
 
+type TrendPoint = { time: string; total: number } & Record<string, number | string>;
+
+const buildTrendPoint = (fleet: Turbine[], timestamp = new Date()): TrendPoint => {
+  const timeStr = `${timestamp.getHours().toString().padStart(2, "0")}:${timestamp.getMinutes().toString().padStart(2, "0")}:${timestamp.getSeconds().toString().padStart(2, "0")}`;
+  const total = fleet.reduce((sum, turbine) => sum + turbine.energyOutput, 0);
+  const point: TrendPoint = { time: timeStr, total: parseFloat(total.toFixed(2)) };
+
+  fleet.forEach((turbine) => {
+    point[turbine.id] = parseFloat(turbine.energyOutput.toFixed(2));
+  });
+
+  return point;
+};
+
+const createInitialTrendData = (fleet: Turbine[]) => {
+  const now = Date.now();
+  return Array.from({ length: 30 }, (_, index) => {
+    const offsetMs = (29 - index) * 3000;
+    return buildTrendPoint(fleet, new Date(now - offsetMs));
+  });
+};
+
 const HMIDashboard = () => {
   const { t } = useLanguage();
   const [turbines, setTurbines] = useState<Turbine[]>([
@@ -46,8 +68,14 @@ const HMIDashboard = () => {
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
-  type TrendPoint = { time: string; total: number } & Record<string, number | string>;
-  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [trendData, setTrendData] = useState<TrendPoint[]>(() => createInitialTrendData([
+    { id: "T001", name: "WG-Alpha",   status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, lat: 59.10, lng: 1.85, temperature: 45, vibration: 2.1 },
+    { id: "T002", name: "WG-Beta",    status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, lat: 59.05, lng: 2.15, temperature: 42, vibration: 1.8 },
+    { id: "T003", name: "WG-Gamma",   status: "warning",     energyOutput: 1.8, efficiency: 72, health: 76, position: { x: 60, y: 35 }, lat: 58.85, lng: 2.45, temperature: 52, vibration: 3.2 },
+    { id: "T004", name: "WG-Delta",   status: "operational", energyOutput: 2.3, efficiency: 85, health: 92, position: { x: 80, y: 25 }, lat: 58.95, lng: 2.75, temperature: 44, vibration: 2.0 },
+    { id: "T005", name: "WG-Echo",    status: "offline",     energyOutput: 0,   efficiency: 0,  health: 45, position: { x: 30, y: 65 }, lat: 58.55, lng: 2.05, temperature: 38, vibration: 0.5 },
+    { id: "T006", name: "WG-Foxtrot", status: "operational", energyOutput: 2.2, efficiency: 84, health: 89, position: { x: 70, y: 55 }, lat: 58.50, lng: 2.55, temperature: 46, vibration: 2.3 },
+  ]));
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
 
@@ -69,6 +97,11 @@ const HMIDashboard = () => {
 
   // Smooth, fluid live data — interpolate 4× per second toward a moving target
   const targetsRef = useRef<Record<string, { energyOutput: number; efficiency: number; temperature: number; vibration: number }>>({});
+  const turbinesRef = useRef(turbines);
+
+  useEffect(() => {
+    turbinesRef.current = turbines;
+  }, [turbines]);
 
   useEffect(() => {
     // Initialize targets from current values
@@ -134,20 +167,11 @@ const HMIDashboard = () => {
   // Records total + per-turbine series so user can toggle visibility
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
-      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-      const total = turbines.reduce((sum, t) => sum + t.energyOutput, 0);
-      const point: TrendPoint = { time: timeStr, total: parseFloat(total.toFixed(2)) };
-      turbines.forEach(t => {
-        point[t.id] = parseFloat(t.energyOutput.toFixed(2));
-      });
-      setTrendData(prev => {
-        const next = [...prev, point];
-        return next.slice(-30);
-      });
+      setTrendData((prev) => [...prev, buildTrendPoint(turbinesRef.current)].slice(-30));
     }, 3000);
+
     return () => clearInterval(interval);
-  }, [turbines]);
+  }, []);
 
   const operationalCount = turbines.filter(t => t.status === "operational").length;
   const warningCount = turbines.filter(t => t.status === "warning").length;
