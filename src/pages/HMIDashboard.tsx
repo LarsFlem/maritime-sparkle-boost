@@ -427,15 +427,13 @@ const HMIDashboard = () => {
                         {showTotal && (
                           <Line
                             key="total"
-                            type="monotone"
+                            type="linear"
                             dataKey="total"
                             name="Total"
                             stroke="hsl(var(--primary))"
                             strokeWidth={2.5}
                             dot={false}
-                            isAnimationActive
-                            animationDuration={1500}
-                            animationEasing="ease-in-out"
+                            isAnimationActive={false}
                           />
                         )}
                         {turbines.map(t => {
@@ -444,16 +442,14 @@ const HMIDashboard = () => {
                           return (
                             <Line
                               key={t.id}
-                              type="monotone"
+                              type="linear"
                               dataKey={t.id}
                               name={t.id}
                               stroke={TURBINE_COLORS[t.id] ?? "hsl(var(--primary))"}
                               strokeWidth={1.5}
                               strokeOpacity={0.9}
                               dot={false}
-                              isAnimationActive
-                              animationDuration={1500}
-                              animationEasing="ease-in-out"
+                              isAnimationActive={false}
                             />
                           );
                         })}
