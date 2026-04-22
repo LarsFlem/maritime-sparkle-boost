@@ -46,13 +46,8 @@ const buildTrendPoint = (fleet: Turbine[], timestamp = new Date()): TrendPoint =
   return point;
 };
 
-const createInitialTrendData = (fleet: Turbine[]) => {
-  const now = Date.now();
-  return Array.from({ length: 30 }, (_, index) => {
-    const offsetMs = (29 - index) * 3000;
-    return buildTrendPoint(fleet, new Date(now - offsetMs));
-  });
-};
+// Window: 90s at 0.2s sample rate => 450 points
+const TREND_MAX_POINTS = 450;
 
 const HMIDashboard = () => {
   const { t } = useLanguage();
