@@ -530,8 +530,10 @@ const HMIDashboard = () => {
                       </>
                     );
                   })()}
-                </LineChart>
-              </ResponsiveContainer>
+                    </LineChart>
+                  </ResponsiveContainer>
+                );
+              })()}
             </HMIPanel>
           </div>
 
