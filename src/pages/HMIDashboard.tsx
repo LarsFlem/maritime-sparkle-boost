@@ -427,6 +427,22 @@ const HMIDashboard = () => {
                           Reset
                         </button>
                       )}
+                      <div className="ml-auto flex items-center gap-1 p-1 rounded-md bg-background/40 border border-border/40">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-1.5">Window</span>
+                        {WINDOW_OPTIONS.map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setWindowSeconds(s)}
+                            className={`px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                              windowSeconds === s
+                                ? "bg-primary/15 text-primary"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {s}s
+                          </button>
+                        ))}
+                      </div>
                     </>
                   );
                 })()}
