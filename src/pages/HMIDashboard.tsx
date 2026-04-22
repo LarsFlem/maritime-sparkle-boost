@@ -34,7 +34,7 @@ const COLOR_HEALTH = "hsl(195, 90%, 60%)";
 
 type TrendPoint = { t: number } & Record<string, number | null>;
 
-const SAMPLE_MS = 200; // 0.2s sampling
+const SAMPLE_MS = 100; // 0.1s sampling - 10Hz update rate
 const WINDOW_OPTIONS = [30, 60, 90, 180, 300] as const;
 const DEFAULT_WINDOW = 90; // seconds
 
