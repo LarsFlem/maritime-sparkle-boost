@@ -80,7 +80,8 @@ const HMIDashboard = () => {
   const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
-  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [windowSeconds, setWindowSeconds] = useState<number>(DEFAULT_WINDOW);
+  const [trendData, setTrendData] = useState<TrendPoint[]>(() => buildEmptyPoints(DEFAULT_WINDOW));
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
 
