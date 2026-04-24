@@ -32,17 +32,7 @@ const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
           <div className="text-center lg:text-left">
-            <motion.div
-              className="mb-6"
-              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <div className="inline-flex items-center space-x-2 bg-primary/8 border border-primary/15 rounded-full px-5 py-1.5 mb-6">
-                <Waves className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium tracking-wide uppercase text-primary/90">{t('hero.title')}</span>
-              </div>
-            </motion.div>
+            {/* Removed duplicate badge with Waves icon and title */}
 
             <motion.h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight uppercase"

@@ -71,8 +71,8 @@ const SOVHull = () => {
         <meshStandardMaterial color={hullColor} metalness={0.6} roughness={0.35} />
       </mesh>
 
-      {/* Hull bottom */}
-      <mesh position={[0, -0.35, 0]} scale={[0.8, 0.15, 4.8]}>
+      {/* Hull bottom (reduced to avoid visible square) */}
+      <mesh position={[0, -0.32, 0]} scale={[0.7, 0.08, 4.2]}>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color="#0d1b2a" metalness={0.7} roughness={0.25} />
       </mesh>
