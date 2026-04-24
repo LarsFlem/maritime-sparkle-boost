@@ -176,77 +176,122 @@ const SOVHull = () => {
         </mesh>
       ))}
 
-      {/* ====== W2W GANGWAY TOWER (CENTER) ====== */}
-      <group ref={gangwayRef} position={[0, 0, 0]}>
-        {/* Tower base */}
-        <mesh position={[0, 0.55, 0]}>
-          <boxGeometry args={[0.35, 0.65, 0.35]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
-        </mesh>
-        {/* Tower upper section */}
-        <mesh position={[0, 1.0, 0]}>
-          <boxGeometry args={[0.3, 0.35, 0.3]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
-        </mesh>
-        {/* Tower top platform */}
-        <mesh position={[0, 1.2, 0]}>
-          <boxGeometry args={[0.38, 0.04, 0.38]} />
+      {/* ====== W2W MOTION-COMPENSATED GANGWAY ====== */}
+      <group ref={gangwayRef} position={[0, 0, 0.1]}>
+        {/* Base turntable */}
+        <mesh position={[0, 0.24, 0]}>
+          <cylinderGeometry args={[0.2, 0.22, 0.05, 10]} />
           <meshStandardMaterial color="#d97706" metalness={0.5} roughness={0.4} />
         </mesh>
-
-        {/* Gangway arm extending to starboard */}
-        <mesh position={[0.55, 0.95, 0]} rotation={[0, 0, -0.15]}>
-          <boxGeometry args={[0.8, 0.06, 0.12]} />
+        {/* Lower tower — tapered cylinder */}
+        <mesh position={[0, 0.52, 0]}>
+          <cylinderGeometry args={[0.13, 0.19, 0.52, 8]} />
           <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
         </mesh>
-        {/* Gangway walkway */}
-        <mesh position={[0.55, 0.9, 0]} rotation={[0, 0, -0.15]}>
-          <boxGeometry args={[0.75, 0.02, 0.15]} />
+        {/* Upper tower box */}
+        <mesh position={[0, 0.9, 0]}>
+          <boxGeometry args={[0.22, 0.3, 0.22]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+        </mesh>
+        {/* Slewing ring */}
+        <mesh position={[0, 1.07, 0]}>
+          <cylinderGeometry args={[0.14, 0.12, 0.06, 10]} />
+          <meshStandardMaterial color="#d97706" metalness={0.7} roughness={0.3} />
+        </mesh>
+        {/* Inner arm section (starboard / local +X) */}
+        <mesh position={[0.28, 1.03, 0]}>
+          <boxGeometry args={[0.42, 0.1, 0.13]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+        </mesh>
+        {/* Outer telescoping arm */}
+        <mesh position={[0.65, 1.0, 0]}>
+          <boxGeometry args={[0.38, 0.08, 0.1]} />
+          <meshStandardMaterial color="#fbbf24" metalness={0.45} roughness={0.45} />
+        </mesh>
+        {/* Landing platform at tip */}
+        <mesh position={[0.88, 0.96, 0]}>
+          <boxGeometry args={[0.12, 0.04, 0.22]} />
           <meshStandardMaterial color="#9ca3af" metalness={0.3} roughness={0.7} />
         </mesh>
-        {/* Gangway railings */}
-        {[0.07, -0.07].map((z, i) => (
-          <mesh key={`gr-${i}`} position={[0.55, 0.98, z]} rotation={[0, 0, -0.15]}>
-            <boxGeometry args={[0.75, 0.02, 0.008]} />
+        {/* Walkway grating */}
+        <mesh position={[0.55, 0.94, 0]}>
+          <boxGeometry args={[0.66, 0.015, 0.1]} />
+          <meshStandardMaterial color="#9ca3af" metalness={0.25} roughness={0.75} />
+        </mesh>
+        {/* Handrails */}
+        {[0.05, -0.05].map((z, i) => (
+          <mesh key={`gangrail-${i}`} position={[0.55, 1.01, z]}>
+            <boxGeometry args={[0.66, 0.012, 0.007]} />
             <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
           </mesh>
         ))}
-
-        {/* Elevator shaft markings */}
-        {[0.3, 0.5, 0.7, 0.9].map((y, i) => (
-          <mesh key={`elev-${i}`} position={[0.18, y, 0]}>
-            <boxGeometry args={[0.01, 0.04, 0.25]} />
-            <meshStandardMaterial color="#333333" metalness={0.5} roughness={0.5} />
+        {/* Hydraulic lift cylinders */}
+        {[0.07, -0.07].map((z, i) => (
+          <mesh key={`hyd-${i}`} position={[0.12, 0.82, z]} rotation={[0, 0, 0.15]}>
+            <cylinderGeometry args={[0.012, 0.015, 0.35, 6]} />
+            <meshStandardMaterial color="#9ca3af" metalness={0.75} roughness={0.25} />
+          </mesh>
+        ))}
+        {/* Tower diagonal braces */}
+        {[0.1, -0.1].map((z, i) => (
+          <mesh key={`brace-${i}`} position={[0.08, 0.68, z]} rotation={[0, 0, -0.28]}>
+            <boxGeometry args={[0.01, 0.32, 0.01]} />
+            <meshStandardMaterial color="#d97706" metalness={0.6} roughness={0.35} />
           </mesh>
         ))}
       </group>
 
-      {/* ====== CRANE (near gangway tower) ====== */}
-      <group position={[-0.2, 0.22, -0.4]}>
-        {/* Crane pedestal */}
-        <mesh position={[0, 0.12, 0]}>
-          <cylinderGeometry args={[0.06, 0.08, 0.24, 8]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.6} roughness={0.4} />
+      {/* ====== OFFSHORE KNUCKLE-BOOM CRANE ====== */}
+      <group position={[-0.1, 0.22, -0.45]}>
+        {/* Pedestal */}
+        <mesh position={[0, 0.15, 0]}>
+          <cylinderGeometry args={[0.07, 0.1, 0.3, 10]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.55} roughness={0.38} />
+        </mesh>
+        {/* Slewing ring */}
+        <mesh position={[0, 0.32, 0]}>
+          <cylinderGeometry args={[0.085, 0.075, 0.05, 10]} />
+          <meshStandardMaterial color="#d97706" metalness={0.7} roughness={0.3} />
         </mesh>
         {/* Crane house */}
-        <mesh position={[0, 0.28, 0]}>
-          <boxGeometry args={[0.12, 0.1, 0.12]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.6} roughness={0.4} />
+        <mesh position={[0, 0.43, 0]}>
+          <boxGeometry args={[0.17, 0.17, 0.22]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
         </mesh>
-        {/* Crane boom */}
-        <mesh position={[0.15, 0.42, 0]} rotation={[0, 0, -0.6]}>
-          <boxGeometry args={[0.03, 0.55, 0.04]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.6} roughness={0.4} />
+        {/* Counterweight at rear */}
+        <mesh position={[-0.15, 0.43, 0]}>
+          <boxGeometry args={[0.12, 0.14, 0.1]} />
+          <meshStandardMaterial color="#d97706" metalness={0.5} roughness={0.45} />
         </mesh>
-        {/* Crane tip */}
-        <mesh position={[0.38, 0.58, 0]}>
-          <boxGeometry args={[0.06, 0.02, 0.04]} />
-          <meshStandardMaterial color="#d97706" metalness={0.6} roughness={0.4} />
+        {/* Lower boom — angled up at ~57° from horizontal */}
+        <mesh position={[0.18, 0.67, 0]} rotation={[0, 0, -0.96]}>
+          <boxGeometry args={[0.04, 0.52, 0.04]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
         </mesh>
-        {/* Cable */}
-        <mesh position={[0.38, 0.45, 0]}>
-          <cylinderGeometry args={[0.003, 0.003, 0.25, 4]} />
+        {/* Knuckle joint sphere */}
+        <mesh position={[0.39, 0.83, 0]}>
+          <sphereGeometry args={[0.048, 10, 10]} />
+          <meshStandardMaterial color="#d97706" metalness={0.65} roughness={0.3} />
+        </mesh>
+        {/* Upper boom — nearly horizontal, slight downslope */}
+        <mesh position={[0.68, 0.80, 0]} rotation={[0, 0, -(Math.PI / 2 + 0.1)]}>
+          <boxGeometry args={[0.035, 0.58, 0.035]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+        </mesh>
+        {/* Luffing hydraulic cylinder */}
+        <mesh position={[0.08, 0.58, 0.07]} rotation={[0, 0, -0.68]}>
+          <cylinderGeometry args={[0.013, 0.016, 0.36, 6]} />
+          <meshStandardMaterial color="#9ca3af" metalness={0.75} roughness={0.25} />
+        </mesh>
+        {/* Hoist wire */}
+        <mesh position={[0.97, 0.65, 0]}>
+          <cylinderGeometry args={[0.004, 0.004, 0.28, 4]} />
           <meshStandardMaterial color="#555555" metalness={0.8} roughness={0.2} />
+        </mesh>
+        {/* Hook block */}
+        <mesh position={[0.97, 0.50, 0]}>
+          <boxGeometry args={[0.046, 0.07, 0.032]} />
+          <meshStandardMaterial color="#888888" metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
 
@@ -286,6 +331,67 @@ const SOVHull = () => {
           <meshStandardMaterial color={item.c} metalness={0.4} roughness={0.6} />
         </mesh>
       ))}
+
+      {/* ====== MOORING BOLLARDS ====== */}
+      {[
+        [0.3, 0.27, 2.3] as [number, number, number],
+        [-0.3, 0.27, 2.3] as [number, number, number],
+        [0.3, 0.27, -1.85] as [number, number, number],
+        [-0.3, 0.27, -1.85] as [number, number, number],
+      ].map((pos, i) => (
+        <group key={`bollard-${i}`} position={pos}>
+          <mesh>
+            <cylinderGeometry args={[0.03, 0.035, 0.08, 8]} />
+            <meshStandardMaterial color="#555e68" metalness={0.6} roughness={0.4} />
+          </mesh>
+          <mesh position={[0, 0.05, 0]}>
+            <cylinderGeometry args={[0.045, 0.03, 0.04, 8]} />
+            <meshStandardMaterial color="#555e68" metalness={0.6} roughness={0.4} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Forward deck mooring winch */}
+      <group position={[0, 0.24, 2.05]}>
+        <mesh position={[0, 0.04, 0]}>
+          <boxGeometry args={[0.18, 0.08, 0.12]} />
+          <meshStandardMaterial color="#374151" metalness={0.5} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.1, 10]} />
+          <meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.4} />
+        </mesh>
+      </group>
+
+      {/* Aft towing/mooring winch */}
+      <group position={[0, 0.24, -1.9]}>
+        <mesh position={[0, 0.04, 0]}>
+          <boxGeometry args={[0.22, 0.09, 0.15]} />
+          <meshStandardMaterial color="#374151" metalness={0.5} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.13, 10]} />
+          <meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.4} />
+        </mesh>
+      </group>
+
+      {/* Hawse pipes at bow */}
+      {[0.18, -0.18].map((x, i) => (
+        <mesh key={`hawse-${i}`} position={[x, -0.04, 2.52]} rotation={[0.35, 0, 0]}>
+          <cylinderGeometry args={[0.025, 0.032, 0.065, 8]} />
+          <meshStandardMaterial color="#1a1a2e" metalness={0.5} roughness={0.6} />
+        </mesh>
+      ))}
+
+      {/* HVAC unit on accommodation roof */}
+      <mesh position={[0, 0.82, 1.25]}>
+        <boxGeometry args={[0.26, 0.07, 0.14]} />
+        <meshStandardMaterial color="#cccccc" metalness={0.4} roughness={0.6} />
+      </mesh>
+      <mesh position={[0.08, 0.88, 1.3]}>
+        <cylinderGeometry args={[0.016, 0.016, 0.04, 6]} />
+        <meshStandardMaterial color="#aaaaaa" metalness={0.5} roughness={0.5} />
+      </mesh>
 
       {/* ====== FUNNELS (exhaust) aft of superstructure ====== */}
       {[0.15, -0.15].map((x, i) => (
@@ -443,7 +549,6 @@ const Ship2DFallback = () => (
       </div>
     </div>
     <p className="mt-4 text-muted-foreground text-sm">Maritime Automation</p>
-    <Anchor className="w-8 h-8 text-primary/60 mt-2" />
   </div>
 );
 
