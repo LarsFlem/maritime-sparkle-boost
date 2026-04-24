@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
 import { lazy, Suspense } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const Ship3D = lazy(() => import("@/components/Ship3D"));
 
@@ -93,13 +94,15 @@ const Hero = () => {
             animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              </div>
-            }>
-              <Ship3D />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                </div>
+              }>
+                <Ship3D />
+              </Suspense>
+            </ErrorBoundary>
           </motion.div>
         </div>
 

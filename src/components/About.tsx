@@ -1,9 +1,47 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Play, Briefcase, Award, MapPin, GraduationCap, Globe, Wrench } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
 import { motion } from "framer-motion";
+
+const VIDEO_ID = "LHXEMvQGN-E";
+
+const YoutubeEmbed = () => {
+  const [active, setActive] = useState(false);
+  const thumbnail = `https://img.youtube.com/vi/${VIDEO_ID}/hqdefault.jpg`;
+
+  if (active) {
+    return (
+      <iframe
+        className="w-full h-full"
+        src={`https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1`}
+        title="Portrait interview - Lars Jørgen Flem"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+
+  return (
+    <button
+      className="relative w-full h-full flex items-center justify-center bg-black/60 group"
+      onClick={() => setActive(true)}
+      aria-label="Play interview video"
+    >
+      <img
+        src={thumbnail}
+        alt="Video thumbnail"
+        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+      />
+      <div className="relative z-10 w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+        <Play className="h-6 w-6 text-white ml-1" />
+      </div>
+    </button>
+  );
+};
 
 const About = () => {
   const { t } = useLanguage();
@@ -44,13 +82,7 @@ const About = () => {
               <Card className="glass-effect overflow-hidden border-border/30">
                 <CardContent className="p-0">
                   <div className="aspect-video">
-                    <iframe
-                      className="w-full h-full"
-                      src="https://www.youtube.com/embed/LHXEMvQGN-E"
-                      title="Portrait interview - Lars Jørgen Flem"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
+                    <YoutubeEmbed />
                   </div>
                   <div className="p-3 bg-primary/5 border-t border-border/20">
                     <div className="flex items-center space-x-2">
