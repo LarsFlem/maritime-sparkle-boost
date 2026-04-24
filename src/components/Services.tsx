@@ -78,7 +78,7 @@ const Services = () => {
                 </div>
                 <CardHeader className="text-center pb-3 pt-4">
                   <CardTitle className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">{service.title}</CardTitle>
-                  <p className="text-muted-foreground text-xs mt-1 leading-relaxed">{service.description}</p>
+                  <p className="text-muted-foreground text-sm mt-1 leading-relaxed">{service.description}</p>
                 </CardHeader>
                 <CardContent className="space-y-2 flex-1">
                   {service.features.map((feature, fi) => {
@@ -93,7 +93,7 @@ const Services = () => {
                 </CardContent>
                 <div className="p-6 pt-0">
                   <div className="pt-3">
-                    <Button variant="ghost" size="sm" className="w-full text-primary hover:bg-primary/8 text-xs group/btn" onClick={() => setSelectedService(index)}>
+                    <Button variant="ghost" size="sm" className="w-full text-primary hover:bg-primary/8 text-sm group/btn" onClick={() => setSelectedService(index)}>
                       {t('services.readMore')}
                       <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                     </Button>

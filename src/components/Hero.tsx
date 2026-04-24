@@ -79,7 +79,7 @@ const Hero = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-primary/25 text-foreground hover:bg-primary/8 hover:border-primary/40 text-base px-8 py-6 transition-all duration-300"
+                className="border-primary/40 text-foreground hover:bg-primary/8 hover:border-primary/60 text-base px-8 py-6 transition-all duration-300"
                 onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
               >
                 {t('hero.cta.contact')}
@@ -131,7 +131,7 @@ const Hero = () => {
             >
               <feat.icon className={`h-6 w-6 text-primary mb-3 transition-transform duration-500 ${feat.hoverClass}`} />
               <h3 className="font-semibold text-sm mb-1">{feat.title}</h3>
-              <p className="text-muted-foreground text-xs leading-relaxed">{feat.desc}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{feat.desc}</p>
             </motion.div>
           ))}
         </motion.div>
