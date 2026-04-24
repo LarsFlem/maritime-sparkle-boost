@@ -3,12 +3,13 @@ import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
 import { lazy, Suspense } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const Ship3D = lazy(() => import("@/components/Ship3D"));
 
 const Hero = () => {
   const { t } = useLanguage();
+  const reduceMotion = useReducedMotion();
   return (
     <section aria-label="Hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -32,8 +33,8 @@ const Hero = () => {
           <div className="text-center lg:text-left">
             <motion.div
               className="mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <div className="inline-flex items-center space-x-2 bg-primary/8 border border-primary/15 rounded-full px-5 py-1.5 mb-6">
@@ -44,8 +45,8 @@ const Hero = () => {
 
             <motion.h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight uppercase"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <span className="gradient-text">{t('hero.title')}</span>
@@ -53,8 +54,8 @@ const Hero = () => {
 
             <motion.p
               className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
             >
               {t('hero.subtitle')}
@@ -62,27 +63,25 @@ const Hero = () => {
 
             <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <Button 
-                asChild
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20"
+                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
               >
-                <a href="#services">
-                  {t('hero.cta.services')}
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </a>
+                {t('hero.cta.services')}
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button 
-                asChild
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-primary/25 text-foreground hover:bg-primary/8 hover:border-primary/40 text-base px-8 py-6 transition-all duration-300"
+                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
               >
-                <a href="#contact">{t('hero.cta.contact')}</a>
+                {t('hero.cta.contact')}
               </Button>
             </motion.div>
           </div>
@@ -90,8 +89,8 @@ const Hero = () => {
           {/* 3D Ship Visualization */}
           <motion.div
             className="hidden lg:block h-[500px]"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+            animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <Suspense fallback={
@@ -107,8 +106,8 @@ const Hero = () => {
         {/* Features */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto lg:mx-0 mt-16"
-          initial="hidden"
-          animate="visible"
+          initial={reduceMotion ? false : "hidden"}
+          animate={reduceMotion ? {} : "visible"}
           variants={{
             hidden: {},
             visible: { transition: { staggerChildren: 0.12, delayChildren: 0.7 } },
@@ -122,7 +121,7 @@ const Hero = () => {
             <motion.div
               key={i}
               className="glass-effect rounded-xl p-5 group hover:bg-card/80 transition-all duration-300 hover:-translate-y-1"
-              variants={{
+              variants={reduceMotion ? {} : {
                 hidden: { opacity: 0, y: 25 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
               }}
@@ -138,8 +137,8 @@ const Hero = () => {
       {/* Scroll Indicator */}
       <motion.div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.5 }}
+        initial={reduceMotion ? false : { opacity: 0 }}
+        animate={reduceMotion ? {} : { opacity: 0.5 }}
         transition={{ delay: 1.2, duration: 0.6 }}
       >
         <div className="flex flex-col items-center">

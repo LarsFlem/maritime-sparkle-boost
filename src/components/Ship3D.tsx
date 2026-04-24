@@ -2,7 +2,8 @@ import { useRef, Suspense, useState, useEffect, useCallback, useMemo } from 'rea
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, OrbitControls, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import { Ship, Anchor, Waves } from 'lucide-react';
+import { Ship, Waves } from 'lucide-react';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // SOV Hull - Ulstein X-BOW inspired design (bridge forward, open deck aft)
 const SOVHull = () => {
@@ -487,6 +488,7 @@ const Scene = () => {
 };
 
 const Ship3D = () => {
+  const { t } = useLanguage();
   const [webGLSupported, setWebGLSupported] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [key, setKey] = useState(0);
@@ -514,7 +516,7 @@ const Ship3D = () => {
   return (
     <div className="w-full h-full min-h-[400px] relative flex items-center justify-center">
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-muted-foreground border border-primary/20">
-        🖱️ Dra for å rotere
+        {t('ship3d.rotateHint')}
       </div>
 
       <div 

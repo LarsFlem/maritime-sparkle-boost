@@ -157,4 +157,5 @@ export default {
   // Contact Additional
 
   // Footer Additional
+  'ship3d.rotateHint': '🖱️ Dra for å rotere',
 };

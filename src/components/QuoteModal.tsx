@@ -36,7 +36,6 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
     
     // Technical Requirements
     systemType: "",
-    integrationNeeds: "",
     certificationRequirements: "",
     
     // Additional Information
@@ -44,8 +43,6 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
     urgency: "",
     preferredContact: "",
     
-    // Zapier Integration (Optional)
-    zapierWebhookUrl: ""
   });
 
   const projectTypes = [
@@ -156,12 +153,10 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
         timeline: "",
         budget: "",
         systemType: "",
-        integrationNeeds: "",
         certificationRequirements: "",
         projectDescription: "",
         urgency: "",
         preferredContact: "",
-        zapierWebhookUrl: ""
       });
       onOpenChange(false);
 

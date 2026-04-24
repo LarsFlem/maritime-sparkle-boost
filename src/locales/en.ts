@@ -147,4 +147,5 @@ export default {
   'liveDemo.hmi.tabs.settings': 'Settings',
 
   // Common
+  'ship3d.rotateHint': '🖱️ Drag to rotate',
 };

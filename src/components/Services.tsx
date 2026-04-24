@@ -142,7 +142,6 @@ const Services = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="mt-20 text-center"></div>
       </div>
     </section>
   );
