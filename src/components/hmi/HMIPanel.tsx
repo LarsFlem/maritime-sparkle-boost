@@ -23,6 +23,11 @@ const HMIPanel = ({ title, children, className, glowColor }: HMIPanelProps) => {
           background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
         }}
       />
+      {/* Corner brackets */}
+      <div className="absolute top-2 left-2 w-3 h-3 border-t border-l opacity-40 pointer-events-none" style={{ borderColor: accent }} />
+      <div className="absolute top-2 right-2 w-3 h-3 border-t border-r opacity-40 pointer-events-none" style={{ borderColor: accent }} />
+      <div className="absolute bottom-2 left-2 w-3 h-3 border-b border-l opacity-40 pointer-events-none" style={{ borderColor: accent }} />
+      <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r opacity-40 pointer-events-none" style={{ borderColor: accent }} />
       {title && (
         <div
           className="px-4 py-2 border-b border-border/40 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground bg-background/40"

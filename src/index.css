@@ -165,6 +165,32 @@
   }
 }
 
+/* HMI alarm pulse animation */
+@keyframes alarm-border-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(230, 165, 70, 0.15);
+    border-color: rgba(230, 165, 70, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(230, 165, 70, 0.4);
+    border-color: rgba(230, 165, 70, 0.85);
+  }
+}
+.alarm-pulse {
+  animation: alarm-border-pulse 2s ease-in-out infinite;
+}
+
+/* HMI scan-line overlay */
+.hmi-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.022) 2px,
+    rgba(0, 0, 0, 0.022) 3px
+  );
+}
+
 /* Grain texture overlay */
 body::after {
   content: '';

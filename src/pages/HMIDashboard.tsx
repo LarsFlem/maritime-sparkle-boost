@@ -9,6 +9,15 @@ import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import OceanMap from "@/components/hmi/OceanMap";
 
+type LogSev = "ok" | "info" | "warn" | "err";
+interface LogEvent {
+  id: number;
+  ts: number;
+  sev: LogSev;
+  unit: string;
+  msg: string;
+}
+
 interface Turbine {
   id: string;
   name: string;
@@ -84,6 +93,19 @@ const HMIDashboard = () => {
   const [trendData, setTrendData] = useState<TrendPoint[]>(() => buildEmptyPoints(DEFAULT_WINDOW));
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mapView, setMapView] = useState<"grid" | "geo">("geo");
+  const [eventLog, setEventLog] = useState<LogEvent[]>(() => {
+    const now = Date.now();
+    return [
+      { id: 7, ts: now - 8000,   sev: "warn", unit: "T003", msg: "Temperature elevated — 52°C" },
+      { id: 6, ts: now - 22000,  sev: "err",  unit: "T005", msg: "Unit offline — maintenance scheduled" },
+      { id: 5, ts: now - 48000,  sev: "warn", unit: "T003", msg: "Vibration threshold: 3.2 Hz" },
+      { id: 4, ts: now - 72000,  sev: "info", unit: "T002", msg: "Efficiency nominal: 82%" },
+      { id: 3, ts: now - 98000,  sev: "info", unit: "T001", msg: "Power output stable: 2.4 MW" },
+      { id: 2, ts: now - 130000, sev: "ok",   unit: "T006", msg: "Post-maintenance check passed" },
+      { id: 1, ts: now - 190000, sev: "ok",   unit: "ALL",  msg: "SCADA link established — nominal" },
+    ];
+  });
+  const nextEventId = useRef(8);
 
   // Per-turbine colors for trend lines
   const TURBINE_COLORS: Record<string, string> = {
@@ -212,6 +234,42 @@ const HMIDashboard = () => {
     });
   }, [windowSeconds]);
 
+  // Periodic event log generation
+  useEffect(() => {
+    const msgPool: Record<string, Array<(t: Turbine) => string>> = {
+      operational: [
+        (t) => `Output: ${t.energyOutput.toFixed(1)} MW — nominal`,
+        (t) => `Efficiency check: ${Math.round(t.efficiency)}%`,
+        (t) => `Health telemetry OK — ${t.health}%`,
+      ],
+      warning: [
+        (t) => `Vibration elevated: ${t.vibration.toFixed(1)} Hz`,
+        (t) => `Temp: ${Math.round(t.temperature)}°C — monitoring`,
+        (t) => `Reduced efficiency: ${Math.round(t.efficiency)}%`,
+      ],
+      offline: [
+        () => `Unit offline — standby active`,
+      ],
+    };
+    const sevMap: Record<string, LogSev> = {
+      operational: "info",
+      warning: "warn",
+      offline: "err",
+    };
+    const interval = setInterval(() => {
+      const fleet = turbinesRef.current;
+      const pick = fleet[Math.floor(Math.random() * fleet.length)];
+      const msgs = msgPool[pick.status];
+      const msg = msgs[Math.floor(Math.random() * msgs.length)](pick);
+      setEventLog(prev => [
+        { id: nextEventId.current++, ts: Date.now(), sev: sevMap[pick.status], unit: pick.id, msg },
+        ...prev.slice(0, 19),
+      ]);
+    }, 8000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const operationalCount = turbines.filter(t => t.status === "operational").length;
   const warningCount = turbines.filter(t => t.status === "warning").length;
   const offlineCount = turbines.filter(t => t.status === "offline").length;
@@ -229,6 +287,8 @@ const HMIDashboard = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <div className="pt-16">
+        {/* Subtle CRT scan-line texture */}
+        <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
         {/* Top status bar */}
         <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
           <div className="flex items-center gap-6">
@@ -243,10 +303,16 @@ const HMIDashboard = () => {
               Station: NORTH SEA — Sector 7G
             </span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
               UTC {currentTime.toISOString().slice(0, 10)}
             </span>
+            <div className="h-4 w-px bg-border" />
+            <span className="font-mono text-[10px] uppercase tracking-wider">
+              <span className="text-muted-foreground">Output </span>
+              <span className="text-primary tabular-nums">{totalEnergy.toFixed(1)} MW</span>
+            </span>
+            <div className="h-4 w-px bg-border" />
             <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
               {currentTime.toTimeString().slice(0, 8)}
             </span>
@@ -256,8 +322,8 @@ const HMIDashboard = () => {
         <div className="p-4 space-y-4">
           {/* Alarm bar */}
           {warningCount > 0 && (
-            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-card/50 border border-border/60">
-              <AlertTriangle className="w-4 h-4" style={{ color: COLOR_WARNING }} />
+            <div className="alarm-pulse flex items-center gap-3 px-4 py-2 rounded-lg bg-card/50 border">
+              <AlertTriangle className="w-4 h-4 animate-pulse" style={{ color: COLOR_WARNING }} />
               <span className="font-mono text-xs uppercase tracking-wider" style={{ color: COLOR_WARNING }}>
                 {warningCount} ACTIVE WARNING{warningCount > 1 ? "S" : ""} — WG-Gamma: HIGH VIBRATION DETECTED
               </span>
@@ -300,7 +366,7 @@ const HMIDashboard = () => {
           </div>
 
           {/* Main grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Ocean map / topological view */}
             <HMIPanel
               title={mapView === "geo" ? "Ocean Farm — Geographic View" : "Ocean Farm — Topological View"}
@@ -384,7 +450,7 @@ const HMIDashboard = () => {
             </HMIPanel>
 
             {/* Live trend — fixed window, scrolls right→left */}
-            <HMIPanel title={`Power Output — Live Trend (${windowSeconds}s)`} className="lg:col-span-2">
+            <HMIPanel title={`Power Output — Live Trend (${windowSeconds}s)`} className="lg:col-span-2 xl:col-span-2">
               {/* Series toggles */}
               <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 {(() => {
@@ -535,6 +601,32 @@ const HMIDashboard = () => {
                 );
               })()}
             </HMIPanel>
+
+            {/* Event log */}
+            <HMIPanel title="Event Log" className="lg:col-span-1">
+              <div className="space-y-0.5 h-[284px] overflow-y-auto pr-0.5 scrollbar-thin">
+                {eventLog.map(event => {
+                  const dotColor: Record<LogSev, string> = {
+                    ok:   COLOR_OPERATIONAL,
+                    info: COLOR_PRIMARY,
+                    warn: COLOR_WARNING,
+                    err:  "hsl(0,70%,55%)",
+                  }[event.sev];
+                  return (
+                    <div key={event.id} className="flex items-start gap-2 py-1.5 border-b border-border/15 last:border-0">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="font-mono text-[9px] font-medium" style={{ color: dotColor }}>{event.unit}</span>
+                          <span className="font-mono text-[8px] text-muted-foreground/45 tabular-nums">{formatClock(event.ts)}</span>
+                        </div>
+                        <p className="font-mono text-[9px] text-muted-foreground leading-tight">{event.msg}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </HMIPanel>
           </div>
 
           {/* Unit detail panels */}
@@ -569,6 +661,13 @@ const HMIDashboard = () => {
                       <Activity className="w-3 h-3 text-muted-foreground" />
                       <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{turbine.health}%</span>
                     </div>
+                  </div>
+                  {/* Health bar */}
+                  <div className="h-0.5 rounded-full bg-border/40 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${turbine.health}%`, backgroundColor: getStatusColor(turbine.status) }}
+                    />
                   </div>
                 </div>
               </HMIPanel>

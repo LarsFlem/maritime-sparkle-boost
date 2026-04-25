@@ -71,6 +71,25 @@ const GaugeCircular = ({
               transition: "stroke-dasharray 0.5s ease, stroke 0.3s ease",
             }}
           />
+          {/* Major tick marks at 0%, 25%, 50%, 75%, 100% */}
+          {[0, 25, 50, 75, 100].map(pct => {
+            const rad = ((135 + (pct / 100) * 270) * Math.PI) / 180;
+            const cx = size / 2;
+            const cy = size / 2;
+            return (
+              <line
+                key={pct}
+                x1={cx + (radius + 2) * Math.cos(rad)}
+                y1={cy + (radius + 2) * Math.sin(rad)}
+                x2={cx + (radius - 4) * Math.cos(rad)}
+                y2={cy + (radius - 4) * Math.sin(rad)}
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth={1}
+                strokeOpacity={0.35}
+                strokeLinecap="round"
+              />
+            );
+          })}
         </svg>
         {/* Center value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
