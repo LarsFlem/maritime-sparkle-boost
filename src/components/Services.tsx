@@ -63,7 +63,7 @@ const Services = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimatedSection className="text-center mb-16">
           <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('services.title')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">{t('services.title')}</h2>
+          <h2 className="text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight">{t('services.title')}</h2>
           <div className="section-divider mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('services.description')}</p>
         </AnimatedSection>
@@ -71,12 +71,15 @@ const Services = () => {
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.12}>
           {services.map((service, index) => (
             <StaggerItem key={service.title}>
-              <Card className="glass-effect hover-lift group transition-all duration-400 border-border/30 flex flex-col h-full">
+              <Card className="glass-effect hover-lift group transition-all duration-400 border-border/30 hover:border-primary/25 flex flex-col h-full">
                 <div className="relative w-full overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0 bg-black/20" style={{ width: 'calc(100% + 2px)' }}>
                   <img src={service.icon} alt={service.title} className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
                 </div>
-                <CardHeader className="text-center pb-3 pt-4">
+                <CardHeader className="text-center pb-3 pt-4 relative">
+                  <span className="absolute top-2 right-4 text-6xl font-black leading-none select-none text-primary/5">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
                   <CardTitle className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">{service.title}</CardTitle>
                   <p className="text-muted-foreground text-sm mt-1 leading-relaxed">{service.description}</p>
                 </CardHeader>
@@ -84,7 +87,7 @@ const Services = () => {
                   {service.features.map((feature, fi) => {
                     const Icon = serviceFeatureIcons[index][fi];
                     return (
-                      <div key={fi} className="flex items-start space-x-2.5 p-1.5 rounded-md hover:bg-primary/5 transition-colors">
+                      <div key={fi} className="flex items-start space-x-2.5 p-1.5 rounded-md hover:bg-primary/5 hover:pl-3 border-l-2 border-transparent hover:border-primary/40 transition-all duration-200">
                         <Icon className="h-3.5 w-3.5 text-primary/70 mt-0.5 flex-shrink-0" />
                         <span className="text-xs text-muted-foreground">{feature}</span>
                       </div>

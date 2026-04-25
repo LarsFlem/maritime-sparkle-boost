@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -37,9 +37,11 @@
     --border: 210 15% 18%;
     --input: 210 15% 18%;
     --ring: 200 100% 50%;
+    --steel: 210 18% 40%;
+    --rust: 22 55% 42%;
 
     /* Refined gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(210 50% 15%), hsl(200 60% 25%), hsl(190 70% 35%));
+    --gradient-ocean: linear-gradient(135deg, hsl(215 55% 10%), hsl(205 65% 18%), hsl(195 75% 28%));
     --gradient-deep: linear-gradient(180deg, hsl(210 25% 7%), hsl(210 28% 10%));
     --gradient-tech: linear-gradient(45deg, hsl(200 100% 50% / 0.06), hsl(180 100% 50% / 0.06));
     --gradient-hero: radial-gradient(ellipse at center, hsl(200 100% 50% / 0.1), transparent 50%);
@@ -88,57 +90,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     background: var(--gradient-deep);
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-    letter-spacing: -0.02em;
-  }
-
-  /* ── Keyframes ── */
-  @keyframes glow-pulse-subtle {
-    0%, 100% { 
-      box-shadow: 0 0 15px hsl(200 100% 50% / 0.2);
-    }
-    50% { 
-      box-shadow: 0 0 25px hsl(200 100% 60% / 0.3);
-    }
-  }
-
-  @keyframes rotate-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes scale-in-bounce {
-    0% { opacity: 0; transform: scale(0.9); }
-    60% { transform: scale(1.02); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  @keyframes line-reveal {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-  }
-
-  /* ── Utility classes ── */
-  .glow-pulse-intense { animation: glow-pulse-subtle 3s ease-in-out infinite; }
-  .rotate-slow { animation: rotate-slow 30s linear infinite; }
-
-  .animate-fade-in-up {
-    animation: fade-in-up 0.6s ease-out forwards;
-  }
-
-  .animate-scale-in-bounce {
-    animation: scale-in-bounce 0.5s ease-out forwards;
+    font-family: 'Syne', system-ui, sans-serif;
+    letter-spacing: -0.03em;
   }
 
   /* ── Glass & Surface Effects ── */
@@ -146,33 +105,6 @@
     backdrop-filter: blur(16px);
     background: hsl(var(--card) / 0.6);
     border: 1px solid hsl(var(--border) / 0.2);
-  }
-
-  .glass-effect-strong {
-    backdrop-filter: blur(20px);
-    background: hsl(var(--card) / 0.75);
-    border: 1px solid hsl(var(--primary) / 0.1);
-    box-shadow: 0 4px 24px hsl(var(--primary) / 0.06);
-  }
-
-  .tech-border {
-    border: 1px solid hsl(var(--primary) / 0.15);
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.05);
-  }
-
-  .tech-border-glow {
-    border: 1px solid hsl(var(--primary) / 0.15);
-    box-shadow: 
-      0 0 15px hsl(var(--primary) / 0.06),
-      inset 0 0 15px hsl(var(--primary) / 0.02);
-    transition: border-color 0.4s ease, box-shadow 0.4s ease;
-  }
-
-  .tech-border-glow:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: 
-      0 0 20px hsl(var(--primary) / 0.1),
-      inset 0 0 15px hsl(var(--primary) / 0.03);
   }
 
   .gradient-text {
@@ -191,10 +123,6 @@
     box-shadow: 0 12px 30px hsl(var(--primary) / 0.1);
   }
 
-  .magnetic-hover {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
   /* ── Section Divider ── */
   .section-divider {
     width: 60px;
@@ -204,30 +132,10 @@
     margin: 0 auto;
   }
 
-  .aurora-bg {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .aurora-bg::before {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    background: conic-gradient(
-      from 0deg,
-      hsl(var(--primary) / 0.15),
-      hsl(var(--accent) / 0.1),
-      transparent,
-      hsl(var(--primary) / 0.15)
-    );
-    animation: rotate-slow 30s linear infinite;
-    filter: blur(80px);
-  }
-
   /* ── HMI Leaflet Map Styling ── */
   .hmi-map .leaflet-container {
     background: hsl(var(--background)) !important;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     outline: none;
   }
 
@@ -250,10 +158,23 @@
 
   .logo-text {
     color: #fff;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Syne', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0.02em;
   }
+}
+
+/* Grain texture overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.028;
+  pointer-events: none;
+  z-index: 9999;
 }
 

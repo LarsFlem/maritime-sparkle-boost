@@ -34,8 +34,18 @@ const Hero = () => {
           <div className="text-center lg:text-left">
             {/* Removed duplicate badge with Waves icon and title */}
 
+            <motion.div
+              className="flex items-center gap-3 mb-6"
+              initial={reduceMotion ? false : { opacity: 0, x: -20 }}
+              animate={reduceMotion ? {} : { opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="h-px w-12 bg-primary"></div>
+              <span className="text-xs font-medium tracking-widest uppercase text-primary/70">Maritime Automation</span>
+            </motion.div>
+
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight uppercase"
+              className="text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tighter uppercase leading-tight mb-6"
               initial={reduceMotion ? false : { opacity: 0, y: 30 }}
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -44,7 +54,7 @@ const Hero = () => {
             </motion.h1>
 
             <motion.p
-              className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed"
+              className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light"
               initial={reduceMotion ? false : { opacity: 0, y: 20 }}
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
@@ -60,7 +70,7 @@ const Hero = () => {
             >
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20 border border-primary/20"
                 onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
               >
                 {t('hero.cta.services')}
@@ -119,9 +129,14 @@ const Hero = () => {
                 visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
               }}
             >
-              <feat.icon className={`h-6 w-6 text-primary mb-3 transition-transform duration-500 ${feat.hoverClass}`} />
-              <h3 className="font-semibold text-sm mb-1">{feat.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{feat.desc}</p>
+              <div className="relative">
+                <span className="absolute -top-2 -right-1 text-5xl font-black text-primary/5 select-none leading-none">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <feat.icon className={`h-5 w-5 text-primary mb-2 transition-transform duration-500 ${feat.hoverClass}`} />
+                <h3 className="font-semibold text-sm mb-1 font-['Syne']">{feat.title}</h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">{feat.desc}</p>
+              </div>
             </motion.div>
           ))}
         </motion.div>

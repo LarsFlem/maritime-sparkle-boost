@@ -59,9 +59,9 @@ const Navbar = () => {
               onClick={() => { if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             >
               <span className="flex items-center justify-center bg-white/90 rounded-full p-0.5 backdrop-blur-sm">
-                <img src={logoImg} alt="Maritime Automation" className="h-12 group-hover:scale-110 transition-transform duration-300 logo-img" />
+                <img src={logoImg} alt="Maritime Automation" className="h-9 group-hover:scale-110 transition-transform duration-300 logo-img" />
               </span>
-              <span className="logo-text ml-3">Maritime Automation</span>
+              <span className="logo-text ml-3 whitespace-nowrap">Maritime Automation</span>
             </Link>
 
             {/* Desktop Navigation */}
