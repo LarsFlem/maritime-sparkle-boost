@@ -1,10 +1,11 @@
 .logo-img {
   filter: brightness(0) invert(1);
+  /* Ensures the logo is pure white */
 }
 .logo-text {
-  color: #333;
+  color: #fff;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
