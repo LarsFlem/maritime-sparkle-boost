@@ -340,8 +340,43 @@ const LiveDemo = () => {
     });
   };
 
+  // Manual hook: attach if at the right zone with hook low; release at landing or back at deck.
+  const handleHookAction = () => {
+    if (eStop || mode === "auto") return;
+    const s = stateRef.current;
+    if (s.hoistPct > 8) return;
+    if (s.cargoState === "carried") {
+      // Drop where the hook is.
+      s.cargoState = s.slewPct >= 50 ? "landed" : "deck";
+    } else if (s.cargoState === "deck" && s.slewPct <= 12) {
+      s.cargoState = "carried";
+    } else if (s.cargoState === "landed" && s.slewPct >= 88) {
+      s.cargoState = "carried";
+    }
+  };
+
   // --- Derived ---
   const loadPct = render.cargoState === "carried" ? 100 : 0;
+  const hookCarrying = render.cargoState === "carried";
+  const atDeckZone = render.slewPct <= 12;
+  const atLandingZone = render.slewPct >= 88;
+  const hookLow = render.hoistPct <= 8;
+  const hookActionEnabled =
+    !eStop &&
+    mode !== "auto" &&
+    hookLow &&
+    (hookCarrying || (render.cargoState === "deck" && atDeckZone) || (render.cargoState === "landed" && atLandingZone));
+  const hookHint = hookCarrying
+    ? hookLow
+      ? t("liveDemo.controls.hookHintReleaseReady")
+      : t("liveDemo.controls.hookHintLower")
+    : !hookLow
+    ? t("liveDemo.controls.hookHintLower")
+    : render.cargoState === "deck" && !atDeckZone
+    ? t("liveDemo.controls.hookHintToPickup")
+    : render.cargoState === "landed" && !atLandingZone
+    ? t("liveDemo.controls.hookHintToLanding")
+    : t("liveDemo.controls.hookHintAttachReady");
   const status = eStop ? "warning" : running ? "operational" : "offline";
   const statusLabel = eStop
     ? t("liveDemo.status.eStop")
@@ -457,6 +492,10 @@ const LiveDemo = () => {
               activeStepIndex={render.autoStepIndex}
               stepProgress={render.autoStepProgress}
               cycleCount={render.autoCycleCount}
+              hookCarrying={hookCarrying}
+              hookActionEnabled={hookActionEnabled}
+              hookHint={hookHint}
+              onHookAction={handleHookAction}
               labels={{
                 modeManual: t("liveDemo.mode.manual"),
                 modeSemi: t("liveDemo.mode.semi"),
@@ -475,6 +514,8 @@ const LiveDemo = () => {
                 eStop: t("liveDemo.controls.eStop"),
                 eStopReset: t("liveDemo.controls.eStopReset"),
                 panelTitle: t("liveDemo.controls.modeTitle"),
+                attach: t("liveDemo.controls.attach"),
+                release: t("liveDemo.controls.release"),
               }}
             />
           </HMIPanel>

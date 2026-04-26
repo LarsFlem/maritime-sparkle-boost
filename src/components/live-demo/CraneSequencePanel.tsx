@@ -1,4 +1,4 @@
-import { Play, Square, RotateCcw, AlertOctagon, Hand, Sparkles, Cpu } from "lucide-react";
+import { Play, Square, RotateCcw, AlertOctagon, Hand, Sparkles, Cpu, Anchor } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 
@@ -57,6 +57,11 @@ interface CraneSequencePanelProps {
   activeStepIndex: number;
   stepProgress: number; // 0..1 within current step
   cycleCount: number;
+  // Manual hook control
+  hookCarrying: boolean;
+  hookActionEnabled: boolean;
+  hookHint: string;
+  onHookAction: () => void;
   // Labels (for i18n)
   labels: {
     modeManual: string;
@@ -73,6 +78,8 @@ interface CraneSequencePanelProps {
     start: string;
     stop: string;
     reset: string;
+    attach: string;
+    release: string;
     eStop: string;
     eStopReset: string;
     panelTitle: string;
@@ -96,6 +103,10 @@ const CraneSequencePanel = ({
   activeStepIndex,
   stepProgress,
   cycleCount,
+  hookCarrying,
+  hookActionEnabled,
+  hookHint,
+  onHookAction,
   labels,
 }: CraneSequencePanelProps) => {
   return (
@@ -172,6 +183,28 @@ const CraneSequencePanel = ({
               <span>{labels.deckLevel}</span>
               <span>{labels.cruiseHeight}</span>
             </div>
+          </div>
+
+          {/* Hook control */}
+          <div className="space-y-1.5 pt-1">
+            <Button
+              type="button"
+              onClick={onHookAction}
+              disabled={!hookActionEnabled}
+              size="sm"
+              variant="ghost"
+              className={`w-full h-9 font-mono text-[10px] uppercase tracking-wider border ${
+                hookCarrying
+                  ? "bg-[hsl(22,60%,45%)]/15 hover:bg-[hsl(22,60%,45%)]/25 border-[hsl(22,60%,55%)]/50 text-[hsl(22,80%,70%)] disabled:opacity-40"
+                  : "bg-accent/10 hover:bg-accent/20 border-accent/40 text-accent disabled:opacity-40"
+              }`}
+            >
+              <Anchor className="w-3.5 h-3.5 mr-1.5" />
+              {hookCarrying ? labels.release : labels.attach}
+            </Button>
+            <p className="text-[9px] font-mono text-muted-foreground/55 leading-tight text-center">
+              {hookHint}
+            </p>
           </div>
         </div>
       )}

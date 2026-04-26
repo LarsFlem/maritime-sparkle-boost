@@ -175,6 +175,13 @@ export default {
   'liveDemo.controls.reset': 'Reset',
   'liveDemo.controls.eStop': 'E-Stop',
   'liveDemo.controls.eStopReset': 'Reset E-Stop',
+  'liveDemo.controls.attach': 'Attach Hook',
+  'liveDemo.controls.release': 'Release Hook',
+  'liveDemo.controls.hookHintLower': 'Lower hook to deck level (hoist 0%) to attach or release.',
+  'liveDemo.controls.hookHintToPickup': 'Slew to pickup zone (slew 0%) to attach the container.',
+  'liveDemo.controls.hookHintToLanding': 'Slew to landing zone (slew 100%) to retrieve the container.',
+  'liveDemo.controls.hookHintAttachReady': 'Hook in position — ready to attach.',
+  'liveDemo.controls.hookHintReleaseReady': 'Hook in position — ready to release.',
 
   'liveDemo.step.pickupLower': '1. Lower to Pickup',
   'liveDemo.step.pickupLift': '2. Lift Container',

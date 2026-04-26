@@ -49,6 +49,13 @@ export default {
   'liveDemo.controls.reset': 'Nullstill',
   'liveDemo.controls.eStop': 'Nødstopp',
   'liveDemo.controls.eStopReset': 'Tilbakestill nødstopp',
+  'liveDemo.controls.attach': 'Fest krok',
+  'liveDemo.controls.release': 'Slipp krok',
+  'liveDemo.controls.hookHintLower': 'Senk kroken til dekksnivå (heis 0%) for å feste eller slippe.',
+  'liveDemo.controls.hookHintToPickup': 'Sving til plukksone (sving 0%) for å feste containeren.',
+  'liveDemo.controls.hookHintToLanding': 'Sving til landingssone (sving 100%) for å hente containeren.',
+  'liveDemo.controls.hookHintAttachReady': 'Krok i posisjon — klar til å feste.',
+  'liveDemo.controls.hookHintReleaseReady': 'Krok i posisjon — klar til å slippe.',
 
   'liveDemo.step.pickupLower': '1. Senk til plukk',
   'liveDemo.step.pickupLift': '2. Løft container',
