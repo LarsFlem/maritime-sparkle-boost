@@ -9,6 +9,35 @@ export interface SequenceStep {
   label: string;
 }
 
+// Hoisted out of the parent so React keeps the same component identity across
+// the parent's 10 Hz re-renders — otherwise the DOM nodes unmount/remount
+// every tick and clicks that straddle a tick get dropped.
+const ModeButton = ({
+  active,
+  onClick,
+  icon,
+  text,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  text: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[10px] font-mono uppercase tracking-wider transition-colors border-y border-r first:border-l first:rounded-l last:rounded-r ${
+      active
+        ? "bg-primary/25 border-primary text-primary shadow-[inset_0_-2px_0_0_hsl(var(--primary))]"
+        : "bg-muted/40 border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted/70"
+    }`}
+  >
+    {icon}
+    <span>{text}</span>
+  </button>
+);
+
 interface CraneSequencePanelProps {
   mode: CraneMode;
   onModeChange: (m: CraneMode) => void;
@@ -69,31 +98,6 @@ const CraneSequencePanel = ({
   cycleCount,
   labels,
 }: CraneSequencePanelProps) => {
-  const ModeButton = ({
-    value,
-    icon,
-    text,
-  }: {
-    value: CraneMode;
-    icon: React.ReactNode;
-    text: string;
-  }) => {
-    const active = mode === value;
-    return (
-      <button
-        onClick={() => onModeChange(value)}
-        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-mono uppercase tracking-wider transition-colors border ${
-          active
-            ? "bg-primary/15 border-primary/60 text-primary"
-            : "bg-muted/40 border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
-        }`}
-      >
-        {icon}
-        <span>{text}</span>
-      </button>
-    );
-  };
-
   return (
     <div className="flex flex-col gap-4">
       {/* Mode selector */}
@@ -101,19 +105,22 @@ const CraneSequencePanel = ({
         <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">
           {labels.panelTitle}
         </div>
-        <div className="flex gap-0">
+        <div className="flex">
           <ModeButton
-            value="manual"
+            active={mode === "manual"}
+            onClick={() => onModeChange("manual")}
             icon={<Hand className="w-3 h-3" />}
             text={labels.modeManual}
           />
           <ModeButton
-            value="semi"
+            active={mode === "semi"}
+            onClick={() => onModeChange("semi")}
             icon={<Sparkles className="w-3 h-3" />}
             text={labels.modeSemi}
           />
           <ModeButton
-            value="auto"
+            active={mode === "auto"}
+            onClick={() => onModeChange("auto")}
             icon={<Cpu className="w-3 h-3" />}
             text={labels.modeAuto}
           />
