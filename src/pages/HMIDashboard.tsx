@@ -529,7 +529,7 @@ const HMIDashboard = () => {
                 }
                 return (
                   <ResponsiveContainer width="100%" height={240}>
-                    <LineChart data={trendData} margin={{ top: 6, right: 12, left: 0, bottom: 0 }}>
+                    <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="t"
@@ -539,69 +539,63 @@ const HMIDashboard = () => {
                         ticks={ticks}
                         allowDataOverflow
                         stroke="hsl(var(--muted-foreground))"
-                        tick={{ fontSize: 9, fontFamily: "monospace" }}
+                        tick={{ fontSize: 10, fontFamily: "monospace" }}
                         tickFormatter={formatClock}
                       />
-                      <YAxis
-                        stroke="hsl(var(--primary))"
-                        tick={{ fontSize: 9, fontFamily: "monospace" }}
-                        domain={[0, 16]}
-                        width={32}
-                        label={{
-                          value: "MW",
-                          angle: -90,
-                          position: "insideLeft",
-                          style: { fill: "hsl(var(--primary))", fontSize: 9, fontFamily: "monospace" },
-                        }}
-                      />
-                      <Tooltip
-                        labelFormatter={(label: number) => formatClock(label)}
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          color: "hsl(var(--foreground))",
-                          fontFamily: "monospace",
-                          fontSize: 11,
-                          borderRadius: 8,
-                        }}
-                      />
-                      {(() => {
-                        const showAll = selectedSeries.size === 0;
-                        const showTotal = showAll || selectedSeries.has("total");
-                        return (
-                          <>
-                            {showTotal && (
-                              <Line
-                                key="total"
-                                type="linear"
-                                dataKey="total"
-                                name="Total"
-                                stroke="hsl(var(--primary))"
-                                strokeWidth={2}
-                                dot={false}
-                                isAnimationActive={false}
-                              />
-                            )}
-                            {turbines.map(t => {
-                              const visible = showAll || selectedSeries.has(t.id);
-                              if (!visible) return null;
-                              return (
-                                <Line
-                                  key={t.id}
-                                  type="linear"
-                                  dataKey={t.id}
-                                  name={t.id}
-                                  stroke={TURBINE_COLORS[t.id] ?? "hsl(var(--primary))"}
-                                  strokeWidth={1.4}
-                                  strokeOpacity={0.85}
-                                  dot={false}
-                                  isAnimationActive={false}
-                                />
-                              );
-                            })}
-                          </>
-                        );
-                      })()}
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 10, fontFamily: "monospace" }}
+                    domain={['auto', 'auto']}
+                    label={{ value: "MW", angle: -90, position: "insideLeft", style: { fill: "hsl(var(--muted-foreground))", fontSize: 10, fontFamily: "monospace" } }}
+                  />
+                  <Tooltip
+                    labelFormatter={(label: number) => formatClock(label)}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      color: "hsl(var(--foreground))",
+                      fontFamily: "monospace",
+                      fontSize: 12,
+                      borderRadius: 8,
+                    }}
+                  />
+                  {(() => {
+                    const showAll = selectedSeries.size === 0;
+                    const showTotal = showAll || selectedSeries.has("total");
+                    return (
+                      <>
+                        {showTotal && (
+                          <Line
+                            key="total"
+                            type="linear"
+                            dataKey="total"
+                            name="Total"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={2.5}
+                            dot={false}
+                            isAnimationActive={false}
+                          />
+                        )}
+                        {turbines.map(t => {
+                          const visible = showAll || selectedSeries.has(t.id);
+                          if (!visible) return null;
+                          return (
+                            <Line
+                              key={t.id}
+                              type="linear"
+                              dataKey={t.id}
+                              name={t.id}
+                              stroke={TURBINE_COLORS[t.id] ?? "hsl(var(--primary))"}
+                              strokeWidth={1.5}
+                              strokeOpacity={0.9}
+                              dot={false}
+                              isAnimationActive={false}
+                            />
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
                     </LineChart>
                   </ResponsiveContainer>
                 );
