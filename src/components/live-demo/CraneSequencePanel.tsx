@@ -1,0 +1,278 @@
+import { Play, Square, RotateCcw, AlertOctagon, Hand, Sparkles, Cpu } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
+
+export type CraneMode = "manual" | "semi" | "auto";
+
+export interface SequenceStep {
+  id: string;
+  label: string;
+}
+
+interface CraneSequencePanelProps {
+  mode: CraneMode;
+  onModeChange: (m: CraneMode) => void;
+  running: boolean;
+  eStop: boolean;
+  onStart: () => void;
+  onStop: () => void;
+  onReset: () => void;
+  onEStop: () => void;
+  // Manual / Semi-Auto controls
+  cmdSlew: number;
+  cmdHoist: number;
+  onCmdSlewChange: (v: number) => void;
+  onCmdHoistChange: (v: number) => void;
+  // Auto sequence
+  steps: SequenceStep[];
+  activeStepIndex: number;
+  stepProgress: number; // 0..1 within current step
+  cycleCount: number;
+  // Labels (for i18n)
+  labels: {
+    modeManual: string;
+    modeSemi: string;
+    modeAuto: string;
+    targetSlew: string;
+    targetHoist: string;
+    pickupZone: string;
+    landingZone: string;
+    deckLevel: string;
+    cruiseHeight: string;
+    sequence: string;
+    cycles: string;
+    start: string;
+    stop: string;
+    reset: string;
+    eStop: string;
+    eStopReset: string;
+    panelTitle: string;
+  };
+}
+
+const CraneSequencePanel = ({
+  mode,
+  onModeChange,
+  running,
+  eStop,
+  onStart,
+  onStop,
+  onReset,
+  onEStop,
+  cmdSlew,
+  cmdHoist,
+  onCmdSlewChange,
+  onCmdHoistChange,
+  steps,
+  activeStepIndex,
+  stepProgress,
+  cycleCount,
+  labels,
+}: CraneSequencePanelProps) => {
+  const ModeButton = ({
+    value,
+    icon,
+    text,
+  }: {
+    value: CraneMode;
+    icon: React.ReactNode;
+    text: string;
+  }) => {
+    const active = mode === value;
+    return (
+      <button
+        onClick={() => onModeChange(value)}
+        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-mono uppercase tracking-wider transition-colors border ${
+          active
+            ? "bg-primary/15 border-primary/60 text-primary"
+            : "bg-muted/40 border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
+        }`}
+      >
+        {icon}
+        <span>{text}</span>
+      </button>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Mode selector */}
+      <div>
+        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">
+          {labels.panelTitle}
+        </div>
+        <div className="flex gap-0">
+          <ModeButton
+            value="manual"
+            icon={<Hand className="w-3 h-3" />}
+            text={labels.modeManual}
+          />
+          <ModeButton
+            value="semi"
+            icon={<Sparkles className="w-3 h-3" />}
+            text={labels.modeSemi}
+          />
+          <ModeButton
+            value="auto"
+            icon={<Cpu className="w-3 h-3" />}
+            text={labels.modeAuto}
+          />
+        </div>
+      </div>
+
+      {/* Manual / Semi-Auto sliders */}
+      {mode !== "auto" && (
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-baseline">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                {labels.targetSlew}
+              </label>
+              <span className="text-xs font-mono text-foreground tabular-nums">
+                {cmdSlew.toFixed(0)}%
+              </span>
+            </div>
+            <Slider
+              value={[cmdSlew]}
+              onValueChange={(v) => onCmdSlewChange(v[0])}
+              max={100}
+              step={1}
+              disabled={eStop}
+            />
+            <div className="flex justify-between text-[8px] font-mono uppercase text-muted-foreground/60 tracking-wider">
+              <span>{labels.pickupZone}</span>
+              <span>{labels.landingZone}</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-baseline">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                {labels.targetHoist}
+              </label>
+              <span className="text-xs font-mono text-foreground tabular-nums">
+                {cmdHoist.toFixed(0)}%
+              </span>
+            </div>
+            <Slider
+              value={[cmdHoist]}
+              onValueChange={(v) => onCmdHoistChange(v[0])}
+              max={100}
+              step={1}
+              disabled={eStop}
+            />
+            <div className="flex justify-between text-[8px] font-mono uppercase text-muted-foreground/60 tracking-wider">
+              <span>{labels.deckLevel}</span>
+              <span>{labels.cruiseHeight}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto sequence steps */}
+      {mode === "auto" && (
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              {labels.sequence}
+            </span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              {labels.cycles}: <span className="text-foreground tabular-nums">{cycleCount}</span>
+            </span>
+          </div>
+          <ol className="space-y-1">
+            {steps.map((step, i) => {
+              const isActive = running && !eStop && i === activeStepIndex;
+              const isDone = running && i < activeStepIndex;
+              const dotColor = isActive
+                ? "hsl(200, 100%, 60%)"
+                : isDone
+                ? "hsl(180, 70%, 55%)"
+                : "hsl(210, 15%, 35%)";
+              return (
+                <li key={step.id} className="flex items-center gap-2">
+                  <div
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                  <span
+                    className={`flex-1 text-[10px] font-mono uppercase tracking-wider ${
+                      isActive
+                        ? "text-foreground"
+                        : isDone
+                        ? "text-muted-foreground/80"
+                        : "text-muted-foreground/45"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                  {isActive && (
+                    <div className="w-12 h-0.5 bg-border/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-100 ease-linear"
+                        style={{
+                          width: `${Math.round(stepProgress * 100)}%`,
+                          backgroundColor: "hsl(200, 100%, 60%)",
+                        }}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      {/* Run / Stop / Reset */}
+      <div className="grid grid-cols-3 gap-1.5 pt-1">
+        <Button
+          onClick={onStart}
+          disabled={eStop || running}
+          size="sm"
+          className="bg-primary/15 hover:bg-primary/25 text-primary border border-primary/40 disabled:opacity-40 h-9 font-mono text-[10px] uppercase tracking-wider"
+          variant="ghost"
+        >
+          <Play className="w-3.5 h-3.5 mr-1" />
+          {labels.start}
+        </Button>
+        <Button
+          onClick={onStop}
+          disabled={!running}
+          size="sm"
+          className="bg-muted/40 hover:bg-muted/60 text-foreground border border-border/60 disabled:opacity-40 h-9 font-mono text-[10px] uppercase tracking-wider"
+          variant="ghost"
+        >
+          <Square className="w-3.5 h-3.5 mr-1" />
+          {labels.stop}
+        </Button>
+        <Button
+          onClick={onReset}
+          size="sm"
+          className="bg-muted/40 hover:bg-muted/60 text-foreground border border-border/60 h-9 font-mono text-[10px] uppercase tracking-wider"
+          variant="ghost"
+        >
+          <RotateCcw className="w-3.5 h-3.5 mr-1" />
+          {labels.reset}
+        </Button>
+      </div>
+
+      {/* Emergency stop */}
+      <Button
+        onClick={onEStop}
+        size="sm"
+        variant="ghost"
+        className={`h-10 font-mono text-[11px] uppercase tracking-[0.16em] border ${
+          eStop
+            ? "bg-destructive/30 hover:bg-destructive/40 border-destructive text-destructive-foreground alarm-pulse"
+            : "bg-destructive/10 hover:bg-destructive/20 border-destructive/50 text-destructive"
+        }`}
+      >
+        <AlertOctagon className="w-4 h-4 mr-1.5" />
+        {eStop ? labels.eStopReset : labels.eStop}
+      </Button>
+    </div>
+  );
+};
+
+export default CraneSequencePanel;

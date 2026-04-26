@@ -1,606 +1,546 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
-import BluetoothController from "@/components/BluetoothController";
-import { DataLogger } from "@/components/live-demo/DataLogger";
-import { AlarmSystem } from "@/components/live-demo/AlarmSystem";
-import { IOMonitor } from "@/components/live-demo/IOMonitor";
-import { ProgramSequencer } from "@/components/live-demo/ProgramSequencer";
-import { 
-  Play, 
-  Square, 
-  RotateCw, 
-  Zap, 
-  Thermometer, 
-  Gauge, 
-  AlertTriangle,
-  CheckCircle2,
-  Power,
-  Camera,
-  Settings,
-  Activity,
-  Cpu
-} from "lucide-react";
+import HMIPanel from "@/components/hmi/HMIPanel";
+import StatusIndicator from "@/components/hmi/StatusIndicator";
+import CraneScene from "@/components/live-demo/CraneScene";
+import CraneSequencePanel, {
+  CraneMode,
+  SequenceStep,
+} from "@/components/live-demo/CraneSequencePanel";
+import CraneTelemetry from "@/components/live-demo/CraneTelemetry";
+import CraneTrend, { TrendPoint } from "@/components/live-demo/CraneTrend";
+import CraneAlarms, { CraneAlarm } from "@/components/live-demo/CraneAlarms";
+import CraneExplainer from "@/components/live-demo/CraneExplainer";
 
-interface PLCState {
-  isRunning: boolean;
-  position: number;
-  speed: number;
-  temperature: number;
-  pressure: number;
-  motorRpm: number;
-  vibration: number;
-  power: number;
-  errors: string[];
-  cycleCount: number;
-  lastUpdate: Date;
-}
+// --- Sim constants ---
+const TICK_MS = 100;            // 10 Hz sim
+const TREND_WINDOW_S = 60;
+const TREND_CAPACITY = (TREND_WINDOW_S * 1000) / TICK_MS;
+
+const SLEW_RATE = 14;           // %/s rate-limit
+const HOIST_RATE = 22;          // %/s rate-limit
+const RATED_CAPACITY_T = 12;    // tonnes
+
+// Anti-sway: low-pass smoothing time constant on commands.
+const SMOOTH_TAU_MANUAL = 0.05; // ~unfiltered
+const SMOOTH_TAU_SEMI = 0.7;    // strong smoothing for anti-sway
+const SMOOTH_TAU_AUTO = 0.5;    // moderate (sequence still has to complete)
+
+// Auto sequence step durations in seconds. Targets sized so motion + smoothing
+// settle comfortably inside each step at the rate limits above.
+const AUTO_STEPS = [
+  { id: "pickup_lower", durS: 4.0, slewTarget: 0,   hoistTarget: 0   },
+  { id: "pickup_lift",  durS: 4.0, slewTarget: 0,   hoistTarget: 70  },
+  { id: "slew",         durS: 9.0, slewTarget: 100, hoistTarget: 70  },
+  { id: "setdown",      durS: 4.0, slewTarget: 100, hoistTarget: 0   },
+  { id: "return",       durS: 8.0, slewTarget: 0,   hoistTarget: 50  },
+] as const;
+
+const TOTAL_AUTO_S = AUTO_STEPS.reduce((s, st) => s + st.durS, 0);
+
+const formatClock = (ms: number) => {
+  const d = new Date(ms);
+  return `${d.getHours().toString().padStart(2, "0")}:${d
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
+};
 
 const LiveDemo = () => {
   const { t } = useLanguage();
-  
-  const [plcState, setPLCState] = useState<PLCState>({
-    isRunning: false,
-    position: 0,
-    speed: 50,
-    temperature: 22.5,
-    pressure: 1.2,
-    motorRpm: 0,
-    vibration: 1.5,
-    power: 0,
-    errors: [],
-    cycleCount: 0,
-    lastUpdate: new Date()
+
+  // --- Plant state (refs for tight inner loop, mirrored to React state for render) ---
+  const stateRef = useRef({
+    slewPct: 0,           // actual position
+    hoistPct: 50,         // start at neutral cruise
+    cmdSlew: 0,           // raw command (slider or auto)
+    cmdHoist: 50,
+    smCmdSlew: 0,         // smoothed (anti-sway) command
+    smCmdHoist: 50,
+    swayDeg: 0,
+    swayVel: 0,
+    prevTrolleyX: 0,
+    trolleyVel: 0,
+    windKt: 18,
+    windPhase: 0,
+    hydraulicBar: 195,
+    motorTorque: 0,
+    cargoState: "deck" as "deck" | "carried" | "landed",
+    autoElapsedS: 0,
+    autoStepIndex: 0,
+    autoCycleCount: 0,
+    waterPhase: 0,
   });
 
-  const [targetPosition, setTargetPosition] = useState([50]);
-  const [targetSpeed, setTargetSpeed] = useState([50]);
-  const [emergencyStop, setEmergencyStop] = useState(false);
-  const [autoMode, setAutoMode] = useState(false);
+  const [mode, setMode] = useState<CraneMode>("auto");
+  const [running, setRunning] = useState(false);
+  const [eStop, setEStop] = useState(false);
+  const [cmdSlewUI, setCmdSlewUI] = useState(0);
+  const [cmdHoistUI, setCmdHoistUI] = useState(50);
 
-  // Simulate PLC updates
+  // Render-driving state (updated every tick).
+  const [render, setRender] = useState({
+    slewPct: 0,
+    hoistPct: 50,
+    swayDeg: 0,
+    cargoState: "deck" as "deck" | "carried" | "landed",
+    windKt: 18,
+    hydraulicBar: 195,
+    motorTorque: 0,
+    autoStepIndex: 0,
+    autoStepProgress: 0,
+    autoCycleCount: 0,
+    waterPhase: 0,
+  });
+
+  const [trend, setTrend] = useState<TrendPoint[]>(() => {
+    const now = Date.now();
+    const arr: TrendPoint[] = [];
+    for (let i = TREND_CAPACITY - 1; i >= 0; i--) {
+      arr.push({ t: now - i * TICK_MS, load: null, sway: null });
+    }
+    return arr;
+  });
+
+  const alarmStartRef = useRef<Record<string, number>>({});
+
+  // Push UI commands into state ref.
+  useEffect(() => {
+    stateRef.current.cmdSlew = cmdSlewUI;
+  }, [cmdSlewUI]);
+  useEffect(() => {
+    stateRef.current.cmdHoist = cmdHoistUI;
+  }, [cmdHoistUI]);
+
+  // Reset auto progression when mode changes.
+  useEffect(() => {
+    if (mode === "auto") {
+      stateRef.current.autoElapsedS = 0;
+      stateRef.current.autoStepIndex = 0;
+    }
+  }, [mode]);
+
+  // --- Sim loop ---
   useEffect(() => {
     const interval = setInterval(() => {
-      setPLCState(prev => {
-        if (!prev.isRunning || emergencyStop) return { 
-          ...prev, 
-          speed: 0,
-          motorRpm: 0,
-          vibration: 0.5,
-          power: 0,
-          lastUpdate: new Date() 
-        };
+      const dt = TICK_MS / 1000;
+      const s = stateRef.current;
 
-        const newPosition = autoMode 
-          ? Math.sin(Date.now() / 2000) * 50 + 50 
-          : Math.min(100, Math.max(0, prev.position + (targetPosition[0] - prev.position) * 0.1));
-        
-        const newSpeed = prev.isRunning ? targetSpeed[0] : 0;
-        const newRpm = prev.isRunning ? newSpeed * 20 + Math.random() * 50 : 0;
-        const newTemp = 22.5 + (prev.isRunning ? Math.random() * 5 : 0);
-        const newPressure = 1.2 + (prev.isRunning ? Math.random() * 0.5 : 0);
-        const newVibration = prev.isRunning ? 1.5 + Math.random() * 2 : 0.5;
-        const newPower = prev.isRunning ? (newSpeed / 100) * 3.5 + Math.random() * 0.5 : 0;
+      // 1. Wind: slow sin + noise. Range ~10..38 kt typical.
+      s.windPhase += dt * 0.06;
+      const baseWind = 18 + Math.sin(s.windPhase * 2 * Math.PI) * 9 + Math.sin(s.windPhase * 7) * 3;
+      s.windKt = Math.max(0, baseWind + (Math.random() - 0.5) * 1.2);
 
-        return {
-          ...prev,
-          position: newPosition,
-          speed: newSpeed,
-          temperature: newTemp,
-          pressure: newPressure,
-          motorRpm: newRpm,
-          vibration: newVibration,
-          power: newPower,
-          cycleCount: autoMode && Math.abs(newPosition - 50) < 2 ? prev.cycleCount + 1 : prev.cycleCount,
-          lastUpdate: new Date()
-        };
+      // 2. Determine commands depending on mode.
+      let cmdSlew = s.cmdSlew;
+      let cmdHoist = s.cmdHoist;
+
+      if (mode === "auto" && running && !eStop) {
+        s.autoElapsedS += dt;
+        // Find current auto step.
+        let acc = 0;
+        let stepIdx = 0;
+        for (let i = 0; i < AUTO_STEPS.length; i++) {
+          if (s.autoElapsedS < acc + AUTO_STEPS[i].durS) {
+            stepIdx = i;
+            break;
+          }
+          acc += AUTO_STEPS[i].durS;
+          stepIdx = i + 1;
+        }
+        if (stepIdx >= AUTO_STEPS.length) {
+          // Cycle complete — reset.
+          s.autoElapsedS = 0;
+          s.autoCycleCount += 1;
+          s.cargoState = "deck"; // fresh container appears
+          stepIdx = 0;
+        }
+        s.autoStepIndex = stepIdx;
+        const step = AUTO_STEPS[stepIdx];
+        cmdSlew = step.slewTarget;
+        cmdHoist = step.hoistTarget;
+
+        // Cargo state transitions
+        if (step.id === "pickup_lower") {
+          // Approaching deck for pickup
+          s.cargoState = "deck";
+        } else if (step.id === "pickup_lift") {
+          // We've grabbed the container
+          if (s.hoistPct < 5) s.cargoState = "carried";
+        } else if (step.id === "slew") {
+          s.cargoState = "carried";
+        } else if (step.id === "setdown") {
+          // We release once near deck
+          if (s.hoistPct < 5) s.cargoState = "landed";
+        } else if (step.id === "return") {
+          // Container stays landed; hook returns empty
+          s.cargoState = "landed";
+        }
+      } else if (!running || eStop) {
+        // No motion command when stopped.
+        // (slider commands held but motion drained by rate limit)
+      }
+
+      // 3. Anti-sway smoothing: low-pass filter on commands. Manual mode = nearly transparent.
+      const tau = mode === "manual" ? SMOOTH_TAU_MANUAL : mode === "semi" ? SMOOTH_TAU_SEMI : SMOOTH_TAU_AUTO;
+      const alpha = 1 - Math.exp(-dt / tau);
+      s.smCmdSlew += (cmdSlew - s.smCmdSlew) * alpha;
+      s.smCmdHoist += (cmdHoist - s.smCmdHoist) * alpha;
+
+      // 4. Rate-limited motion toward smoothed command.
+      const moveAllowed = running && !eStop;
+      if (moveAllowed) {
+        const slewMax = SLEW_RATE * dt;
+        const hoistMax = HOIST_RATE * dt;
+        const slewErr = s.smCmdSlew - s.slewPct;
+        const hoistErr = s.smCmdHoist - s.hoistPct;
+        s.slewPct += Math.max(-slewMax, Math.min(slewMax, slewErr));
+        s.hoistPct += Math.max(-hoistMax, Math.min(hoistMax, hoistErr));
+      }
+
+      // 5. Sway pendulum. Cable longer when hoistPct low (container near deck).
+      const cableLen = 3 + (1 - s.hoistPct / 100) * 9; // 3..12 m
+      const omega2 = 9.81 / cableLen;
+
+      // Trolley horizontal position derives from slew. Approximate: trolleyX in metres, span 24m.
+      const trolleyX = -s.slewPct * 0.24; // negative = leftward (toward landing)
+      const trolleyVel = (trolleyX - s.prevTrolleyX) / dt;
+      const trolleyAcc = (trolleyVel - s.trolleyVel) / dt;
+      s.prevTrolleyX = trolleyX;
+      s.trolleyVel = trolleyVel;
+
+      // Wind-induced sway force (unitless, scaled).
+      const windForce = (s.windKt - 18) * 0.0015;
+      // Trolley acceleration injects pendulum disturbance.
+      const accForce = -trolleyAcc * 0.04;
+
+      const damping = 0.7;
+      const swayRad = (s.swayDeg * Math.PI) / 180;
+      const swayAcc = -omega2 * Math.sin(swayRad) - damping * s.swayVel + windForce + accForce;
+      s.swayVel += swayAcc * dt;
+      const newSwayRad = swayRad + s.swayVel * dt;
+      s.swayDeg = (newSwayRad * 180) / Math.PI;
+      // Hard clamp for sanity
+      if (s.swayDeg > 30) {
+        s.swayDeg = 30;
+        s.swayVel = 0;
+      } else if (s.swayDeg < -30) {
+        s.swayDeg = -30;
+        s.swayVel = 0;
+      }
+
+      // 6. Hydraulic pressure responds to motor demand.
+      const demand = (Math.abs(s.smCmdSlew - s.slewPct) + Math.abs(s.smCmdHoist - s.hoistPct)) / 2;
+      s.motorTorque = Math.min(100, demand * 4 + (s.cargoState === "carried" ? 25 : 0));
+      const targetBar = 195 + (s.motorTorque / 100) * 35 - (running ? 0 : 8);
+      s.hydraulicBar += (targetBar - s.hydraulicBar) * 0.15 + (Math.random() - 0.5) * 0.6;
+
+      // 7. Water animation phase
+      s.waterPhase = (s.waterPhase + dt * 0.18) % 1;
+
+      // 8. Manual-mode commands (apply pending UI values to actual setpoints in a bit smoother way)
+      // (Already done via stateRef writes from useEffect.)
+
+      // 9. Mirror to React render state.
+      const stepDuration = AUTO_STEPS[s.autoStepIndex]?.durS ?? 1;
+      let stepStart = 0;
+      for (let i = 0; i < s.autoStepIndex; i++) stepStart += AUTO_STEPS[i].durS;
+      const stepProgress = Math.min(1, Math.max(0, (s.autoElapsedS - stepStart) / stepDuration));
+
+      setRender({
+        slewPct: s.slewPct,
+        hoistPct: s.hoistPct,
+        swayDeg: s.swayDeg,
+        cargoState: s.cargoState,
+        windKt: s.windKt,
+        hydraulicBar: s.hydraulicBar,
+        motorTorque: s.motorTorque,
+        autoStepIndex: s.autoStepIndex,
+        autoStepProgress: stepProgress,
+        autoCycleCount: s.autoCycleCount,
+        waterPhase: s.waterPhase,
       });
-    }, 100);
+
+      // 10. Push trend point.
+      const now = Date.now();
+      const loadT = s.cargoState === "carried" ? RATED_CAPACITY_T : 0;
+      setTrend(prev => {
+        const next = [...prev, { t: now, load: loadT, sway: s.swayDeg }];
+        // Keep window
+        const cutoff = now - TREND_WINDOW_S * 1000;
+        while (next.length > 1 && next[0].t < cutoff) next.shift();
+        return next;
+      });
+    }, TICK_MS);
 
     return () => clearInterval(interval);
-  }, [targetPosition, targetSpeed, emergencyStop, autoMode]);
+  }, [mode, running, eStop]);
 
+  // --- Alarm evaluator (memoised; stable IDs keyed by code) ---
+  const alarms: CraneAlarm[] = useMemo(() => {
+    const result: CraneAlarm[] = [];
+    const now = Date.now();
+    const start = alarmStartRef.current;
+    const seen = new Set<string>();
+    const push = (severity: CraneAlarm["severity"], code: string, msg: string) => {
+      seen.add(code);
+      if (!start[code]) start[code] = now;
+      result.push({ id: code, severity, code, msg, ts: start[code] });
+    };
+
+    if (eStop) push("critical", "ESD-001", t("liveDemo.alarm.eStop"));
+    if (render.windKt > 45) push("critical", "WND-002", t("liveDemo.alarm.windCritical"));
+    else if (render.windKt > 35) push("warning", "WND-001", t("liveDemo.alarm.windHigh"));
+    if (Math.abs(render.swayDeg) > 10) push("critical", "SWY-002", t("liveDemo.alarm.swayCritical"));
+    else if (Math.abs(render.swayDeg) > 5) push("warning", "SWY-001", t("liveDemo.alarm.swayHigh"));
+    if (render.hydraulicBar < 165) push("warning", "HYD-001", t("liveDemo.alarm.hydraulicLow"));
+    else if (render.hydraulicBar > 240) push("warning", "HYD-002", t("liveDemo.alarm.hydraulicHigh"));
+    if (render.cargoState === "carried" && render.hoistPct < 8 && Math.abs(render.swayDeg) > 6) {
+      push("warning", "COL-001", t("liveDemo.alarm.collisionRisk"));
+    }
+
+    // Drop start times for codes that cleared so re-trigger gets a fresh ts.
+    Object.keys(start).forEach(k => {
+      if (!seen.has(k)) delete start[k];
+    });
+
+    // Sort: critical first, then warnings, then info.
+    const sevRank = { critical: 0, warning: 1, info: 2 };
+    return result.sort((a, b) => sevRank[a.severity] - sevRank[b.severity]);
+  }, [render.windKt, render.swayDeg, render.hydraulicBar, render.cargoState, render.hoistPct, eStop, t]);
+
+  // --- Handlers ---
   const handleStart = () => {
-    if (emergencyStop) return;
-    setPLCState(prev => ({ ...prev, isRunning: true, errors: [] }));
+    if (eStop) return;
+    setRunning(true);
   };
-
-  const handleStop = () => {
-    setPLCState(prev => ({ ...prev, isRunning: false, speed: 0, motorRpm: 0 }));
-  };
-
+  const handleStop = () => setRunning(false);
   const handleReset = () => {
-    setPLCState(prev => ({ 
-      ...prev, 
-      position: 0, 
-      cycleCount: 0, 
-      errors: [],
-      temperature: 22.5,
-      pressure: 1.2
-    }));
-    setTargetPosition([50]);
-    setTargetSpeed([50]);
-    setEmergencyStop(false);
+    setRunning(false);
+    setEStop(false);
+    stateRef.current.slewPct = 0;
+    stateRef.current.hoistPct = 50;
+    stateRef.current.smCmdSlew = 0;
+    stateRef.current.smCmdHoist = 50;
+    stateRef.current.swayDeg = 0;
+    stateRef.current.swayVel = 0;
+    stateRef.current.cargoState = "deck";
+    stateRef.current.autoElapsedS = 0;
+    stateRef.current.autoStepIndex = 0;
+    stateRef.current.autoCycleCount = 0;
+    setCmdSlewUI(0);
+    setCmdHoistUI(50);
+  };
+  const handleEStop = () => {
+    setEStop(prev => {
+      const next = !prev;
+      if (next) setRunning(false);
+      return next;
+    });
   };
 
-  const handleEmergencyStop = () => {
-    setEmergencyStop(!emergencyStop);
-    if (!emergencyStop) {
-      setPLCState(prev => ({ 
-        ...prev, 
-        isRunning: false, 
-        speed: 0, 
-        motorRpm: 0,
-        errors: [...prev.errors, "Emergency stop activated"]
-      }));
-    }
-  };
+  // --- Derived ---
+  const loadPct = render.cargoState === "carried" ? 100 : 0;
+  const status = eStop ? "warning" : running ? "operational" : "offline";
+  const statusLabel = eStop
+    ? t("liveDemo.status.eStop")
+    : running
+    ? t("liveDemo.status.running")
+    : t("liveDemo.status.stopped");
 
-  // Bluetooth controller callbacks
-  const handleBluetoothPositionChange = (position: number) => {
-    if (!autoMode && !emergencyStop) {
-      setTargetPosition([position]);
-    }
-  };
+  const modeLabel = mode === "manual"
+    ? t("liveDemo.mode.manual")
+    : mode === "semi"
+    ? t("liveDemo.mode.semi")
+    : t("liveDemo.mode.auto");
 
-  const handleBluetoothSpeedChange = (speed: number) => {
-    if (!autoMode && !emergencyStop) {
-      setTargetSpeed([speed]);
-    }
-  };
-
-  // Program sequencer callbacks
-  const handleProgramStepChange = (position?: number, speed?: number) => {
-    if (position !== undefined) setTargetPosition([position]);
-    if (speed !== undefined) setTargetSpeed([speed]);
-  };
+  const steps: SequenceStep[] = useMemo(() => [
+    { id: "pickup_lower", label: t("liveDemo.step.pickupLower") },
+    { id: "pickup_lift",  label: t("liveDemo.step.pickupLift") },
+    { id: "slew",         label: t("liveDemo.step.slew") },
+    { id: "setdown",      label: t("liveDemo.step.setdown") },
+    { id: "return",       label: t("liveDemo.step.return") },
+  ], [t]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated background grid */}
+      {/* Background grid + radial glow */}
       <div className="absolute inset-0 bg-[linear-gradient(hsl(200_100%_50%/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(200_100%_50%/0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-[radial-gradient(ellipse,hsl(200_100%_50%/0.08),transparent_70%)] pointer-events-none" />
-      
+      {/* Scan-line overlay (matches HMI Dashboard) */}
+      <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
+
       <Navbar />
-      
-      <div className="container mx-auto px-4 pt-20 pb-8 relative z-10">
+
+      <div className="container mx-auto px-4 pt-20 pb-10 relative z-10">
         {/* Header */}
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium mb-4">
-            <span className={`w-2 h-2 rounded-full ${plcState.isRunning ? 'bg-green-400 animate-pulse' : 'bg-muted-foreground'}`} />
-            {plcState.isRunning ? t('liveDemo.status.running') : t('liveDemo.status.stopped')}
+        <div className="mb-6 text-center">
+          <div className="inline-flex items-center gap-2 mb-3">
+            <StatusIndicator status={status} label={statusLabel} size="md" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 font-['Space_Grotesk']">
-            {t('liveDemo.title')}
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            {t("liveDemo.title")}
           </h1>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            {t('liveDemo.subtitle')}
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+            {t("liveDemo.subtitle")}
           </p>
-          
-          {/* Live stats bar */}
-          <div className="flex items-center justify-center gap-6 mt-6 flex-wrap">
-            <div className="flex items-center gap-2 text-sm">
-              <Thermometer className="w-4 h-4 text-orange-400" />
-              <span className="text-muted-foreground">Temp:</span>
-              <span className="font-mono text-foreground">{plcState.temperature.toFixed(1)}°C</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Gauge className="w-4 h-4 text-blue-400" />
-              <span className="text-muted-foreground">RPM:</span>
-              <span className="font-mono text-foreground">{plcState.motorRpm.toFixed(0)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              <span className="text-muted-foreground">Power:</span>
-              <span className="font-mono text-foreground">{plcState.power.toFixed(1)} kW</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Activity className="w-4 h-4 text-green-400" />
-              <span className="text-muted-foreground">Cycles:</span>
-              <span className="font-mono text-foreground">{plcState.cycleCount}</span>
-            </div>
+
+          {/* KPI strip */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 font-mono text-[11px] uppercase tracking-wider">
+            <span className="text-muted-foreground">
+              {t("liveDemo.kpi.load")}:{" "}
+              <span className="text-foreground tabular-nums">
+                {(loadPct / 100 * RATED_CAPACITY_T).toFixed(1)} t
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              {t("liveDemo.kpi.wind")}:{" "}
+              <span className="text-foreground tabular-nums">
+                {render.windKt.toFixed(0)} kt
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              {t("liveDemo.kpi.mode")}:{" "}
+              <span className="text-foreground">{modeLabel}</span>
+            </span>
+            <span className="text-muted-foreground">
+              {t("liveDemo.kpi.cycles")}:{" "}
+              <span className="text-foreground tabular-nums">{render.autoCycleCount}</span>
+            </span>
+            <span className="text-muted-foreground">
+              UTC:{" "}
+              <span className="text-foreground tabular-nums">{formatClock(Date.now())}</span>
+            </span>
           </div>
         </div>
 
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Video Feed with Robot Arm Visualization */}
-          <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] group hover:border-primary/30 transition-all duration-500">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Camera className="w-5 h-5 mr-2 text-primary" />
-                {t('liveDemo.videoFeed.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative bg-background rounded-lg overflow-hidden aspect-video border border-border/30">
-                {/* Robot Arm SVG Visualization */}
-                <svg viewBox="0 0 400 250" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  {/* Grid background */}
-                  <defs>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="hsl(200 100% 50% / 0.06)" strokeWidth="0.5"/>
-                    </pattern>
-                    <linearGradient id="armGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="hsl(200, 100%, 50%)" stopOpacity="0.8"/>
-                      <stop offset="100%" stopColor="hsl(180, 100%, 50%)" stopOpacity="0.6"/>
-                    </linearGradient>
-                    <filter id="glow">
-                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                  </defs>
-                  <rect width="400" height="250" fill="url(#grid)"/>
-                  
-                  {/* Base */}
-                  <rect x="170" y="200" width="60" height="30" rx="4" fill="hsl(210, 15%, 25%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1" opacity="0.8"/>
-                  
-                  {/* Arm segment 1 */}
-                  <g style={{ transform: `rotate(${-30 + (plcState.position * 0.6)}deg)`, transformOrigin: '200px 200px', transition: 'transform 0.3s ease' }}>
-                    <rect x="190" y="120" width="20" height="80" rx="4" fill="url(#armGrad)" filter="url(#glow)"/>
-                    
-                    {/* Arm segment 2 */}
-                    <g style={{ transform: `rotate(${-20 + (plcState.speed * 0.4)}deg)`, transformOrigin: '200px 120px', transition: 'transform 0.3s ease' }}>
-                      <rect x="190" y="60" width="20" height="60" rx="4" fill="url(#armGrad)" opacity="0.9" filter="url(#glow)"/>
-                      
-                      {/* Gripper */}
-                      <circle cx="200" cy="55" r="8" fill="none" stroke="hsl(180, 100%, 50%)" strokeWidth="2" filter="url(#glow)"/>
-                      <circle cx="200" cy="55" r="3" fill={plcState.isRunning ? "hsl(142, 76%, 50%)" : "hsl(210, 15%, 40%)"} className={plcState.isRunning ? "animate-pulse" : ""}/>
-                    </g>
-                    
-                    {/* Joint */}
-                    <circle cx="200" cy="120" r="6" fill="hsl(210, 15%, 20%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1.5"/>
-                  </g>
-                  
-                  {/* Base joint */}
-                  <circle cx="200" cy="200" r="8" fill="hsl(210, 15%, 20%)" stroke="hsl(200, 100%, 50%)" strokeWidth="1.5"/>
-                  
-                  {/* Status text */}
-                  <text x="20" y="20" fill="hsl(200, 100%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">POS: {plcState.position.toFixed(1)}%</text>
-                  <text x="20" y="35" fill="hsl(180, 100%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">SPD: {plcState.speed.toFixed(1)}%</text>
-                  <text x="20" y="50" fill="hsl(142, 76%, 50%)" fontSize="10" fontFamily="monospace" opacity="0.7">RPM: {plcState.motorRpm.toFixed(0)}</text>
-                </svg>
-                
-                {/* Overlay HUD */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <div className="bg-background/70 backdrop-blur-sm rounded-lg p-2.5 border border-border/30">
-                    <div className="flex justify-between text-foreground text-xs font-mono mb-1.5">
-                      <span>Position: {plcState.position.toFixed(1)}%</span>
-                      <span>Speed: {plcState.speed.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-1.5">
-                      <div 
-                        className="bg-primary h-1.5 rounded-full transition-all duration-300 shadow-[0_0_8px_hsl(200_100%_50%/0.5)]"
-                        style={{ width: `${plcState.position}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recording indicator */}
-                {plcState.isRunning && (
-                  <div className="absolute top-3 right-3 flex items-center bg-destructive text-destructive-foreground px-2.5 py-1 rounded-full text-xs font-medium">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse" />
-                    LIVE
-                  </div>
-                )}
+        {/* Main row: scene + sequence panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <HMIPanel
+            title={t("liveDemo.scene.title")}
+            className="lg:col-span-2"
+            glowColor={eStop ? "hsl(0, 70%, 60%)" : undefined}
+          >
+            <div className="relative w-full overflow-hidden rounded border border-border/30 bg-background">
+              <div className="aspect-[16/9]">
+                <CraneScene
+                  slewPct={render.slewPct}
+                  hoistPct={render.hoistPct}
+                  swayDeg={render.swayDeg}
+                  cargoState={render.cargoState}
+                  windKt={render.windKt}
+                  running={running}
+                  eStop={eStop}
+                  waterPhase={render.waterPhase}
+                  modeLabel={modeLabel}
+                />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </HMIPanel>
 
-          {/* Bluetooth Controller */}
-          <BluetoothController
-            onPositionChange={handleBluetoothPositionChange}
-            onSpeedChange={handleBluetoothSpeedChange}
-            isEmergencyStop={emergencyStop}
-            isRunning={plcState.isRunning}
-          />
-
-          {/* PLC HMI Control Panel */}
-          <Card className="bg-card/60 backdrop-blur-sm border-border/40 shadow-[var(--shadow-ocean)] hover:border-primary/30 transition-all duration-500">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Cpu className="w-5 h-5 mr-2 text-primary" />
-                {t('liveDemo.hmi.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="control" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-muted">
-                  <TabsTrigger value="control" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    {t('liveDemo.hmi.tabs.control')}
-                  </TabsTrigger>
-                  <TabsTrigger value="monitoring" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    {t('liveDemo.hmi.tabs.monitoring')}
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    {t('liveDemo.hmi.tabs.settings')}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="control" className="space-y-6 mt-6">
-                  {/* Emergency Stop */}
-                  <div className="flex items-center justify-between p-4 bg-destructive/10 rounded-lg border border-destructive/30">
-                    <span className="text-foreground font-medium">Emergency Stop</span>
-                    <Button
-                      onClick={handleEmergencyStop}
-                      variant={emergencyStop ? "destructive" : "outline"}
-                      size="lg"
-                      className={emergencyStop ? "bg-destructive shadow-[0_0_20px_hsl(0_84%_60%/0.4)]" : "border-destructive text-destructive hover:bg-destructive/10"}
-                    >
-                      <AlertTriangle className="w-5 h-5 mr-2" />
-                      {emergencyStop ? 'RESET E-STOP' : 'E-STOP'}
-                    </Button>
-                  </div>
-
-                  {/* Control Buttons */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <Button 
-                      onClick={handleStart}
-                      disabled={emergencyStop}
-                      className="bg-green-600 hover:bg-green-700 text-white h-12 shadow-[0_0_15px_hsl(142_76%_36%/0.3)]"
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      START
-                    </Button>
-                    <Button 
-                      onClick={handleStop}
-                      variant="destructive"
-                      className="h-12"
-                    >
-                      <Square className="w-5 h-5 mr-2" />
-                      STOP
-                    </Button>
-                    <Button 
-                      onClick={handleReset}
-                      variant="outline"
-                      className="border-border text-foreground h-12"
-                    >
-                      <RotateCw className="w-5 h-5 mr-2" />
-                      RESET
-                    </Button>
-                  </div>
-
-                  {/* Mode Controls */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-foreground font-medium">Auto Mode</label>
-                      <Switch 
-                        checked={autoMode}
-                        onCheckedChange={setAutoMode}
-                        disabled={emergencyStop}
-                      />
-                    </div>
-
-                    {!autoMode && (
-                      <>
-                        <div className="space-y-2">
-                          <label className="text-foreground text-sm">Target Position: {targetPosition[0]}%</label>
-                          <Slider
-                            value={targetPosition}
-                            onValueChange={setTargetPosition}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                            disabled={emergencyStop}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-foreground text-sm">Speed: {targetSpeed[0]}%</label>
-                          <Slider
-                            value={targetSpeed}
-                            onValueChange={setTargetSpeed}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                            disabled={emergencyStop}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="monitoring" className="space-y-4 mt-6">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">Position</span>
-                        <span className="text-foreground font-mono text-sm">{plcState.position.toFixed(1)}%</span>
-                      </div>
-                      <Progress value={plcState.position} className="mt-2" />
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">Speed</span>
-                        <span className="text-foreground font-mono text-sm">{plcState.speed.toFixed(1)}%</span>
-                      </div>
-                      <Progress value={plcState.speed} className="mt-2" />
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center">
-                        <Thermometer className="w-4 h-4 text-orange-400 mr-2" />
-                        <span className="text-muted-foreground text-sm">Temperature</span>
-                      </div>
-                      <span className="text-foreground font-mono text-lg">{plcState.temperature.toFixed(1)}°C</span>
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center">
-                        <Gauge className="w-4 h-4 text-blue-400 mr-2" />
-                        <span className="text-muted-foreground text-sm">Pressure</span>
-                      </div>
-                      <span className="text-foreground font-mono text-lg">{plcState.pressure.toFixed(2)} bar</span>
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center">
-                        <Zap className="w-4 h-4 text-yellow-400 mr-2" />
-                        <span className="text-muted-foreground text-sm">Motor RPM</span>
-                      </div>
-                      <span className="text-foreground font-mono text-lg">{plcState.motorRpm.toFixed(0)}</span>
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                      <div className="flex items-center">
-                        <RotateCw className="w-4 h-4 text-green-400 mr-2" />
-                        <span className="text-muted-foreground text-sm">Cycles</span>
-                      </div>
-                      <span className="text-foreground font-mono text-lg">{plcState.cycleCount}</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                    <h4 className="text-foreground font-medium mb-3 flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" />
-                      System Status
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">PLC Status:</span>
-                        <span className="text-green-400 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                          Online
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Communication:</span>
-                        <span className="text-green-400">Connected</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Last Update:</span>
-                        <span className="text-muted-foreground font-mono">{plcState.lastUpdate.toLocaleTimeString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Errors:</span>
-                        <span className={plcState.errors.length > 0 ? "text-destructive" : "text-green-400"}>
-                          {plcState.errors.length}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {plcState.errors.length > 0 && (
-                    <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/30">
-                      <h4 className="text-destructive font-medium mb-2">Active Errors</h4>
-                      {plcState.errors.map((error, index) => (
-                        <div key={index} className="text-destructive/80 text-sm">
-                          • {error}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="settings" className="space-y-4 mt-6">
-                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                    <div className="flex items-center mb-4">
-                      <Settings className="w-5 h-5 text-primary mr-2" />
-                      <span className="text-foreground font-medium">PLC Configuration</span>
-                    </div>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">PLC Model:</span>
-                        <span className="text-foreground font-mono">Siemens S7-1200</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Firmware:</span>
-                        <span className="text-foreground font-mono">v4.2.3</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">IP Address:</span>
-                        <span className="text-foreground font-mono">192.168.1.100</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Scan Rate:</span>
-                        <span className="text-foreground font-mono">100ms</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Protocol:</span>
-                        <span className="text-foreground font-mono">Modbus TCP</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg border border-border/30">
-                    <div className="flex items-center mb-4">
-                      <Power className="w-5 h-5 text-primary mr-2" />
-                      <span className="text-foreground font-medium">System Information</span>
-                    </div>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Runtime:</span>
-                        <span className="text-foreground font-mono">24h 15m</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">CPU Usage:</span>
-                        <span className="text-foreground font-mono">12%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Memory:</span>
-                        <span className="text-foreground font-mono">45% (2.1GB)</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Temperature:</span>
-                        <span className="text-foreground font-mono">42°C</span>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <HMIPanel title={t("liveDemo.controls.title")}>
+            <CraneSequencePanel
+              mode={mode}
+              onModeChange={setMode}
+              running={running}
+              eStop={eStop}
+              onStart={handleStart}
+              onStop={handleStop}
+              onReset={handleReset}
+              onEStop={handleEStop}
+              cmdSlew={cmdSlewUI}
+              cmdHoist={cmdHoistUI}
+              onCmdSlewChange={setCmdSlewUI}
+              onCmdHoistChange={setCmdHoistUI}
+              steps={steps}
+              activeStepIndex={render.autoStepIndex}
+              stepProgress={render.autoStepProgress}
+              cycleCount={render.autoCycleCount}
+              labels={{
+                modeManual: t("liveDemo.mode.manual"),
+                modeSemi: t("liveDemo.mode.semi"),
+                modeAuto: t("liveDemo.mode.auto"),
+                targetSlew: t("liveDemo.controls.targetSlew"),
+                targetHoist: t("liveDemo.controls.targetHoist"),
+                pickupZone: t("liveDemo.controls.pickup"),
+                landingZone: t("liveDemo.controls.landing"),
+                deckLevel: t("liveDemo.controls.deck"),
+                cruiseHeight: t("liveDemo.controls.cruise"),
+                sequence: t("liveDemo.controls.sequence"),
+                cycles: t("liveDemo.controls.cycles"),
+                start: t("liveDemo.controls.start"),
+                stop: t("liveDemo.controls.stop"),
+                reset: t("liveDemo.controls.reset"),
+                eStop: t("liveDemo.controls.eStop"),
+                eStopReset: t("liveDemo.controls.eStopReset"),
+                panelTitle: t("liveDemo.controls.modeTitle"),
+              }}
+            />
+          </HMIPanel>
         </div>
 
-        {/* Extended Features Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* Data Logger */}
-          <DataLogger
-            currentData={{
-              temperature: plcState.temperature,
-              pressure: plcState.pressure,
-              speed: plcState.speed,
-              motorRpm: plcState.motorRpm,
-              vibration: plcState.vibration,
-              power: plcState.power
+        {/* Telemetry strip */}
+        <HMIPanel title={t("liveDemo.telemetry.title")} className="mt-4">
+          <CraneTelemetry
+            loadPct={loadPct}
+            slewPct={render.slewPct}
+            hoistPct={render.hoistPct}
+            hydraulicBar={render.hydraulicBar}
+            windKt={render.windKt}
+            swayDeg={render.swayDeg}
+            labels={{
+              load: t("liveDemo.gauge.load"),
+              slew: t("liveDemo.gauge.slew"),
+              hoist: t("liveDemo.gauge.hoist"),
+              hydraulic: t("liveDemo.gauge.hydraulic"),
+              wind: t("liveDemo.gauge.wind"),
+              sway: t("liveDemo.gauge.sway"),
             }}
-            isRunning={plcState.isRunning}
           />
+        </HMIPanel>
 
-          {/* Alarm System */}
-          <AlarmSystem
-            temperature={plcState.temperature}
-            pressure={plcState.pressure}
-            vibration={plcState.vibration}
-            emergencyStop={emergencyStop}
-          />
+        {/* Trend + alarms */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <HMIPanel title={t("liveDemo.trend.title")}>
+            <CraneTrend
+              data={trend}
+              windowSeconds={TREND_WINDOW_S}
+              labels={{
+                load: t("liveDemo.trend.load"),
+                sway: t("liveDemo.trend.sway"),
+              }}
+            />
+          </HMIPanel>
+
+          <HMIPanel
+            title={t("liveDemo.alarms.title")}
+            glowColor={alarms.some(a => a.severity === "critical") ? "hsl(0, 70%, 60%)" : undefined}
+          >
+            <CraneAlarms
+              alarms={alarms}
+              labels={{
+                allClear: t("liveDemo.alarms.allClear"),
+                title: t("liveDemo.alarms.title"),
+              }}
+            />
+          </HMIPanel>
         </div>
 
-        {/* I/O and Program Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* I/O Monitor */}
-          <IOMonitor
-            isRunning={plcState.isRunning}
-            position={plcState.position}
+        {/* Explainer */}
+        <HMIPanel title={t("liveDemo.explainer.title")} className="mt-4">
+          <CraneExplainer
+            labels={{
+              title: t("liveDemo.explainer.title"),
+              antiSwayTitle: t("liveDemo.explainer.antiSwayTitle"),
+              antiSwayBody: t("liveDemo.explainer.antiSwayBody"),
+              safetyTitle: t("liveDemo.explainer.safetyTitle"),
+              safetyBody: t("liveDemo.explainer.safetyBody"),
+              sequenceTitle: t("liveDemo.explainer.sequenceTitle"),
+              sequenceBody: t("liveDemo.explainer.sequenceBody"),
+            }}
           />
-
-          {/* Program Sequencer */}
-          <ProgramSequencer
-            onStepChange={handleProgramStepChange}
-            isRunning={plcState.isRunning}
-            autoMode={autoMode}
-          />
-        </div>
+        </HMIPanel>
       </div>
     </div>
   );
