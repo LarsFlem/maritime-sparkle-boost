@@ -597,9 +597,24 @@ const Ship3D = () => {
   const [webGLSupported, setWebGLSupported] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [key, setKey] = useState(0);
+  const [inView, setInView] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setWebGLSupported(isWebGLAvailable());
+  }, []);
+
+  // Pause the rAF loop when the canvas scrolls offscreen so we don't
+  // burn GPU on hidden frames.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: '100px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   const handleCreated = useCallback(({ gl }: { gl: THREE.WebGLRenderer }) => {
@@ -619,12 +634,12 @@ const Ship3D = () => {
   }
 
   return (
-    <div className="w-full h-full min-h-[400px] relative flex items-center justify-center">
+    <div ref={containerRef} className="w-full h-full min-h-[400px] relative flex items-center justify-center">
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-muted-foreground border border-primary/20">
         {t('ship3d.rotateHint')}
       </div>
 
-      <div 
+      <div
         className="relative w-full aspect-square max-w-[600px] max-h-[600px] rounded-full overflow-hidden"
         style={{
           mask: 'radial-gradient(circle at center, black 40%, transparent 70%)',
@@ -633,10 +648,12 @@ const Ship3D = () => {
       >
         <Canvas
           key={key}
+          frameloop={inView ? 'always' : 'demand'}
           camera={{ position: [5, 3.5, 6.5], fov: 38 }}
           style={{ background: 'transparent' }}
           onCreated={handleCreated}
           onError={() => setHasError(true)}
+          dpr={[1, 1.5]}
           gl={{
             antialias: true,
             alpha: true,

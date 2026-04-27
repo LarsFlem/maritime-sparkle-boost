@@ -10,10 +10,10 @@ import {
   ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
-import engineeringIcon from "@/assets/engineering-real.png";
+import engineeringIcon from "@/assets/engineering-real.jpg";
 import supportIcon from "@/assets/commissioning-real.jpg";
 import projectIcon from "@/assets/assistanse-real.jpg";
-import printingIcon from "@/assets/3d-printing-collage.png";
+import printingIcon from "@/assets/3d-printing-collage.jpg";
 
 const Services = () => {
   const { t } = useLanguage();
@@ -72,8 +72,16 @@ const Services = () => {
           {services.map((service, index) => (
             <StaggerItem key={service.title}>
               <Card className="glass-effect hover-lift group transition-all duration-400 border-border/30 hover:border-primary/25 flex flex-col h-full">
-                <div className="relative w-full overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0 bg-black/20" style={{ width: 'calc(100% + 2px)' }}>
-                  <img src={service.icon} alt={service.title} className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                <div className="relative w-full overflow-hidden rounded-t-lg -mt-[1px] -mx-[1px] mb-0 bg-black/20" style={{ width: 'calc(100% + 2px)', aspectRatio: '4 / 3' }}>
+                  <img
+                    src={service.icon}
+                    alt={service.title}
+                    width={800}
+                    height={600}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
                 </div>
                 <CardHeader className="text-center pb-3 pt-4 relative">
@@ -112,8 +120,15 @@ const Services = () => {
           <DialogContent className="max-w-4xl p-0 overflow-hidden glass-effect border-border/30">
             {active && (
               <>
-                <div className="relative w-full overflow-hidden bg-black/20">
-                  <img src={active.icon} alt={active.title} className="w-full h-auto object-contain" />
+                <div className="relative w-full overflow-hidden bg-black/20" style={{ aspectRatio: '4 / 3' }}>
+                  <img
+                    src={active.icon}
+                    alt={active.title}
+                    width={800}
+                    height={600}
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/90 to-transparent" />
                   <div className="absolute bottom-4 left-6 right-6">
                     <DialogHeader>

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -11,13 +11,29 @@ const Ship3D = lazy(() => import("@/components/Ship3D"));
 const Hero = () => {
   const { t } = useLanguage();
   const reduceMotion = useReducedMotion();
+  // Only mount the WebGL canvas on desktop viewports — `hidden lg:block`
+  // alone keeps it in the React tree, which still downloads Three.js and
+  // spins up a hidden GL context on phones.
+  const [showShip, setShowShip] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const update = () => setShowShip(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
   return (
     <section aria-label="Hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
+      <div className="absolute inset-0">
+        <img
+          src={heroImage}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/90"></div>
       </div>
 
@@ -88,22 +104,24 @@ const Hero = () => {
           </div>
 
           {/* 3D Ship Visualization */}
-          <motion.div
-            className="hidden lg:block h-[500px]"
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
-            animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <ErrorBoundary>
-              <Suspense fallback={
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                </div>
-              }>
-                <Ship3D />
-              </Suspense>
-            </ErrorBoundary>
-          </motion.div>
+          {showShip && (
+            <motion.div
+              className="hidden lg:block h-[500px]"
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+              animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <ErrorBoundary>
+                <Suspense fallback={
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  </div>
+                }>
+                  <Ship3D />
+                </Suspense>
+              </ErrorBoundary>
+            </motion.div>
+          )}
         </div>
 
         {/* Features */}

@@ -16,7 +16,15 @@ const Footer = () => {
             <div className="sm:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <span className="flex items-center justify-center bg-white/90 rounded-full p-0.5">
-                  <img src={logoImg} alt="Maritime Automation" className="h-9" />
+                  <img
+                    src={logoImg}
+                    alt="Maritime Automation"
+                    width={36}
+                    height={36}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-9 w-9 object-contain"
+                  />
                 </span>
                 <span className="logo-text whitespace-nowrap">Maritime Automation</span>
               </div>

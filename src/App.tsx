@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,10 +7,11 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import HMIDashboard from "./pages/HMIDashboard";
-import DataAnalysis from "./pages/DataAnalysis";
-import LiveDemo from "./pages/LiveDemo";
-import NotFound from "./pages/NotFound";
+
+const HMIDashboard = lazy(() => import("./pages/HMIDashboard"));
+const DataAnalysis = lazy(() => import("./pages/DataAnalysis"));
+const LiveDemo = lazy(() => import("./pages/LiveDemo"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,12 @@ const GlobalError = () => (
   </div>
 );
 
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+  </div>
+);
+
 const App = () => (
   <ErrorBoundary fallback={<GlobalError />}>
     <QueryClientProvider client={queryClient}>
@@ -31,13 +39,15 @@ const App = () => (
           <Toaster />
           <Sonner />
           <HashRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/hmi" element={<HMIDashboard />} />
-              <Route path="/data-analysis" element={<DataAnalysis />} />
-              <Route path="/live-demo" element={<LiveDemo />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/hmi" element={<HMIDashboard />} />
+                <Route path="/data-analysis" element={<DataAnalysis />} />
+                <Route path="/live-demo" element={<LiveDemo />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </HashRouter>
         </TooltipProvider>
       </LanguageProvider>

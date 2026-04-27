@@ -17,8 +17,19 @@ const Navbar = () => {
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled((prev) => {
+          const next = window.scrollY > 20;
+          return prev === next ? prev : next;
+        });
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -59,7 +70,15 @@ const Navbar = () => {
               onClick={() => { if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             >
               <span className="flex items-center justify-center bg-white/90 rounded-full p-0.5 backdrop-blur-sm">
-                <img src={logoImg} alt="Maritime Automation" className="h-9 group-hover:scale-110 transition-transform duration-300 logo-img" />
+                <img
+                  src={logoImg}
+                  alt="Maritime Automation"
+                  width={36}
+                  height={36}
+                  decoding="async"
+                  fetchPriority="high"
+                  className="h-9 w-9 object-contain group-hover:scale-110 transition-transform duration-300 logo-img"
+                />
               </span>
               <span className="logo-text ml-3 whitespace-nowrap">Maritime Automation</span>
             </Link>
