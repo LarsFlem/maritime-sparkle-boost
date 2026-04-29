@@ -71,15 +71,11 @@ const SOVHull = () => {
         <meshStandardMaterial color={hullColor} metalness={0.6} roughness={0.35} />
       </mesh>
 
-      {/* Hull bottom (reduced to avoid visible square) */}
-      <mesh position={[0, -0.32, 0]} scale={[0.7, 0.08, 4.2]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#0d1b2a" metalness={0.7} roughness={0.25} />
-      </mesh>
-
-      {/* Waterline red stripe */}
-      <mesh position={[0, -0.2, 0]} scale={[0.88, 0.05, 5.0]}>
-        <boxGeometry args={[1, 1, 1]} />
+      {/* Boot-top waterline band — extruded from the same hull profile, scaled
+          slightly outward in the beam so it shows as a clean stripe that
+          tapers to nothing at the bow tip. */}
+      <mesh position={[0, -0.13, -0.3]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.025, 1, 1]}>
+        <extrudeGeometry args={[hullShape, { steps: 1, depth: 0.04, bevelEnabled: false }]} />
         <meshStandardMaterial color="#b91c1c" metalness={0.3} roughness={0.6} />
       </mesh>
 
