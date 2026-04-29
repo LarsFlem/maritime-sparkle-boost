@@ -95,9 +95,9 @@ const About = () => {
             </AnimatedSection>
 
             <AnimatedSection delay={0.2}>
-              <Button 
+              <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-5 group"
-                onClick={() => window.open('https://maritime-automation.no/static/media/Lars_Flem_CV_english.eaafe9c5471611b22e36.pdf', '_blank')}
+                onClick={() => window.open(`${import.meta.env.BASE_URL}Lars_Flem_CV_english.pdf`, '_blank', 'noopener')}
               >
                 <Download className="mr-2 h-4 w-4 group-hover:animate-bounce" />
                 {t('about.downloadCV')}
