@@ -4,11 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
+import { AnimatedSection } from "@/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
-import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
-import portfolioDrilling from "@/assets/portfolio-drilling-control.jpg";
 import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
 
 const Portfolio = () => {
@@ -16,20 +14,6 @@ const Portfolio = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const projects = [
-    // {
-    //   id: 1,
-    //   title: "3D Motion Compensated Crane Systems",
-    //   category: "offshore",
-    //   location: "Worldwide",
-    //   year: "2023–2024",
-    //   client: "Red Rock / IMECA",
-    //   image: portfolioCrane,
-    //   description: "Structured text PLC programming in TwinCAT for Beckhoff-based 3D motion compensated offshore cranes. HMI development in HTML/CSS/JS, SQL alarm databases, network configuration, and on-site crane commissioning including sea trials aboard Edda Monsoon in Taiwan.",
-    //   technologies: ["TwinCAT", "Beckhoff PLC", "HTML/CSS/JS HMI", "SQL", "3D Compensation"],
-    //   results: ["4 crane deliveries completed", "Successful sea trials in Taiwan", "Crew training on 3D compensated operations"],
-    //   teamSize: 6,
-    //   duration: "18 months",
-    // },
     {
       id: 2,
       title: "Autonomous Battery Swapping – SHIFTR",
@@ -44,20 +28,6 @@ const Portfolio = () => {
       teamSize: 8,
       duration: "Ongoing",
     },
-    // {
-    //   id: 3,
-    //   title: "Drilling Rig Control System Support",
-    //   category: "offshore",
-    //   location: "Stavanger, Norway",
-    //   year: "2022–2023",
-    //   client: "HMH (MHWirth)",
-    //   image: portfolioDrilling,
-    //   description: "Support lead for rig hoisting control systems based on Siemens Step 7 and Cimplicity HMI. Managed software updates across multiple rigs, prepared quotation estimates for technical upgrades, and provided troubleshooting support.",
-    //   technologies: ["Siemens Step 7", "Cimplicity HMI", "SCADA", "Hoisting Systems"],
-    //   results: ["Support lead for hoisting systems", "Multi-rig software management", "Technical upgrade quotations"],
-    //   teamSize: 5,
-    //   duration: "7 months",
-    // },
     {
       id: 4,
       title: "Align Racing – Formula Student",
@@ -97,7 +67,6 @@ const Portfolio = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('portfolio.description')}</p>
         </AnimatedSection>
 
-        {/* Category Filters */}
         <AnimatedSection className="flex flex-wrap justify-center gap-2 mb-12" delay={0.1}>
           {categories.map((category) => (
             <Button
@@ -116,7 +85,6 @@ const Portfolio = () => {
           ))}
         </AnimatedSection>
 
-        {/* Projects Grid */}
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedCategory}
@@ -138,8 +106,11 @@ const Portfolio = () => {
                     <img
                       src={project.image}
                       alt={project.title}
-                      className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-105"
+                      width={800}
+                      height={512}
                       loading="lazy"
+                      decoding="async"
+                      className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
                     <div className="absolute top-3 left-3">
@@ -195,8 +166,6 @@ const Portfolio = () => {
             ))}
           </motion.div>
         </AnimatePresence>
-
-        <div className="text-center mt-16"></div>
       </div>
     </section>
   );

@@ -48,8 +48,6 @@ const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
           <div className="text-center lg:text-left">
-            {/* Removed duplicate badge with Waves icon and title */}
-
             <motion.div
               className="flex items-center gap-3 mb-6"
               initial={reduceMotion ? false : { opacity: 0, x: -20 }}
