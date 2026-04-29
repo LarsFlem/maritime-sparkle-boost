@@ -79,9 +79,10 @@ const SOVHull = () => {
         <meshStandardMaterial color="#b91c1c" metalness={0.3} roughness={0.6} />
       </mesh>
 
-      {/* Deck surface */}
-      <mesh position={[0, 0.22, 0]} scale={[0.82, 0.02, 4.6]}>
-        <boxGeometry args={[1, 1, 1]} />
+      {/* Deck surface — extruded from the hull outline (94% inset) so it
+          follows the bow taper and stern transom instead of overhanging. */}
+      <mesh position={[0, 0.21, -0.3]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.94, 0.94, 1]}>
+        <extrudeGeometry args={[hullShape, { steps: 1, depth: 0.02, bevelEnabled: false }]} />
         <meshStandardMaterial color={deckColor} metalness={0.2} roughness={0.8} />
       </mesh>
 
@@ -330,8 +331,8 @@ const SOVHull = () => {
 
       {/* ====== MOORING BOLLARDS ====== */}
       {[
-        [0.3, 0.27, 2.3] as [number, number, number],
-        [-0.3, 0.27, 2.3] as [number, number, number],
+        [0.3, 0.27, 1.7] as [number, number, number],
+        [-0.3, 0.27, 1.7] as [number, number, number],
         [0.3, 0.27, -1.85] as [number, number, number],
         [-0.3, 0.27, -1.85] as [number, number, number],
       ].map((pos, i) => (
@@ -348,7 +349,7 @@ const SOVHull = () => {
       ))}
 
       {/* Forward deck mooring winch */}
-      <group position={[0, 0.24, 2.05]}>
+      <group position={[0, 0.24, 1.6]}>
         <mesh position={[0, 0.04, 0]}>
           <boxGeometry args={[0.18, 0.08, 0.12]} />
           <meshStandardMaterial color="#374151" metalness={0.5} roughness={0.5} />
@@ -373,7 +374,7 @@ const SOVHull = () => {
 
       {/* Hawse pipes at bow */}
       {[0.18, -0.18].map((x, i) => (
-        <mesh key={`hawse-${i}`} position={[x, -0.04, 2.52]} rotation={[0.35, 0, 0]}>
+        <mesh key={`hawse-${i}`} position={[x, -0.04, 1.65]} rotation={[0.35, 0, 0]}>
           <cylinderGeometry args={[0.025, 0.032, 0.065, 8]} />
           <meshStandardMaterial color="#1a1a2e" metalness={0.5} roughness={0.6} />
         </mesh>
@@ -437,11 +438,11 @@ const SOVHull = () => {
       ))}
 
       {/* ====== NAVIGATION LIGHTS ====== */}
-      <mesh position={[0.44, 0.26, 2.0]}>
+      <mesh position={[0.42, 0.26, 1.7]}>
         <sphereGeometry args={[0.012, 8, 8]} />
         <meshStandardMaterial color="#00ff00" emissive="#00ff00" emissiveIntensity={2} />
       </mesh>
-      <mesh position={[-0.44, 0.26, 2.0]}>
+      <mesh position={[-0.42, 0.26, 1.7]}>
         <sphereGeometry args={[0.012, 8, 8]} />
         <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={2} />
       </mesh>
