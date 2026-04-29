@@ -5,6 +5,135 @@ import * as THREE from 'three';
 import { Ship, Waves } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 
+// Knuckle-boom crane with a continuous loading cycle: slew + lower-boom luff
+// + knuckle articulation + hook hoist. Rest pose mirrors the original static
+// geometry; angles oscillate sinusoidally with offset phases so the cycle
+// reads as a working crane without ever repeating cleanly. Hook position is
+// computed from the boom angles each frame so the wire always hangs vertical.
+const LOWER_BOOM_BASE_X = -0.033;
+const LOWER_BOOM_BASE_Y = 0.176;
+const LOWER_BOOM_LEN = 0.52;
+const UPPER_BOOM_LEN = 0.58;
+const REST_LOWER_ANGLE = -0.96;
+const REST_UPPER_REL_ANGLE = -0.711;
+const WIRE_BASE_LEN = 0.28;
+
+const Crane = () => {
+  const slewRef = useRef<THREE.Group>(null);
+  const lowerBoomRef = useRef<THREE.Group>(null);
+  const upperBoomRef = useRef<THREE.Group>(null);
+  const hookRef = useRef<THREE.Group>(null);
+  const wireRef = useRef<THREE.Mesh>(null);
+  const hookBlockRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+
+    const slewAngle = Math.sin(t * 0.20) * 0.55;
+    const lowerAngle = REST_LOWER_ANGLE + Math.sin(t * 0.30) * 0.15;
+    const upperRelAngle = REST_UPPER_REL_ANGLE + Math.sin(t * 0.30 + 1.5) * 0.18;
+    const hoistDrop = 0.08 + Math.cos(t * 0.40) * 0.10;
+
+    if (slewRef.current) slewRef.current.rotation.y = slewAngle;
+    if (lowerBoomRef.current) lowerBoomRef.current.rotation.z = lowerAngle;
+    if (upperBoomRef.current) upperBoomRef.current.rotation.z = upperRelAngle;
+
+    // Boom tip position in slew-local frame, derived from the joint angles.
+    const totalAngle = lowerAngle + upperRelAngle;
+    const tipX =
+      LOWER_BOOM_BASE_X
+      - LOWER_BOOM_LEN * Math.sin(lowerAngle)
+      - UPPER_BOOM_LEN * Math.sin(totalAngle);
+    const tipY =
+      LOWER_BOOM_BASE_Y
+      + LOWER_BOOM_LEN * Math.cos(lowerAngle)
+      + UPPER_BOOM_LEN * Math.cos(totalAngle);
+
+    if (hookRef.current) {
+      hookRef.current.position.x = tipX;
+      hookRef.current.position.y = tipY;
+    }
+
+    if (wireRef.current && hookBlockRef.current) {
+      const wireLen = WIRE_BASE_LEN + hoistDrop;
+      wireRef.current.scale.y = wireLen / WIRE_BASE_LEN;
+      wireRef.current.position.y = -wireLen / 2;
+      hookBlockRef.current.position.y = -wireLen - 0.035;
+    }
+  });
+
+  return (
+    <group position={[-0.1, 0.22, -0.45]}>
+      {/* Pedestal — static, anchored on the deck */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.07, 0.1, 0.3, 10]} />
+        <meshStandardMaterial color="#f59e0b" metalness={0.55} roughness={0.38} />
+      </mesh>
+      {/* Slewing ring base — static */}
+      <mesh position={[0, 0.32, 0]}>
+        <cylinderGeometry args={[0.085, 0.075, 0.05, 10]} />
+        <meshStandardMaterial color="#d97706" metalness={0.7} roughness={0.3} />
+      </mesh>
+
+      {/* Slew group: everything above the ring rotates around Y */}
+      <group ref={slewRef} position={[0, 0.345, 0]}>
+        {/* Crane house */}
+        <mesh position={[0, 0.085, 0]}>
+          <boxGeometry args={[0.17, 0.17, 0.22]} />
+          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+        </mesh>
+        {/* Counterweight aft of the house */}
+        <mesh position={[-0.15, 0.085, 0]}>
+          <boxGeometry args={[0.12, 0.14, 0.1]} />
+          <meshStandardMaterial color="#d97706" metalness={0.5} roughness={0.45} />
+        </mesh>
+        {/* Luffing hydraulic cylinder — kept rigid in slew frame; the
+            cylinder length doesn't track the boom (would need IK), but the
+            visual offset is small at this scale. */}
+        <mesh position={[0.08, 0.235, 0.07]} rotation={[0, 0, -0.68]}>
+          <cylinderGeometry args={[0.013, 0.016, 0.36, 6]} />
+          <meshStandardMaterial color="#9ca3af" metalness={0.75} roughness={0.25} />
+        </mesh>
+
+        {/* Lower boom — pivots at its base joint */}
+        <group ref={lowerBoomRef} position={[LOWER_BOOM_BASE_X, LOWER_BOOM_BASE_Y, 0]}>
+          <mesh position={[0, LOWER_BOOM_LEN / 2, 0]}>
+            <boxGeometry args={[0.04, LOWER_BOOM_LEN, 0.04]} />
+            <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+          </mesh>
+
+          {/* Knuckle + upper boom — at the tip of the lower boom */}
+          <group position={[0, LOWER_BOOM_LEN, 0]}>
+            <mesh>
+              <sphereGeometry args={[0.048, 10, 10]} />
+              <meshStandardMaterial color="#d97706" metalness={0.65} roughness={0.3} />
+            </mesh>
+            <group ref={upperBoomRef}>
+              <mesh position={[0, UPPER_BOOM_LEN / 2, 0]}>
+                <boxGeometry args={[0.035, UPPER_BOOM_LEN, 0.035]} />
+                <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
+              </mesh>
+            </group>
+          </group>
+        </group>
+
+        {/* Hook group — placed in slew-local frame and tracked to the boom
+            tip each frame, so the wire always hangs vertical. */}
+        <group ref={hookRef}>
+          <mesh ref={wireRef} position={[0, -WIRE_BASE_LEN / 2, 0]}>
+            <cylinderGeometry args={[0.004, 0.004, WIRE_BASE_LEN, 4]} />
+            <meshStandardMaterial color="#555555" metalness={0.8} roughness={0.2} />
+          </mesh>
+          <mesh ref={hookBlockRef} position={[0, -WIRE_BASE_LEN - 0.035, 0]}>
+            <boxGeometry args={[0.046, 0.07, 0.032]} />
+            <meshStandardMaterial color="#888888" metalness={0.7} roughness={0.3} />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+};
+
 // SOV Hull - Ulstein X-BOW inspired design (bridge forward, open deck aft)
 const SOVHull = () => {
   const groupRef = useRef<THREE.Group>(null);
@@ -238,59 +367,9 @@ const SOVHull = () => {
         ))}
       </group>
 
-      {/* ====== OFFSHORE KNUCKLE-BOOM CRANE ====== */}
-      <group position={[-0.1, 0.22, -0.45]}>
-        {/* Pedestal */}
-        <mesh position={[0, 0.15, 0]}>
-          <cylinderGeometry args={[0.07, 0.1, 0.3, 10]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.55} roughness={0.38} />
-        </mesh>
-        {/* Slewing ring */}
-        <mesh position={[0, 0.32, 0]}>
-          <cylinderGeometry args={[0.085, 0.075, 0.05, 10]} />
-          <meshStandardMaterial color="#d97706" metalness={0.7} roughness={0.3} />
-        </mesh>
-        {/* Crane house */}
-        <mesh position={[0, 0.43, 0]}>
-          <boxGeometry args={[0.17, 0.17, 0.22]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
-        </mesh>
-        {/* Counterweight at rear */}
-        <mesh position={[-0.15, 0.43, 0]}>
-          <boxGeometry args={[0.12, 0.14, 0.1]} />
-          <meshStandardMaterial color="#d97706" metalness={0.5} roughness={0.45} />
-        </mesh>
-        {/* Lower boom — angled up at ~57° from horizontal */}
-        <mesh position={[0.18, 0.67, 0]} rotation={[0, 0, -0.96]}>
-          <boxGeometry args={[0.04, 0.52, 0.04]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
-        </mesh>
-        {/* Knuckle joint sphere */}
-        <mesh position={[0.39, 0.83, 0]}>
-          <sphereGeometry args={[0.048, 10, 10]} />
-          <meshStandardMaterial color="#d97706" metalness={0.65} roughness={0.3} />
-        </mesh>
-        {/* Upper boom — nearly horizontal, slight downslope */}
-        <mesh position={[0.68, 0.80, 0]} rotation={[0, 0, -(Math.PI / 2 + 0.1)]}>
-          <boxGeometry args={[0.035, 0.58, 0.035]} />
-          <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.4} />
-        </mesh>
-        {/* Luffing hydraulic cylinder */}
-        <mesh position={[0.08, 0.58, 0.07]} rotation={[0, 0, -0.68]}>
-          <cylinderGeometry args={[0.013, 0.016, 0.36, 6]} />
-          <meshStandardMaterial color="#9ca3af" metalness={0.75} roughness={0.25} />
-        </mesh>
-        {/* Hoist wire */}
-        <mesh position={[0.97, 0.65, 0]}>
-          <cylinderGeometry args={[0.004, 0.004, 0.28, 4]} />
-          <meshStandardMaterial color="#555555" metalness={0.8} roughness={0.2} />
-        </mesh>
-        {/* Hook block */}
-        <mesh position={[0.97, 0.50, 0]}>
-          <boxGeometry args={[0.046, 0.07, 0.032]} />
-          <meshStandardMaterial color="#888888" metalness={0.7} roughness={0.3} />
-        </mesh>
-      </group>
+      <Crane />
+
+
 
       {/* ====== OPEN AFT DECK ====== */}
       {/* Deck markings / helideck-style pad area */}
