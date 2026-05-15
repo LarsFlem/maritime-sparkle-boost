@@ -259,6 +259,7 @@ export default {
 
   // Portfolio Additional
   'portfolio.engineers': 'ingeniører',
+  'portfolio.engineer': 'ingeniør',
 
   // Contact Additional
 

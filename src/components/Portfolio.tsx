@@ -6,8 +6,8 @@ import { Calendar, MapPin, Users, Zap, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
-import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
-import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
+import portfolioCrane from "@/assets/cygnus-crane.jpeg";
+import portfolioBattery from "@/assets/shiftr.jpeg";
 import portfolioRacing from "@/assets/align-racing.webp";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
 import portfolio3DPrint from "@/assets/h2c.jpeg";
@@ -33,7 +33,7 @@ const Portfolio = () => {
       year: "2023–2024",
       client: "Red Rock / IMECA",
       image: portfolioCrane,
-      teamSize: 6,
+      teamSize: 1,
     },
     {
       id: 2,
@@ -42,7 +42,7 @@ const Portfolio = () => {
       year: "2024–2025",
       client: "Norled / Aarbakke",
       image: portfolioBattery,
-      teamSize: 8,
+      teamSize: 1,
     },
     {
       id: 5,
@@ -51,7 +51,7 @@ const Portfolio = () => {
       year: "2025–2026",
       client: "KS-Service AS / Injeksjonsutstyr AS",
       image: portfolioKsService,
-      teamSize: 2,
+      teamSize: 1,
     },
     {
       id: 6,
@@ -60,7 +60,7 @@ const Portfolio = () => {
       year: "2025–2026",
       client: "KS-Service AS",
       image: portfolio3DPrint,
-      teamSize: 2,
+      teamSize: 1,
     },
     {
       id: 4,
@@ -69,7 +69,7 @@ const Portfolio = () => {
       year: "2018–2019",
       client: "UiA / Align Racing",
       image: portfolioRacing,
-      teamSize: 13,
+      teamSize: 1,
     },
   ];
 
@@ -165,7 +165,7 @@ const Portfolio = () => {
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{location}</span>
                         <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{duration}</span>
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{project.teamSize} {t('portfolio.engineers')}</span>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{project.teamSize} {t(project.teamSize === 1 ? 'portfolio.engineer' : 'portfolio.engineers')}</span>
                       </div>
                     </CardHeader>
 
