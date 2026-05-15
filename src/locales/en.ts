@@ -90,8 +90,6 @@ export default {
   'portfolio.proj.ks.description': 'Product development assistance for an injection equipment project — 3D modeling and production drawings, including sheet-metal plate cutting layouts for a cement tank assembly. Also assisted with rolling out AI-augmented workflows across their organisation — Claude Code CLI for engineering and admin tasks, Lovable for rapid app prototyping, and an internal AI-powered intranet for shared knowledge and documentation.',
   'portfolio.proj.ks.tech': 'Product Development|SolidWorks|Sheet-metal Design|STEP/PDF Drawings|Claude Code CLI|Lovable|Intranet / AI Workflows',
   'portfolio.proj.ks.results': 'Product development support across design and documentation|Production-ready 3D models and cutting drawings delivered|AI workflows adopted across engineering and admin',
-  'portfolio.proj.ks.download.pdf': 'Plate cutting drawing (PDF)',
-  'portfolio.proj.ks.download.step': 'Sheet-metal tank (STEP)',
 
   'portfolio.proj.ks3d.title': '3D Printing Prototypes & Hands-on Introduction – KS-Service',
   'portfolio.proj.ks3d.location': 'Norway',

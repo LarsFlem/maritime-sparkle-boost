@@ -167,8 +167,6 @@ export default {
   'portfolio.proj.ks.description': 'Bistand i produktutvikling for et injeksjonsutstyrsprosjekt — 3D-modellering og produksjonstegninger, inkludert platekapptegninger for en sementtank-sammenstilling. I tillegg bistått med innføring av AI-støttede arbeidsflyter i organisasjonen — Claude Code CLI for ingeniør- og administrasjonsoppgaver, Lovable for rask app-prototyping, og et internt AI-drevet intranett for delt kunnskap og dokumentasjon.',
   'portfolio.proj.ks.tech': 'Produktutvikling|SolidWorks|Platedesign|STEP/PDF-tegninger|Claude Code CLI|Lovable|Intranett / AI-arbeidsflyter',
   'portfolio.proj.ks.results': 'Produktutviklingsstøtte på tvers av design og dokumentasjon|Produksjonsklare 3D-modeller og kapptegninger levert|AI-arbeidsflyter tatt i bruk på tvers av ingeniør og administrasjon',
-  'portfolio.proj.ks.download.pdf': 'Platekapptegning (PDF)',
-  'portfolio.proj.ks.download.step': 'Sementtank platearbeid (STEP)',
 
   'portfolio.proj.ks3d.title': '3D-printing av prototyper og praktisk introduksjon – KS-Service',
   'portfolio.proj.ks3d.location': 'Norge',

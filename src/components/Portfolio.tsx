@@ -52,10 +52,6 @@ const Portfolio = () => {
       client: "KS-Service AS / Injeksjonsutstyr AS",
       image: portfolioKsService,
       teamSize: 2,
-      downloads: [
-        { labelKey: "portfolio.proj.ks.download.pdf", href: `${import.meta.env.BASE_URL}portfolio/ks-service-platekapp-sementtank.pdf` },
-        { labelKey: "portfolio.proj.ks.download.step", href: `${import.meta.env.BASE_URL}portfolio/ks-service-sheetmetal-of-tank.step` },
-      ],
     },
     {
       id: 6,
