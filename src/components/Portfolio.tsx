@@ -8,7 +8,7 @@ import { AnimatedSection } from "@/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
-import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
+import portfolioRacing from "@/assets/align-racing.webp";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
 import portfolio3DPrint from "@/assets/h2c.jpeg";
 
