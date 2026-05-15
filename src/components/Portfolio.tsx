@@ -10,7 +10,7 @@ import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
 import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
-import portfolio3DPrint from "@/assets/3d-printing-collage.jpg";
+import portfolio3DPrint from "@/assets/h2c.jpeg";
 
 const Portfolio = () => {
   const { t } = useLanguage();

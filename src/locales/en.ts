@@ -96,8 +96,8 @@ export default {
   'portfolio.proj.ks3d.title': '3D Printing Prototypes & Hands-on Introduction – KS-Service',
   'portfolio.proj.ks3d.location': 'Norway',
   'portfolio.proj.ks3d.duration': 'Ongoing',
-  'portfolio.proj.ks3d.description': '3D printing of prototypes for KS-Service, plus a hands-on introduction to additive manufacturing in practice — from choosing the right filament (PLA, PETG, TPU, etc.) and dialling in slicer settings, to designing parts for printability and iterating quickly between revisions on a Bambu P1P printer.',
-  'portfolio.proj.ks3d.tech': 'Bambu P1P|PLA / PETG / TPU|Slicer Tuning|Design for AM|Rapid Prototyping',
+  'portfolio.proj.ks3d.description': '3D printing of prototypes for KS-Service, plus a hands-on introduction to additive manufacturing in practice — from choosing the right filament (PLA, PETG, TPU, etc.) and dialling in slicer settings, to designing parts for printability and iterating quickly between revisions on a Bambu Lab H2C printer with AMS 2 Pro multi-material support.',
+  'portfolio.proj.ks3d.tech': 'Bambu Lab H2C|AMS 2 Pro|PLA / PETG / TPU|Slicer Tuning|Design for AM|Rapid Prototyping',
   'portfolio.proj.ks3d.results': 'Prototypes printed and iterated on demand|Practical training in additive manufacturing|Faster design-to-prototype cycles in-house',
 
   'portfolio.proj.racing.title': 'Align Racing – Formula Student',
