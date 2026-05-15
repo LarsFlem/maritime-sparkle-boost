@@ -141,6 +141,41 @@ export default {
   'portfolio.technologies': 'Teknologier',
   'portfolio.results': 'Nøkkelresultater',
   'portfolio.client': 'Klient',
+  'portfolio.drawings': 'Tegninger',
+  'portfolio.cat.offshore': 'Offshore',
+  'portfolio.cat.green': 'Grønn Tech',
+  'portfolio.cat.project': 'Prosjekt',
+
+  // Portfolio — Prosjekter
+  'portfolio.proj.crane.title': '3D Bevegelseskompenserte Kransystemer',
+  'portfolio.proj.crane.location': 'Verdensomspennende',
+  'portfolio.proj.crane.duration': '18 måneder',
+  'portfolio.proj.crane.description': 'PLS-programmering i strukturert tekst i TwinCAT for Beckhoff-baserte 3D bevegelseskompenserte offshorekraner. HMI-utvikling i HTML/CSS/JS, SQL-alarmdatabaser, nettverkskonfigurasjon, og oppfølging på sjøprøver i Taiwan for IMECA hybrid 6 t Cygnus-kran om bord på Edda Monsoon.',
+  'portfolio.proj.crane.tech': 'TwinCAT|Beckhoff PLS|HTML/CSS/JS HMI|SQL|3D-kompensering',
+  'portfolio.proj.crane.results': 'Flere kranleveranser fullført|Vellykkede sjøprøver i Taiwan|Mannskapsopplæring på 3D-kompensert drift',
+
+  'portfolio.proj.battery.title': 'Autonomt Batteribytte – SHIFTR',
+  'portfolio.proj.battery.location': 'Stavanger, Norge',
+  'portfolio.proj.battery.duration': 'Pågående',
+  'portfolio.proj.battery.description': 'Idriftsettelse- og teststøtte for autonomt batteribyttesystem til hurtiggående ferger. Bidro til etterlevelse av maskindirektiv og sikkerhetsstandarder, og leverte teknisk tilbakemelding for å forbedre systemdesign, pålitelighet og ytelse.',
+  'portfolio.proj.battery.tech': 'Maskindirektiv|Sikkerhetsstandarder|Systemintegrasjon|Batteriteknologi',
+  'portfolio.proj.battery.results': 'Autonomt batteribytte for ferger|Etterlevelse av sikkerhetsstandarder|Forbedret systempålitelighet',
+
+  'portfolio.proj.ks.title': 'Injeksjonsutstyr – KS-Service & Injeksjonsutstyr AS',
+  'portfolio.proj.ks.location': 'Norge',
+  'portfolio.proj.ks.duration': 'Pågående',
+  'portfolio.proj.ks.description': 'Bistand i produktutvikling for et injeksjonsutstyrsprosjekt — 3D-modellering og produksjonstegninger, inkludert platekapptegninger for en sementtank-sammenstilling. I tillegg bistått med innføring av AI-støttede arbeidsflyter i organisasjonen — Claude Code CLI for ingeniør- og administrasjonsoppgaver, Lovable for rask app-prototyping, og et internt AI-drevet intranett for delt kunnskap og dokumentasjon.',
+  'portfolio.proj.ks.tech': 'Produktutvikling|SolidWorks|Platedesign|STEP/PDF-tegninger|Claude Code CLI|Lovable|Intranett / AI-arbeidsflyter',
+  'portfolio.proj.ks.results': 'Produktutviklingsstøtte på tvers av design og dokumentasjon|Produksjonsklare 3D-modeller og kapptegninger levert|AI-arbeidsflyter tatt i bruk på tvers av ingeniør og administrasjon',
+  'portfolio.proj.ks.download.pdf': 'Platekapptegning (PDF)',
+  'portfolio.proj.ks.download.step': 'Sementtank platearbeid (STEP)',
+
+  'portfolio.proj.racing.title': 'Align Racing – Formula Student',
+  'portfolio.proj.racing.location': 'Grimstad, Norge',
+  'portfolio.proj.racing.duration': '12 måneder',
+  'portfolio.proj.racing.description': 'Sjef for elektronikk med ansvar for å lede 13 studenter gjennom design, prototyping, produksjon og innstilling av hele elektronikkpakken på en formula student-racerbil. Sikret etterlevelse av løpsreglement og holdt teammotivasjon oppe.',
+  'portfolio.proj.racing.tech': 'Innebygde Systemer|PCB-design|CAN-buss|Lederskap',
+  'portfolio.proj.racing.results': 'Komplett elektronikkpakke levert|13-personers team ledet|Etterlevelse av løpsreglement',
 
   // Contact Section
   'contact.title': 'Kontakt Meg',

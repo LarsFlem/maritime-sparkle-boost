@@ -64,6 +64,41 @@ export default {
   'portfolio.technologies': 'Technologies',
   'portfolio.results': 'Key Results',
   'portfolio.client': 'Client',
+  'portfolio.drawings': 'Drawings',
+  'portfolio.cat.offshore': 'Offshore',
+  'portfolio.cat.green': 'Green Tech',
+  'portfolio.cat.project': 'Project',
+
+  // Portfolio — Projects
+  'portfolio.proj.crane.title': '3D Motion Compensated Crane Systems',
+  'portfolio.proj.crane.location': 'Worldwide',
+  'portfolio.proj.crane.duration': '18 months',
+  'portfolio.proj.crane.description': 'Structured text PLC programming in TwinCAT for Beckhoff-based 3D motion compensated offshore cranes. HMI development in HTML/CSS/JS, SQL alarm databases, network configuration, and on-site sea trial support in Taiwan for the IMECA hybrid 6 t Cygnus crane aboard Edda Monsoon.',
+  'portfolio.proj.crane.tech': 'TwinCAT|Beckhoff PLC|HTML/CSS/JS HMI|SQL|3D Compensation',
+  'portfolio.proj.crane.results': 'Multiple crane deliveries completed|Successful sea trials in Taiwan|Crew training on 3D compensated operations',
+
+  'portfolio.proj.battery.title': 'Autonomous Battery Swapping – SHIFTR',
+  'portfolio.proj.battery.location': 'Stavanger, Norway',
+  'portfolio.proj.battery.duration': 'Ongoing',
+  'portfolio.proj.battery.description': 'Commissioning and testing support for autonomous battery-swapping system for high-speed ferries. Contributed to machine directive compliance, safety standards, and provided technical feedback to improve system design, reliability, and performance.',
+  'portfolio.proj.battery.tech': 'Machine Directives|Safety Standards|System Integration|Battery Tech',
+  'portfolio.proj.battery.results': 'Autonomous battery swap for ferries|Compliance with safety standards|Improved system reliability',
+
+  'portfolio.proj.ks.title': 'Injection Equipment – KS-Service & Injeksjonsutstyr AS',
+  'portfolio.proj.ks.location': 'Norway',
+  'portfolio.proj.ks.duration': 'Ongoing',
+  'portfolio.proj.ks.description': 'Product development assistance for an injection equipment project — 3D modeling and production drawings, including sheet-metal plate cutting layouts for a cement tank assembly. Also assisted with rolling out AI-augmented workflows across their organisation — Claude Code CLI for engineering and admin tasks, Lovable for rapid app prototyping, and an internal AI-powered intranet for shared knowledge and documentation.',
+  'portfolio.proj.ks.tech': 'Product Development|SolidWorks|Sheet-metal Design|STEP/PDF Drawings|Claude Code CLI|Lovable|Intranet / AI Workflows',
+  'portfolio.proj.ks.results': 'Product development support across design and documentation|Production-ready 3D models and cutting drawings delivered|AI workflows adopted across engineering and admin',
+  'portfolio.proj.ks.download.pdf': 'Plate cutting drawing (PDF)',
+  'portfolio.proj.ks.download.step': 'Sheet-metal tank (STEP)',
+
+  'portfolio.proj.racing.title': 'Align Racing – Formula Student',
+  'portfolio.proj.racing.location': 'Grimstad, Norway',
+  'portfolio.proj.racing.duration': '12 months',
+  'portfolio.proj.racing.description': 'Chief Electronics Officer leading 13 students through designing, prototyping, manufacturing and tuning the full electronics suite of a formula student racecar. Ensured compliance with racing regulations and managed team motivation.',
+  'portfolio.proj.racing.tech': 'Embedded Systems|PCB Design|CAN Bus|Team Leadership',
+  'portfolio.proj.racing.results': 'Full electronics suite delivered|13-person team led|Race regulation compliance',
 
   // Contact Section
   'contact.title': 'Contact Me',

@@ -6,6 +6,7 @@ import { Calendar, MapPin, Users, Zap, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
+import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
 import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
@@ -14,60 +15,63 @@ const Portfolio = () => {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const projects = [
+  const projects: Array<{
+    id: number;
+    key: string;
+    category: "offshore" | "green" | "project";
+    year: string;
+    client: string;
+    image: string;
+    teamSize: number;
+    downloads?: Array<{ labelKey: string; href: string }>;
+  }> = [
+    {
+      id: 1,
+      key: "crane",
+      category: "offshore",
+      year: "2023–2024",
+      client: "Red Rock / IMECA",
+      image: portfolioCrane,
+      teamSize: 6,
+    },
     {
       id: 2,
-      title: "Autonomous Battery Swapping – SHIFTR",
+      key: "battery",
       category: "green",
-      location: "Stavanger, Norway",
       year: "2024–2025",
       client: "Norled / Aarbakke",
       image: portfolioBattery,
-      description: "Commissioning and testing support for autonomous battery-swapping system for high-speed ferries. Contributed to machine directive compliance, safety standards, and provided technical feedback to improve system design, reliability, and performance.",
-      technologies: ["Machine Directives", "Safety Standards", "System Integration", "Battery Tech"],
-      results: ["Autonomous battery swap for ferries", "Compliance with safety standards", "Improved system reliability"],
       teamSize: 8,
-      duration: "Ongoing",
     },
     {
       id: 5,
-      title: "Injection Equipment – KS-Service & Injeksjonsutstyr AS",
+      key: "ks",
       category: "project",
-      location: "Norway",
       year: "2025–2026",
       client: "KS-Service AS / Injeksjonsutstyr AS",
       image: portfolioKsService,
-      description: "3D modeling and production drawings for an injection equipment project, including sheet-metal plate cutting layouts for a cement tank assembly. Also assisted with rolling out AI-augmented workflows across their organisation — Claude Code CLI for engineering and admin tasks, Lovable for rapid app prototyping, and an internal AI-powered intranet for shared knowledge and documentation.",
-      technologies: ["SolidWorks", "Sheet-metal Design", "STEP/PDF Drawings", "Claude Code CLI", "Lovable", "Intranet / AI Workflows"],
-      results: ["Production-ready 3D models and cutting drawings delivered", "AI workflows adopted across engineering and admin", "Internal AI intranet implemented for shared knowledge"],
       teamSize: 2,
-      duration: "Ongoing",
       downloads: [
-        { label: "Plate cutting drawing (PDF)", href: `${import.meta.env.BASE_URL}portfolio/ks-service-platekapp-sementtank.pdf` },
-        { label: "Sheet-metal tank (STEP)", href: `${import.meta.env.BASE_URL}portfolio/ks-service-sheetmetal-of-tank.step` },
+        { labelKey: "portfolio.proj.ks.download.pdf", href: `${import.meta.env.BASE_URL}portfolio/ks-service-platekapp-sementtank.pdf` },
+        { labelKey: "portfolio.proj.ks.download.step", href: `${import.meta.env.BASE_URL}portfolio/ks-service-sheetmetal-of-tank.step` },
       ],
     },
     {
       id: 4,
-      title: "Align Racing – Formula Student",
+      key: "racing",
       category: "project",
-      location: "Grimstad, Norway",
       year: "2018–2019",
       client: "UiA / Align Racing",
       image: portfolioRacing,
-      description: "Chief Electronics Officer leading 13 students through designing, prototyping, manufacturing and tuning the full electronics suite of a formula student racecar. Ensured compliance with racing regulations and managed team motivation.",
-      technologies: ["Embedded Systems", "PCB Design", "CAN Bus", "Team Leadership"],
-      results: ["Full electronics suite delivered", "13-person team led", "Race regulation compliance"],
       teamSize: 13,
-      duration: "12 months",
     },
   ];
 
   const categories = [
     { id: "all", label: t('portfolio.all') },
-    { id: "offshore", label: t('portfolio.offshore') },
-    { id: "green", label: "Green Tech" },
-    { id: "project", label: "Projects" },
+    { id: "offshore", label: t('portfolio.cat.offshore') },
+    { id: "green", label: t('portfolio.cat.green') },
+    { id: "project", label: t('portfolio.cat.project') },
   ];
 
   const filteredProjects = selectedCategory === "all"
@@ -113,97 +117,106 @@ const Portfolio = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35 }}
           >
-            {filteredProjects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="glass-effect hover-lift group overflow-hidden border-border/30 h-full">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      width={800}
-                      height={512}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
-                    <div className="absolute top-3 left-3">
-                      <Badge variant="secondary" className="bg-background/70 backdrop-blur-md text-xs">{project.year}</Badge>
-                    </div>
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="outline" className="bg-background/70 backdrop-blur-md border-primary/30 text-primary text-xs">
-                        {project.category.charAt(0).toUpperCase() + project.category.slice(1)}
-                      </Badge>
-                    </div>
-                  </div>
+            {filteredProjects.map((project, index) => {
+              const title = t(`portfolio.proj.${project.key}.title`);
+              const location = t(`portfolio.proj.${project.key}.location`);
+              const duration = t(`portfolio.proj.${project.key}.duration`);
+              const description = t(`portfolio.proj.${project.key}.description`);
+              const technologies = t(`portfolio.proj.${project.key}.tech`).split("|");
+              const results = t(`portfolio.proj.${project.key}.results`).split("|");
 
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">{project.title}</CardTitle>
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{project.location}</span>
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{project.duration}</span>
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{project.teamSize} {t('portfolio.engineers')}</span>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{project.description}</p>
-                    <div>
-                      <h4 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
-                        <Zap className="h-3 w-3 text-primary" />{t('portfolio.technologies')}
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {project.technologies.map((tech) => (
-                          <Badge key={tech} variant="outline" className="text-[10px] border-border/50 font-normal">{tech}</Badge>
-                        ))}
+              return (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="glass-effect hover-lift group overflow-hidden border-border/30 h-full">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={project.image}
+                        alt={title}
+                        width={800}
+                        height={512}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
+                      <div className="absolute top-3 left-3">
+                        <Badge variant="secondary" className="bg-background/70 backdrop-blur-md text-xs">{project.year}</Badge>
+                      </div>
+                      <div className="absolute top-3 right-3">
+                        <Badge variant="outline" className="bg-background/70 backdrop-blur-md border-primary/30 text-primary text-xs">
+                          {t(`portfolio.cat.${project.category}`)}
+                        </Badge>
                       </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-semibold mb-2">{t('portfolio.results')}</h4>
-                      <ul className="space-y-1.5">
-                        {project.results.map((result, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1 flex-shrink-0"></div>
-                            {result}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    {"downloads" in project && Array.isArray((project as { downloads?: Array<{ label: string; href: string }> }).downloads) && (
+
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">{title}</CardTitle>
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{location}</span>
+                        <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{duration}</span>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{project.teamSize} {t('portfolio.engineers')}</span>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
                       <div>
                         <h4 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
-                          <Download className="h-3 w-3 text-primary" />Drawings
+                          <Zap className="h-3 w-3 text-primary" />{t('portfolio.technologies')}
                         </h4>
                         <div className="flex flex-wrap gap-1.5">
-                          {(project as { downloads: Array<{ label: string; href: string }> }).downloads.map((d) => (
-                            <a
-                              key={d.href}
-                              href={d.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded border border-border/50 hover:border-primary/60 hover:text-primary text-muted-foreground transition-colors"
-                            >
-                              <Download className="h-2.5 w-2.5" />
-                              {d.label}
-                            </a>
+                          {technologies.map((tech) => (
+                            <Badge key={tech} variant="outline" className="text-[10px] border-border/50 font-normal">{tech}</Badge>
                           ))}
                         </div>
                       </div>
-                    )}
-                    <div className="pt-3 border-t border-border/20">
-                      <p className="text-xs text-muted-foreground">
-                        {t('portfolio.client')}: <span className="text-primary font-medium">{project.client}</span>
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <div>
+                        <h4 className="text-xs font-semibold mb-2">{t('portfolio.results')}</h4>
+                        <ul className="space-y-1.5">
+                          {results.map((result, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1 flex-shrink-0"></div>
+                              {result}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {project.downloads && (
+                        <div>
+                          <h4 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+                            <Download className="h-3 w-3 text-primary" />{t('portfolio.drawings')}
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {project.downloads.map((d) => (
+                              <a
+                                key={d.href}
+                                href={d.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded border border-border/50 hover:border-primary/60 hover:text-primary text-muted-foreground transition-colors"
+                              >
+                                <Download className="h-2.5 w-2.5" />
+                                {t(d.labelKey)}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="pt-3 border-t border-border/20">
+                        <p className="text-xs text-muted-foreground">
+                          {t('portfolio.client')}: <span className="text-primary font-medium">{project.client}</span>
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </AnimatePresence>
       </div>
