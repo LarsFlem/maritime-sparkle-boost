@@ -10,6 +10,7 @@ import portfolioCrane from "@/assets/portfolio-crane-3d.jpg";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
 import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
+import portfolio3DPrint from "@/assets/3d-printing-collage.jpg";
 
 const Portfolio = () => {
   const { t } = useLanguage();
@@ -55,6 +56,15 @@ const Portfolio = () => {
         { labelKey: "portfolio.proj.ks.download.pdf", href: `${import.meta.env.BASE_URL}portfolio/ks-service-platekapp-sementtank.pdf` },
         { labelKey: "portfolio.proj.ks.download.step", href: `${import.meta.env.BASE_URL}portfolio/ks-service-sheetmetal-of-tank.step` },
       ],
+    },
+    {
+      id: 6,
+      key: "ks3d",
+      category: "project",
+      year: "2025–2026",
+      client: "KS-Service AS",
+      image: portfolio3DPrint,
+      teamSize: 2,
     },
     {
       id: 4,

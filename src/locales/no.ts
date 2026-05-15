@@ -170,6 +170,13 @@ export default {
   'portfolio.proj.ks.download.pdf': 'Platekapptegning (PDF)',
   'portfolio.proj.ks.download.step': 'Sementtank platearbeid (STEP)',
 
+  'portfolio.proj.ks3d.title': '3D-printing av prototyper og praktisk introduksjon – KS-Service',
+  'portfolio.proj.ks3d.location': 'Norge',
+  'portfolio.proj.ks3d.duration': 'Pågående',
+  'portfolio.proj.ks3d.description': '3D-printing av prototyper for KS-Service, samt en praktisk introduksjon til additiv produksjon — fra valg av riktig filament (PLA, PETG, TPU m.m.) og finjustering av slicer-innstillinger, til design av deler tilpasset printing og raske iterasjoner mellom revisjoner på en Bambu P1P-printer.',
+  'portfolio.proj.ks3d.tech': 'Bambu P1P|PLA / PETG / TPU|Slicer-justering|Design for AM|Rask Prototyping',
+  'portfolio.proj.ks3d.results': 'Prototyper printet og itereres ved behov|Praktisk opplæring i additiv produksjon|Raskere design-til-prototype-syklus internt',
+
   'portfolio.proj.racing.title': 'Align Racing – Formula Student',
   'portfolio.proj.racing.location': 'Grimstad, Norge',
   'portfolio.proj.racing.duration': '12 måneder',
