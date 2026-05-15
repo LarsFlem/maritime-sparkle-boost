@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Zap } from "lucide-react";
+import { Calendar, MapPin, Users, Zap, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import portfolioBattery from "@/assets/portfolio-battery-swap.jpg";
 import portfolioRacing from "@/assets/portfolio-align-racing.jpg";
+import portfolioKsService from "@/assets/portfolio-ks-service.png";
 
 const Portfolio = () => {
   const { t } = useLanguage();
@@ -27,6 +28,24 @@ const Portfolio = () => {
       results: ["Autonomous battery swap for ferries", "Compliance with safety standards", "Improved system reliability"],
       teamSize: 8,
       duration: "Ongoing",
+    },
+    {
+      id: 5,
+      title: "Injection Equipment – KS-Service & Injeksjonsutstyr AS",
+      category: "project",
+      location: "Norway",
+      year: "2025–2026",
+      client: "KS-Service AS / Injeksjonsutstyr AS",
+      image: portfolioKsService,
+      description: "3D modeling and production drawings for an injection equipment project, including sheet-metal plate cutting layouts for a cement tank assembly. Also assisted with rolling out AI-augmented workflows across their organisation — Claude Code CLI for engineering and admin tasks, Lovable for rapid app prototyping, and an internal AI-powered intranet for shared knowledge and documentation.",
+      technologies: ["SolidWorks", "Sheet-metal Design", "STEP/PDF Drawings", "Claude Code CLI", "Lovable", "Intranet / AI Workflows"],
+      results: ["Production-ready 3D models and cutting drawings delivered", "AI workflows adopted across engineering and admin", "Internal AI intranet implemented for shared knowledge"],
+      teamSize: 2,
+      duration: "Ongoing",
+      downloads: [
+        { label: "Plate cutting drawing (PDF)", href: `${import.meta.env.BASE_URL}portfolio/ks-service-platekapp-sementtank.pdf` },
+        { label: "Sheet-metal tank (STEP)", href: `${import.meta.env.BASE_URL}portfolio/ks-service-sheetmetal-of-tank.step` },
+      ],
     },
     {
       id: 4,
@@ -155,6 +174,27 @@ const Portfolio = () => {
                         ))}
                       </ul>
                     </div>
+                    {"downloads" in project && Array.isArray((project as { downloads?: Array<{ label: string; href: string }> }).downloads) && (
+                      <div>
+                        <h4 className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+                          <Download className="h-3 w-3 text-primary" />Drawings
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(project as { downloads: Array<{ label: string; href: string }> }).downloads.map((d) => (
+                            <a
+                              key={d.href}
+                              href={d.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded border border-border/50 hover:border-primary/60 hover:text-primary text-muted-foreground transition-colors"
+                            >
+                              <Download className="h-2.5 w-2.5" />
+                              {d.label}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="pt-3 border-t border-border/20">
                       <p className="text-xs text-muted-foreground">
                         {t('portfolio.client')}: <span className="text-primary font-medium">{project.client}</span>
