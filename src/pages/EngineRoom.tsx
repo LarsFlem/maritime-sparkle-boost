@@ -9,6 +9,7 @@ import DemoPagerNav from "@/components/DemoPagerNav";
 import { Slider } from "@/components/ui/slider";
 import EngineMimic, { EngineMimicState } from "@/components/engine/EngineMimic";
 import AmsAlarmList, { AmsAlarm } from "@/components/engine/AmsAlarmList";
+import EnginePlcView, { EnginePlcSnapshot } from "@/components/engine/EnginePlcView";
 
 const TICK_MS = 100;
 const MCR_RPM = 750;
@@ -77,6 +78,7 @@ const EngineRoom = () => {
   });
   const [alarms, setAlarms] = useState<AmsAlarm[]>([]);
   const [horn, setHorn] = useState(false);
+  const [plcSnap, setPlcSnap] = useState<EnginePlcSnapshot | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -209,6 +211,21 @@ const EngineRoom = () => {
       });
       setAlarms(list);
       setHorn(s.horn);
+      setPlcSnap({
+        loPress: s.loPress,
+        loStbyRun: s.loStbyRun,
+        stbyDelayS: s.loStbyDelay,
+        runT: s.runT,
+        protArmed,
+        slowdown: s.slowdown,
+        shutdown: s.shutdown,
+        fwTemp: s.fwTemp,
+        fwInt: s.fwInt,
+        fwValve: s.fwValve,
+        cylMean: meanT,
+        cylDev4: cylTemps[3] - meanT,
+        rpm: s.rpm,
+      });
     }, TICK_MS);
 
     return () => clearInterval(interval);
@@ -431,6 +448,11 @@ const EngineRoom = () => {
               />
             </HMIPanel>
           </div>
+
+          {/* PLC logic */}
+          <HMIPanel title={t("engine.plc.title")} glowColor="hsl(180, 100%, 55%)">
+            {plcSnap && <EnginePlcView snap={plcSnap} hint={t("engine.plc.hint")} />}
+          </HMIPanel>
 
           {/* Explainer */}
           <DemoExplainer

@@ -10,6 +10,7 @@ import CraneTelemetry from "@/components/live-demo/CraneTelemetry";
 import CraneTrend, { TrendPoint } from "@/components/live-demo/CraneTrend";
 import CraneAlarms, { CraneAlarm } from "@/components/live-demo/CraneAlarms";
 import CraneExplainer from "@/components/live-demo/CraneExplainer";
+import CranePlcView from "@/components/live-demo/CranePlcView";
 import DemoPagerNav from "@/components/DemoPagerNav";
 import {
   craneFk, craneIk, swlAt, inSector,
@@ -107,6 +108,7 @@ const LiveDemo = () => {
     windKt: 18, hydraulicBar: 195,
     outreach: 0, hookZ: 0, swl: SWL_RATED_T,
     autoStep: 0, stepProgress: 0, cycles: 0, waterPhase: 0,
+    cmdRawSlew: INIT.slew, cmdSmSlew: INIT.slew,
   }));
 
   const [trend, setTrend] = useState<TrendPoint[]>(() => {
@@ -304,6 +306,7 @@ const LiveDemo = () => {
         outreach: fk.tx, hookZ, swl: swlAt(fk.tx),
         autoStep: s.autoStep, stepProgress, cycles: s.autoCycleCount,
         waterPhase: s.waterPhase,
+        cmdRawSlew: rawSlew, cmdSmSlew: s.smSlew,
       });
 
       // 11. Trend
@@ -616,16 +619,25 @@ const LiveDemo = () => {
           />
         </HMIPanel>
 
-        {/* Trend + alarms */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-          <HMIPanel title={t("liveDemo.trend.title")}>
-            <CraneTrend
-              data={trend}
-              windowSeconds={TREND_WINDOW_S}
-              labels={{
-                load: t("liveDemo.trend.load"),
-                sway: t("liveDemo.trend.sway"),
+        {/* PLC logic + alarms */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+          <HMIPanel title={t("liveDemo.plc.title")} className="lg:col-span-2" glowColor="hsl(180, 100%, 55%)">
+            <CranePlcView
+              snap={{
+                autoStep: render.autoStep,
+                stepProgress: render.stepProgress,
+                mode,
+                running,
+                slew: render.slew,
+                outreach: render.outreach,
+                hookZ: render.hookZ,
+                hookLoadT: render.hookLoadT,
+                swl: render.swl,
+                swayDeg: render.swayDeg,
+                cmdRawSlew: render.cmdRawSlew,
+                cmdSmSlew: render.cmdSmSlew,
               }}
+              hint={t("liveDemo.plc.hint")}
             />
           </HMIPanel>
 
@@ -642,6 +654,18 @@ const LiveDemo = () => {
             />
           </HMIPanel>
         </div>
+
+        {/* Trend */}
+        <HMIPanel title={t("liveDemo.trend.title")} className="mt-4">
+          <CraneTrend
+            data={trend}
+            windowSeconds={TREND_WINDOW_S}
+            labels={{
+              load: t("liveDemo.trend.load"),
+              sway: t("liveDemo.trend.sway"),
+            }}
+          />
+        </HMIPanel>
 
         {/* Explainer */}
         <HMIPanel title={t("liveDemo.explainer.title")} className="mt-4">
