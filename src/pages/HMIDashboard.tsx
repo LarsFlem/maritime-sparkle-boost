@@ -606,12 +606,13 @@ const HMIDashboard = () => {
             <HMIPanel title="Event Log" className="lg:col-span-1">
               <div className="space-y-0.5 h-[284px] overflow-y-auto pr-0.5 scrollbar-thin">
                 {eventLog.map(event => {
-                  const dotColor: Record<LogSev, string> = {
+                  const sevColors: Record<LogSev, string> = {
                     ok:   COLOR_OPERATIONAL,
                     info: COLOR_PRIMARY,
                     warn: COLOR_WARNING,
                     err:  "hsl(0,70%,55%)",
-                  }[event.sev];
+                  };
+                  const dotColor = sevColors[event.sev];
                   return (
                     <div key={event.id} className="flex items-start gap-2 py-1.5 border-b border-border/15 last:border-0">
                       <div className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />

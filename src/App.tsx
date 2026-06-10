@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 const HMIDashboard = lazy(() => import("./pages/HMIDashboard"));
 const DataAnalysis = lazy(() => import("./pages/DataAnalysis"));
 const LiveDemo = lazy(() => import("./pages/LiveDemo"));
+const PMSDemo = lazy(() => import("./pages/PMSDemo"));
+const DPDemo = lazy(() => import("./pages/DPDemo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const App = () => (
                 <Route path="/hmi" element={<HMIDashboard />} />
                 <Route path="/data-analysis" element={<DataAnalysis />} />
                 <Route path="/live-demo" element={<LiveDemo />} />
+                <Route path="/pms" element={<PMSDemo />} />
+                <Route path="/dp" element={<DPDemo />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

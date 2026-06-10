@@ -180,6 +180,57 @@
   animation: alarm-border-pulse 2s ease-in-out infinite;
 }
 
+/* Single-line-diagram power flow (animated dashes along live conductors) */
+@keyframes sld-flow-anim {
+  to { stroke-dashoffset: -24; }
+}
+.sld-flow {
+  animation: sld-flow-anim 1s linear infinite;
+}
+
+/* Slow rotation for running-machine indicators */
+@keyframes sld-spin-anim {
+  to { transform: rotate(360deg); }
+}
+.sld-spin {
+  animation: sld-spin-anim 7s linear infinite;
+}
+
+/* DP radar sweep */
+@keyframes dp-sweep-anim {
+  to { transform: rotate(360deg); }
+}
+.dp-sweep {
+  animation: dp-sweep-anim 9s linear infinite;
+}
+
+/* Demo-hub mini previews */
+@keyframes demo-sway-anim {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(-6deg); }
+}
+.demo-sway { animation: demo-sway-anim 3.4s ease-in-out infinite; }
+
+@keyframes demo-bar-anim {
+  0%, 100% { transform: scaleY(0.55); }
+  50% { transform: scaleY(1); }
+}
+.demo-bar { animation: demo-bar-anim 3s ease-in-out infinite; }
+
+@keyframes demo-needle-anim {
+  0%, 100% { transform: rotate(-28deg); }
+  40% { transform: rotate(16deg); }
+  70% { transform: rotate(-6deg); }
+}
+.demo-needle { animation: demo-needle-anim 4.5s ease-in-out infinite; }
+
+@keyframes demo-drift-anim {
+  0%, 100% { transform: translate(0px, 0px); }
+  30% { transform: translate(3px, -2px); }
+  65% { transform: translate(-2px, 2px); }
+}
+.demo-drift { animation: demo-drift-anim 7s ease-in-out infinite; }
+
 /* HMI scan-line overlay */
 .hmi-scanlines {
   background: repeating-linear-gradient(
