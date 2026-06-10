@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import GaugeCircular from "@/components/hmi/GaugeCircular";
+import DemoExplainer from "@/components/hmi/DemoExplainer";
 import SingleLineDiagram from "@/components/pms/SingleLineDiagram";
 import Synchroscope from "@/components/pms/Synchroscope";
 import GensetCard from "@/components/pms/GensetCard";
@@ -741,20 +742,14 @@ const PMSDemo = () => {
           </div>
 
           {/* Explainer */}
-          <HMIPanel title={t("pms.explainer.title")}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { title: t("pms.explainer.ldTitle"), body: t("pms.explainer.ldBody") },
-                { title: t("pms.explainer.hcTitle"), body: t("pms.explainer.hcBody") },
-                { title: t("pms.explainer.boTitle"), body: t("pms.explainer.boBody") },
-              ].map((item, i) => (
-                <div key={i} className="space-y-1.5">
-                  <h3 className="font-mono text-xs uppercase tracking-wider text-primary">{item.title}</h3>
-                  <p className="text-xs leading-relaxed text-muted-foreground">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </HMIPanel>
+          <DemoExplainer
+            title={t("pms.explainer.title")}
+            items={[
+              { title: t("pms.explainer.ldTitle"), body: t("pms.explainer.ldBody") },
+              { title: t("pms.explainer.hcTitle"), body: t("pms.explainer.hcBody") },
+              { title: t("pms.explainer.boTitle"), body: t("pms.explainer.boBody") },
+            ]}
+          />
         </div>
       </div>
     </div>

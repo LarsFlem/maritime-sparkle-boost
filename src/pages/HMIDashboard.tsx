@@ -8,6 +8,7 @@ import StatusIndicator from "@/components/hmi/StatusIndicator";
 import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import OceanMap from "@/components/hmi/OceanMap";
+import DemoExplainer from "@/components/hmi/DemoExplainer";
 
 type LogSev = "ok" | "info" | "warn" | "err";
 interface LogEvent {
@@ -267,7 +268,6 @@ const HMIDashboard = () => {
       ]);
     }, 8000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const operationalCount = turbines.filter(t => t.status === "operational").length;
@@ -320,6 +320,12 @@ const HMIDashboard = () => {
         </div>
 
         <div className="p-4 space-y-4">
+          {/* Page intro */}
+          <div className="text-center max-w-3xl mx-auto pt-2 pb-1">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t("hmi.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("hmi.subtitle")}</p>
+          </div>
+
           {/* Alarm bar */}
           {warningCount > 0 && (
             <div className="alarm-pulse flex items-center gap-3 px-4 py-2 rounded-lg bg-card/50 border">
@@ -691,6 +697,16 @@ const HMIDashboard = () => {
               </div>
             </HMIPanel>
           )}
+
+          {/* Explainer */}
+          <DemoExplainer
+            title={t("hmi.explainer.title")}
+            items={[
+              { title: t("hmi.explainer.hmiTitle"), body: t("hmi.explainer.hmiBody") },
+              { title: t("hmi.explainer.telemetryTitle"), body: t("hmi.explainer.telemetryBody") },
+              { title: t("hmi.explainer.alarmTitle"), body: t("hmi.explainer.alarmBody") },
+            ]}
+          />
         </div>
       </div>
     </div>

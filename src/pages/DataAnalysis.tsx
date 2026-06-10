@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Zap, Activity, BarChart3, TrendingUp, TrendingDown, Gauge, Thermometer, Waves, Wind, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Download, Zap, Activity, BarChart3, TrendingUp, TrendingDown, Gauge, Thermometer, Waves, Wind, ArrowUpRight, ArrowDownRight, type LucideIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
+import DemoExplainer from '@/components/hmi/DemoExplainer';
 import AdvancedFilters, { FilterConfig } from '@/components/charts/AdvancedFilters';
 import CorrelationChart from '@/components/charts/CorrelationChart';
 import MultiAxisChart from '@/components/charts/MultiAxisChart';
@@ -103,7 +104,7 @@ const maintenanceLog = [
 ];
 
 function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
-  label: string; value: string; unit?: string; icon: any; delta?: number; deltaLabel?: string;
+  label: string; value: string; unit?: string; icon: LucideIcon; delta?: number; deltaLabel?: string;
 }) {
   return (
     <Card className="relative overflow-hidden">
@@ -111,7 +112,7 @@ function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-            <p className="text-2xl font-bold mt-1 tabular-nums">{value}<span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span></p>
+            <p className="text-2xl font-bold mt-1 font-mono tabular-nums">{value}<span className="text-sm font-normal font-sans text-muted-foreground ml-1">{unit}</span></p>
             {delta !== undefined && (
               <div className={`flex items-center gap-0.5 mt-1 text-xs font-medium ${delta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {delta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -176,7 +177,7 @@ export default function DataAnalysis() {
     if (filters.turbines.length === 0) return zoomedData;
     return zoomedData.map(item => {
       const selectedPower = filters.turbines.reduce((sum, turbine) => {
-        return sum + ((item as any)[`${turbine}_power`] || 0);
+        return sum + ((item as Record<string, number>)[`${turbine}_power`] || 0);
       }, 0);
       return { ...item, filtered_power: selectedPower };
     });
@@ -246,7 +247,7 @@ export default function DataAnalysis() {
       headers.join(','),
       ...historicalData.map(item =>
         tableColumns.map(c => {
-          const v = (item as any)[c.key];
+          const v = (item as Record<string, number | string>)[c.key];
           return typeof v === 'number' ? v.toFixed(c.decimals ?? 2) : v;
         }).join(',')
       )
@@ -262,10 +263,10 @@ export default function DataAnalysis() {
   };
 
   // Drag-to-zoom handlers for Power chart
-  const handleMouseDown = (e: any) => {
+  const handleMouseDown = (e: { activeLabel?: string } | null) => {
     if (e?.activeLabel) setZoomLeft(e.activeLabel);
   };
-  const handleMouseMove = (e: any) => {
+  const handleMouseMove = (e: { activeLabel?: string } | null) => {
     if (zoomLeft && e?.activeLabel) setZoomRight(e.activeLabel);
   };
   const handleMouseUp = () => {
@@ -282,16 +283,44 @@ export default function DataAnalysis() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-20 container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('dataAnalysis.title')}</h1>
-            <p className="text-muted-foreground mt-1">{t('dataAnalysis.subtitle')}</p>
+      <div className="pt-16">
+        <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
+
+        {/* Top status bar */}
+        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Activity className="w-3 h-3 text-primary animate-pulse" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+                {t('dataAnalysis.statusBar')}
+              </span>
+            </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider hidden sm:inline">
+              {t('dataAnalysis.station')}
+            </span>
           </div>
-          <Button onClick={exportData} variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-wider hidden sm:inline">
+              <span className="text-muted-foreground">{t('dataAnalysis.samples')} </span>
+              <span className="text-primary tabular-nums">{historicalData.length} d</span>
+            </span>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <button
+              onClick={exportData}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-wider border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+            >
+              <Download className="h-3 w-3" />
+              {t('dataAnalysis.exportCsv')}
+            </button>
+          </div>
+        </div>
+
+      <div className="container mx-auto px-4 py-6">
+        {/* Page intro */}
+        <div className="text-center max-w-3xl mx-auto pt-2 pb-1 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('dataAnalysis.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('dataAnalysis.subtitle')}</p>
         </div>
 
         <div className="mb-6">
@@ -308,18 +337,28 @@ export default function DataAnalysis() {
         </div>
 
         <Tabs defaultValue="power" className="space-y-6">
-          <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="power">Power</TabsTrigger>
-            <TabsTrigger value="comparison">Comparison</TabsTrigger>
-            <TabsTrigger value="correlation">Correlation</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-            <TabsTrigger value="multiaxis">Multi-Axis</TabsTrigger>
-            <TabsTrigger value="anomaly">Anomaly</TabsTrigger>
-            <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-            <TabsTrigger value="rawdata">Raw Data</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1 bg-background/40 border border-border/40 rounded-md p-1">
+            {[
+              ['power', 'Power'],
+              ['comparison', 'Comparison'],
+              ['correlation', 'Correlation'],
+              ['trends', 'Trends'],
+              ['multiaxis', 'Multi-Axis'],
+              ['anomaly', 'Anomaly'],
+              ['heatmap', 'Heatmap'],
+              ['stats', 'Statistics'],
+              ['performance', 'Performance'],
+              ['maintenance', 'Maintenance'],
+              ['rawdata', 'Raw Data'],
+            ].map(([value, label]) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="font-mono text-[11px] uppercase tracking-wider data-[state=active]:bg-primary/15 data-[state=active]:text-primary"
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Power — with drag-to-zoom + Brush */}
@@ -553,6 +592,19 @@ export default function DataAnalysis() {
             <DataTable data={historicalData} columns={tableColumns} title="Raw Sensor Data" />
           </TabsContent>
         </Tabs>
+
+        {/* Explainer */}
+        <div className="mt-6">
+          <DemoExplainer
+            title={t('dataAnalysis.explainer.title')}
+            items={[
+              { title: t('dataAnalysis.explainer.exploreTitle'), body: t('dataAnalysis.explainer.exploreBody') },
+              { title: t('dataAnalysis.explainer.anomalyTitle'), body: t('dataAnalysis.explainer.anomalyBody') },
+              { title: t('dataAnalysis.explainer.maintTitle'), body: t('dataAnalysis.explainer.maintBody') },
+            ]}
+          />
+        </div>
+      </div>
       </div>
     </div>
   );

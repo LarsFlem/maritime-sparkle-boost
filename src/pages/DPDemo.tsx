@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
+import DemoExplainer from "@/components/hmi/DemoExplainer";
 import { Slider } from "@/components/ui/slider";
 import DPScene, { TrailPoint } from "@/components/dp/DPScene";
 import ThrusterPanel, { ThrusterView } from "@/components/dp/ThrusterPanel";
@@ -553,20 +554,14 @@ const DPDemo = () => {
           </div>
 
           {/* Explainer */}
-          <HMIPanel title={t("dp.explainer.title")}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { title: t("dp.explainer.controlTitle"), body: t("dp.explainer.controlBody") },
-                { title: t("dp.explainer.waveTitle"), body: t("dp.explainer.waveBody") },
-                { title: t("dp.explainer.redundancyTitle"), body: t("dp.explainer.redundancyBody") },
-              ].map((item, i) => (
-                <div key={i} className="space-y-1.5">
-                  <h3 className="font-mono text-xs uppercase tracking-wider text-primary">{item.title}</h3>
-                  <p className="text-xs leading-relaxed text-muted-foreground">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </HMIPanel>
+          <DemoExplainer
+            title={t("dp.explainer.title")}
+            items={[
+              { title: t("dp.explainer.controlTitle"), body: t("dp.explainer.controlBody") },
+              { title: t("dp.explainer.waveTitle"), body: t("dp.explainer.waveBody") },
+              { title: t("dp.explainer.redundancyTitle"), body: t("dp.explainer.redundancyBody") },
+            ]}
+          />
         </div>
       </div>
     </div>

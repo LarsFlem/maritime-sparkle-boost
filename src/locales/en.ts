@@ -171,12 +171,34 @@ export default {
   'footer.tagline': 'Navigating the future of maritime automation',
 
   // HMI Dashboard
+  'hmi.title': 'SCADA / HMI Dashboard',
+  'hmi.subtitle': 'A live operator dashboard for an offshore wave-generator farm — six units streaming telemetry at 10 Hz, with a geographic fleet map, scrolling trends, unit diagnostics and event logging.',
+  'hmi.explainer.title': 'What this demo shows',
+  'hmi.explainer.hmiTitle': 'Operator-Grade HMI Design',
+  'hmi.explainer.hmiBody': 'Built on high-performance HMI principles: a muted base palette so color always carries meaning, alarm colors reserved strictly for abnormal states, monospaced tabular telemetry, and layouts that put fleet health one glance away.',
+  'hmi.explainer.telemetryTitle': 'Live Telemetry & Trends',
+  'hmi.explainer.telemetryBody': 'Values stream at 10 Hz into a fixed-window trend that scrolls like a chart recorder — with selectable time windows, per-unit series toggles and 5-minute min/max markers on every gauge.',
+  'hmi.explainer.alarmTitle': 'Alarm Philosophy',
+  'hmi.explainer.alarmBody': 'Clear severity semantics throughout: operational, warning and offline states propagate from unit symbols to KPIs, the alarm banner and a timestamped event log — the same discipline applied to real alarm-system deliveries.',
 
   // Data Analysis
   'dataAnalysis.title': 'Data Analysis',
-  'dataAnalysis.subtitle': 'Historical performance analysis for offshore wave generators',
+  'dataAnalysis.subtitle': 'Historical performance analytics for an offshore wave-generator farm — correlations, anomaly detection, statistics, heatmaps and maintenance insight on 90 days of historian data.',
+  'dataAnalysis.statusBar': 'HISTORIAN — ANALYTICS',
+  'dataAnalysis.station': 'Wave Generator Farm — North Sea 7G',
+  'dataAnalysis.samples': 'Dataset',
+  'dataAnalysis.exportCsv': 'Export CSV',
+  'dataAnalysis.explainer.title': 'What this demo shows',
+  'dataAnalysis.explainer.exploreTitle': 'Exploratory Analysis',
+  'dataAnalysis.explainer.exploreBody': 'Drag-to-zoom and brush navigation on stacked power data, period-over-period comparison, scatter correlations between environment and output, and multi-axis overlays — the tools for finding out why production changed.',
+  'dataAnalysis.explainer.anomalyTitle': 'Anomaly Detection',
+  'dataAnalysis.explainer.anomalyBody': 'Vibration and bearing temperature run through rolling mean ± sigma bands to flag outliers early — the statistical backbone of condition monitoring and predictive maintenance.',
+  'dataAnalysis.explainer.maintTitle': 'From Data to Maintenance',
+  'dataAnalysis.explainer.maintBody': 'Fleet KPIs like MTBF and availability, a maintenance schedule fed by the analytics, and one-click CSV export — turning historian data into maintenance decisions.',
 
   // Live Demo — Offshore Crane Control
+  'liveDemo.statusBar': 'CRANE',
+  'liveDemo.station': 'MV Demo Vessel — Deck Crane 12 t',
   'liveDemo.title': 'Offshore Crane Control Demo',
   'liveDemo.subtitle': 'A live simulation of a deck-mounted crane transferring containers between vessel and platform — showcasing anti-sway control, safety envelope monitoring and automated operating sequences.',
   'liveDemo.status.running': 'Operating',

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { Radio } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import HMIPanel from "@/components/hmi/HMIPanel";
@@ -408,12 +409,33 @@ const LiveDemo = () => {
 
       <Navbar />
 
-      <div className="container mx-auto px-4 pt-20 pb-10 relative z-10">
+      <div className="pt-16 relative z-10">
+        {/* Top status bar */}
+        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Radio className="w-3 h-3 text-primary animate-pulse" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+                {t("liveDemo.statusBar")} — {modeLabel}
+              </span>
+            </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider hidden sm:inline">
+              {t("liveDemo.station")}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <StatusIndicator status={status} label={statusLabel} size="sm" />
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <span className="font-mono text-sm font-semibold tabular-nums hidden sm:inline">
+              {formatClock(Date.now())}
+            </span>
+          </div>
+        </div>
+
+      <div className="container mx-auto px-4 pt-6 pb-10">
         {/* Header */}
         <div className="mb-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <StatusIndicator status={status} label={statusLabel} size="md" />
-          </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             {t("liveDemo.title")}
           </h1>
@@ -582,6 +604,7 @@ const LiveDemo = () => {
             }}
           />
         </HMIPanel>
+      </div>
       </div>
     </div>
   );

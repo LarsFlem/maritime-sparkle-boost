@@ -10,6 +10,8 @@ export default {
   'nav.getQuote': 'Få Tilbud',
 
   // Live Demo — Offshore Crane Control
+  'liveDemo.statusBar': 'KRAN',
+  'liveDemo.station': 'MV Demo Vessel — Dekkskran 12 t',
   'liveDemo.title': 'Offshore Krankontroll-demo',
   'liveDemo.subtitle': 'Sanntidssimulering av en dekksmontert kran som overfører containere mellom fartøy og plattform — viser anti-pendel-styring, sikkerhetsenvelope og automatiske operasjonssekvenser.',
   'liveDemo.status.running': 'I drift',
@@ -243,10 +245,30 @@ export default {
   'footer.tagline': 'Navigerer fremtiden for maritim automasjon',
 
   // HMI Dashboard
+  'hmi.title': 'SCADA / HMI Dashbord',
+  'hmi.subtitle': 'Et live operatørdashbord for en offshore bølgegenerator-park — seks enheter med telemetri i 10 Hz, geografisk flåtekart, rullende trender, enhetsdiagnostikk og hendelseslogg.',
+  'hmi.explainer.title': 'Hva denne demoen viser',
+  'hmi.explainer.hmiTitle': 'HMI-design i Operatørklasse',
+  'hmi.explainer.hmiBody': 'Bygget på prinsipper for høyytelses-HMI: dempet grunnpalett slik at farge alltid bærer mening, alarmfarger strengt forbeholdt unormale tilstander, monospaced tabulær telemetri, og oppsett som gir flåtestatus i ett blikk.',
+  'hmi.explainer.telemetryTitle': 'Live Telemetri & Trender',
+  'hmi.explainer.telemetryBody': 'Verdier strømmer i 10 Hz inn i en trend med fast vindu som ruller som en papirskriver — med valgbare tidsvinduer, serievalg per enhet og 5-minutters min/maks-markører på hvert instrument.',
+  'hmi.explainer.alarmTitle': 'Alarmfilosofi',
+  'hmi.explainer.alarmBody': 'Tydelig alvorlighetssemantikk hele veien: drift-, varsel- og frakoblet-tilstander forplanter seg fra enhetssymboler til KPI-er, alarmbanner og en tidsstemplet hendelseslogg — samme disiplin som i reelle alarmsystem-leveranser.',
 
   // Data Analysis
   'dataAnalysis.title': 'Dataanalyse',
-  'dataAnalysis.subtitle': 'Historisk ytelsesanalyse for offshore bølgegeneratorer',
+  'dataAnalysis.subtitle': 'Historisk ytelsesanalyse for en offshore bølgegenerator-park — korrelasjoner, avviksdeteksjon, statistikk, varmekart og vedlikeholdsinnsikt på 90 dager med historikkdata.',
+  'dataAnalysis.statusBar': 'HISTORIKK — ANALYSE',
+  'dataAnalysis.station': 'Bølgegenerator-park — Nordsjøen 7G',
+  'dataAnalysis.samples': 'Datasett',
+  'dataAnalysis.exportCsv': 'Eksporter CSV',
+  'dataAnalysis.explainer.title': 'Hva denne demoen viser',
+  'dataAnalysis.explainer.exploreTitle': 'Utforskende Analyse',
+  'dataAnalysis.explainer.exploreBody': 'Dra-for-å-zoome og børstenavigasjon på stablet effektdata, periodesammenligning, spredningskorrelasjoner mellom miljø og produksjon, og fleraksede overlegg — verktøyene for å finne ut hvorfor produksjonen endret seg.',
+  'dataAnalysis.explainer.anomalyTitle': 'Avviksdeteksjon',
+  'dataAnalysis.explainer.anomalyBody': 'Vibrasjon og lagertemperatur kjøres gjennom rullerende middelverdi ± sigma-bånd for å flagge avvik tidlig — den statistiske ryggraden i tilstandsovervåking og prediktivt vedlikehold.',
+  'dataAnalysis.explainer.maintTitle': 'Fra Data til Vedlikehold',
+  'dataAnalysis.explainer.maintBody': 'Flåte-KPI-er som MTBF og tilgjengelighet, en vedlikeholdsplan matet av analysene, og CSV-eksport med ett klikk — historikkdata omsatt til vedlikeholdsbeslutninger.',
 
   // Common
 
