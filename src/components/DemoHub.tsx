@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Zap, Crosshair, Construction, Gauge, LineChart } from "lucide-react";
+import { ArrowRight, Zap, Crosshair, Construction, Flame, Gauge, LineChart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
 
@@ -124,6 +124,34 @@ const PreviewData = () => (
   </svg>
 );
 
+const PreviewEngine = () => (
+  <svg viewBox="0 0 200 110" className="w-full h-full">
+    {/* Engine block + cylinder temp bars */}
+    <rect x={56} y={42} width={88} height={42} rx={3} fill="none" stroke="hsl(200,100%,60%)" strokeWidth={1.4} strokeOpacity={0.9} />
+    {[0, 1, 2, 3, 4, 5].map((i) => (
+      <rect key={i} x={62 + i * 13} y={18} width={8} height={20} rx={1}
+        fill="hsl(38,85%,60%)" fillOpacity={0.35} stroke="hsl(38,85%,60%)" strokeWidth={0.8}
+        className="demo-bar" style={{ transformOrigin: `${66 + i * 13}px 38px`, animationDelay: `${i * -0.5}s` }} />
+    ))}
+    {/* Pipes with flow */}
+    <path d="M 144 70 L 178 70 L 178 40" fill="none" stroke="hsl(38,85%,60%)" strokeOpacity={0.35} strokeWidth={1.4} />
+    <path d="M 144 70 L 178 70 L 178 40" fill="none" stroke="hsl(38,85%,60%)" strokeWidth={1.4}
+      strokeDasharray="2 7" strokeLinecap="round" className="sld-flow" />
+    <path d="M 56 56 L 22 56 L 22 86 L 56 86" fill="none" stroke="hsl(180,90%,55%)" strokeOpacity={0.35} strokeWidth={1.4} />
+    <path d="M 56 56 L 22 56 L 22 86 L 56 86" fill="none" stroke="hsl(180,90%,55%)" strokeWidth={1.4}
+      strokeDasharray="2 7" strokeLinecap="round" className="sld-flow" style={{ animationDelay: "-0.6s" }} />
+    {/* Pump */}
+    <circle cx={38} cy={86} r={7} fill="none" stroke="hsl(180,90%,55%)" strokeWidth={1.2} />
+    <circle cx={38} cy={86} r={10} fill="none" stroke="hsl(180,90%,55%)" strokeWidth={0.7} strokeOpacity={0.5}
+      strokeDasharray="3 7" className="sld-spin" style={{ transformOrigin: "38px 86px" }} />
+    {/* Alarm dot */}
+    <circle cx={166} cy={94} r={3.5} fill="hsl(0,75%,60%)">
+      <animate attributeName="opacity" values="1;0.3;1" dur="1.3s" repeatCount="indefinite" />
+    </circle>
+    <text x={160} y={97} textAnchor="end" fontSize={7} fontFamily="monospace" fill="hsl(0,75%,65%)">ALM</text>
+  </svg>
+);
+
 /* ── Section ── */
 
 const DemoHub = () => {
@@ -155,6 +183,15 @@ const DemoHub = () => {
       title: t("demos.crane.title"),
       desc: t("demos.crane.desc"),
       tags: t("demos.crane.tags").split("|"),
+      featured: false,
+    },
+    {
+      to: "/engine-room",
+      icon: Flame,
+      preview: <PreviewEngine />,
+      title: t("demos.engine.title"),
+      desc: t("demos.engine.desc"),
+      tags: t("demos.engine.tags").split("|"),
       featured: false,
     },
     {
@@ -191,11 +228,11 @@ const DemoHub = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t("demos.description")}</p>
         </AnimatedSection>
 
-        <StaggerContainer className="grid grid-cols-1 md:grid-cols-6 gap-6" staggerDelay={0.1}>
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-12 gap-6" staggerDelay={0.1}>
           {demos.map((demo) => (
             <StaggerItem
               key={demo.to}
-              className={demo.featured ? "md:col-span-3" : "md:col-span-3 lg:col-span-2"}
+              className={demo.featured ? "md:col-span-6" : "md:col-span-6 lg:col-span-3"}
             >
               <Link to={demo.to} className="block h-full group">
                 <div className="glass-effect hover-lift rounded-xl border-border/30 hover:border-primary/30 border overflow-hidden h-full flex flex-col transition-colors duration-300">

@@ -7,6 +7,7 @@ import { Download, Zap, Activity, BarChart3, TrendingUp, TrendingDown, Gauge, Th
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import DemoExplainer from '@/components/hmi/DemoExplainer';
+import DemoPagerNav from '@/components/DemoPagerNav';
 import AdvancedFilters, { FilterConfig } from '@/components/charts/AdvancedFilters';
 import CorrelationChart from '@/components/charts/CorrelationChart';
 import MultiAxisChart from '@/components/charts/MultiAxisChart';
@@ -603,6 +604,7 @@ export default function DataAnalysis() {
               { title: t('dataAnalysis.explainer.maintTitle'), body: t('dataAnalysis.explainer.maintBody') },
             ]}
           />
+          <DemoPagerNav />
         </div>
       </div>
       </div>

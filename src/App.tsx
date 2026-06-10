@@ -13,6 +13,7 @@ const DataAnalysis = lazy(() => import("./pages/DataAnalysis"));
 const LiveDemo = lazy(() => import("./pages/LiveDemo"));
 const PMSDemo = lazy(() => import("./pages/PMSDemo"));
 const DPDemo = lazy(() => import("./pages/DPDemo"));
+const EngineRoom = lazy(() => import("./pages/EngineRoom"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/live-demo" element={<LiveDemo />} />
                 <Route path="/pms" element={<PMSDemo />} />
                 <Route path="/dp" element={<DPDemo />} />
+                <Route path="/engine-room" element={<EngineRoom />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

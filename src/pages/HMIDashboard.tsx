@@ -9,6 +9,7 @@ import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import OceanMap from "@/components/hmi/OceanMap";
 import DemoExplainer from "@/components/hmi/DemoExplainer";
+import DemoPagerNav from "@/components/DemoPagerNav";
 
 type LogSev = "ok" | "info" | "warn" | "err";
 interface LogEvent {
@@ -707,6 +708,7 @@ const HMIDashboard = () => {
               { title: t("hmi.explainer.alarmTitle"), body: t("hmi.explainer.alarmBody") },
             ]}
           />
+          <DemoPagerNav />
         </div>
       </div>
     </div>

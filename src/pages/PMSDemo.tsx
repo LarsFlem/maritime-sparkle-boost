@@ -6,6 +6,7 @@ import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import GaugeCircular from "@/components/hmi/GaugeCircular";
 import DemoExplainer from "@/components/hmi/DemoExplainer";
+import DemoPagerNav from "@/components/DemoPagerNav";
 import SingleLineDiagram from "@/components/pms/SingleLineDiagram";
 import Synchroscope from "@/components/pms/Synchroscope";
 import GensetCard from "@/components/pms/GensetCard";
@@ -750,6 +751,7 @@ const PMSDemo = () => {
               { title: t("pms.explainer.boTitle"), body: t("pms.explainer.boBody") },
             ]}
           />
+          <DemoPagerNav />
         </div>
       </div>
     </div>

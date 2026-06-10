@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Zap, Crosshair, Construction, Gauge, LineChart, LayoutGrid } from "lucide-react";
+import { Menu, X, ChevronDown, Zap, Crosshair, Construction, Flame, Gauge, LineChart, LayoutGrid } from "lucide-react";
 import logoImg from "@/assets/maritime-automation-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -45,6 +45,7 @@ const Navbar = () => {
     { label: t('nav.pms'), to: "/pms", icon: Zap },
     { label: t('nav.dp'), to: "/dp", icon: Crosshair },
     { label: t('nav.liveDemo'), to: "/live-demo", icon: Construction },
+    { label: t('nav.engine'), to: "/engine-room", icon: Flame },
     { label: t('nav.hmi'), to: "/hmi", icon: Gauge },
     { label: t('nav.dataAnalysis'), to: "/data-analysis", icon: LineChart },
   ];

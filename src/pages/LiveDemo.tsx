@@ -10,6 +10,7 @@ import CraneTelemetry from "@/components/live-demo/CraneTelemetry";
 import CraneTrend, { TrendPoint } from "@/components/live-demo/CraneTrend";
 import CraneAlarms, { CraneAlarm } from "@/components/live-demo/CraneAlarms";
 import CraneExplainer from "@/components/live-demo/CraneExplainer";
+import DemoPagerNav from "@/components/DemoPagerNav";
 import {
   craneFk, craneIk, swlAt, inSector,
   SLEW_MIN, SLEW_MAX, MAIN_MIN, MAIN_MAX, JIB_MIN, JIB_MAX, WIRE_MIN, WIRE_MAX,
@@ -656,6 +657,7 @@ const LiveDemo = () => {
             }}
           />
         </HMIPanel>
+        <DemoPagerNav />
       </div>
       </div>
     </div>

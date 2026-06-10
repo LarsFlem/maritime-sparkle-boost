@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import HMIPanel from "@/components/hmi/HMIPanel";
 import DigitalDisplay from "@/components/hmi/DigitalDisplay";
 import DemoExplainer from "@/components/hmi/DemoExplainer";
+import DemoPagerNav from "@/components/DemoPagerNav";
 import { Slider } from "@/components/ui/slider";
 import DPScene, { TrailPoint } from "@/components/dp/DPScene";
 import ThrusterPanel, { ThrusterView } from "@/components/dp/ThrusterPanel";
@@ -562,6 +563,7 @@ const DPDemo = () => {
               { title: t("dp.explainer.redundancyTitle"), body: t("dp.explainer.redundancyBody") },
             ]}
           />
+          <DemoPagerNav />
         </div>
       </div>
     </div>
