@@ -1,274 +1,314 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Radio } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import HMIPanel from "@/components/hmi/HMIPanel";
 import StatusIndicator from "@/components/hmi/StatusIndicator";
 import CraneScene from "@/components/live-demo/CraneScene";
-import CraneSequencePanel, {
-  CraneMode,
-  SequenceStep,
-} from "@/components/live-demo/CraneSequencePanel";
+import CraneSequencePanel, { CraneMode, SequenceStep } from "@/components/live-demo/CraneSequencePanel";
 import CraneTelemetry from "@/components/live-demo/CraneTelemetry";
 import CraneTrend, { TrendPoint } from "@/components/live-demo/CraneTrend";
 import CraneAlarms, { CraneAlarm } from "@/components/live-demo/CraneAlarms";
 import CraneExplainer from "@/components/live-demo/CraneExplainer";
+import {
+  craneFk, craneIk, swlAt, inSector,
+  SLEW_MIN, SLEW_MAX, MAIN_MIN, MAIN_MAX, JIB_MIN, JIB_MAX, WIRE_MIN, WIRE_MAX,
+  CONTAINER_T, CONTAINER_H_M, SWL_RATED_T,
+  PICKUP_SLEW, LANDING_SLEW, PICKUP_R, LANDING_R, BARGE_DECK_Z,
+} from "@/components/live-demo/craneModel";
 
 // --- Sim constants ---
-const TICK_MS = 100;            // 10 Hz sim
+const TICK_MS = 100; // 10 Hz
 const TREND_WINDOW_S = 60;
 const TREND_CAPACITY = (TREND_WINDOW_S * 1000) / TICK_MS;
 
-const SLEW_RATE = 14;           // %/s rate-limit
-const HOIST_RATE = 22;          // %/s rate-limit
-const RATED_CAPACITY_T = 12;    // tonnes
+// Axis dynamics: max speed + acceleration per axis (real units/s)
+const AXIS_DYN = {
+  slew: { vmax: 9, acc: 6 },     // °/s, °/s²
+  main: { vmax: 3.5, acc: 2.2 }, // °/s
+  jib: { vmax: 6, acc: 4.5 },    // °/s
+  wire: { vmax: 1.5, acc: 1.8 }, // m/s
+};
 
-// Anti-sway: low-pass smoothing time constant on commands.
-const SMOOTH_TAU_MANUAL = 0.05; // ~unfiltered
-const SMOOTH_TAU_SEMI = 0.7;    // strong smoothing for anti-sway
-const SMOOTH_TAU_AUTO = 0.5;    // moderate (sequence still has to complete)
+// Anti-sway command smoothing (s) per mode — slew is the sway driver.
+const TAU = {
+  manual: { slew: 0.06, other: 0.05 },
+  semi: { slew: 1.1, other: 0.45 },
+  auto: { slew: 0.6, other: 0.3 },
+};
 
-// Auto sequence step durations in seconds. Targets sized so motion + smoothing
-// settle comfortably inside each step at the rate limits above.
-const AUTO_STEPS = [
-  { id: "pickup_lower", durS: 4.0, slewTarget: 0,   hoistTarget: 0   },
-  { id: "pickup_lift",  durS: 4.0, slewTarget: 0,   hoistTarget: 70  },
-  { id: "slew",         durS: 9.0, slewTarget: 100, hoistTarget: 70  },
-  { id: "setdown",      durS: 4.0, slewTarget: 100, hoistTarget: 0   },
-  { id: "return",       durS: 8.0, slewTarget: 0,   hoistTarget: 50  },
-] as const;
+// Auto-sequence working points — all verified reachable inside the axis
+// limits via craneIk (main ≤ 80°, fold ≤ 150°).
+const HOVER_Z = 5.4;     // hook hover above deck container
+const TRANSIT_Z = 7.5;   // hook height while slewing
+const PICKUP_TIP = { r: PICKUP_R, z: 10.5 };
+const LANDING_TIP = { r: LANDING_R, z: 12.5 };
+const LAND_HOOK_Z = BARGE_DECK_Z + CONTAINER_H_M; // hook when container sits on barge
 
-const TOTAL_AUTO_S = AUTO_STEPS.reduce((s, st) => s + st.durS, 0);
+// Initial pose = IK solution for the pickup tip position
+const INIT = { slew: PICKUP_SLEW, main: 79, jib: 136, wire: 5 };
 
 const formatClock = (ms: number) => {
   const d = new Date(ms);
-  return `${d.getHours().toString().padStart(2, "0")}:${d
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
 };
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const rad = (d: number) => (d * Math.PI) / 180;
+
+/** Trapezoidal axis drive: accel-limited velocity toward a clamped velocity command. */
+const drive = (
+  pos: number, vel: number, target: number,
+  dyn: { vmax: number; acc: number }, dt: number, enabled: boolean
+): [number, number] => {
+  const vCmd = enabled ? clamp((target - pos) * 1.8, -dyn.vmax, dyn.vmax) : 0;
+  const newVel = vel + clamp(vCmd - vel, -dyn.acc * dt * (enabled ? 1 : 2), dyn.acc * dt * (enabled ? 1 : 2));
+  return [pos + newVel * dt, newVel];
+};
+
+const STEP_IDS = ["position", "lower", "connect", "hoist", "slewBarge", "land", "release"] as const;
 
 const LiveDemo = () => {
   const { t } = useLanguage();
 
-  // --- Plant state (refs for tight inner loop, mirrored to React state for render) ---
   const stateRef = useRef({
-    slewPct: 0,           // actual position
-    hoistPct: 50,         // start at neutral cruise
-    cmdSlew: 0,           // raw command (slider or auto)
-    cmdHoist: 50,
-    smCmdSlew: 0,         // smoothed (anti-sway) command
-    smCmdHoist: 50,
-    swayDeg: 0,
-    swayVel: 0,
-    prevTrolleyX: 0,
-    trolleyVel: 0,
-    windKt: 18,
-    windPhase: 0,
-    hydraulicBar: 195,
-    motorTorque: 0,
+    slew: INIT.slew, slewV: 0,
+    main: INIT.main, mainV: 0,
+    jib: INIT.jib, jibV: 0,
+    wire: INIT.wire, wireV: 0,
+    smSlew: INIT.slew, smMain: INIT.main, smJib: INIT.jib, smWire: INIT.wire,
+    swayRad: 0, swayVel: 0,
+    prevTipX: 0, prevTipVel: 0,
+    hookLoadT: 0,
     cargoState: "deck" as "deck" | "carried" | "landed",
-    autoElapsedS: 0,
-    autoStepIndex: 0,
-    autoCycleCount: 0,
+    connectT: 0,
+    windKt: 18, windPhase: 0,
+    hydraulicBar: 195, motorTorque: 0,
+    autoStep: 0, autoCycleCount: 0, stepEntryDist: 1,
     waterPhase: 0,
   });
 
   const [mode, setMode] = useState<CraneMode>("auto");
   const [running, setRunning] = useState(false);
   const [eStop, setEStop] = useState(false);
-  const [cmdSlewUI, setCmdSlewUI] = useState(0);
-  const [cmdHoistUI, setCmdHoistUI] = useState(50);
+  const [cmdSlew, setCmdSlew] = useState(INIT.slew);
+  const [cmdMain, setCmdMain] = useState(INIT.main);
+  const [cmdJib, setCmdJib] = useState(INIT.jib);
+  const [cmdWire, setCmdWire] = useState(INIT.wire);
+  const cmdRef = useRef({ ...INIT });
+  useEffect(() => { cmdRef.current = { slew: cmdSlew, main: cmdMain, jib: cmdJib, wire: cmdWire }; },
+    [cmdSlew, cmdMain, cmdJib, cmdWire]);
 
-  // Render-driving state (updated every tick).
-  const [render, setRender] = useState({
-    slewPct: 0,
-    hoistPct: 50,
-    swayDeg: 0,
+  const [render, setRender] = useState(() => ({
+    slew: INIT.slew, main: INIT.main, jib: INIT.jib, wire: INIT.wire,
+    swayDeg: 0, deflectDeg: 0, hookLoadT: 0,
     cargoState: "deck" as "deck" | "carried" | "landed",
-    windKt: 18,
-    hydraulicBar: 195,
-    motorTorque: 0,
-    autoStepIndex: 0,
-    autoStepProgress: 0,
-    autoCycleCount: 0,
-    waterPhase: 0,
-  });
+    windKt: 18, hydraulicBar: 195,
+    outreach: 0, hookZ: 0, swl: SWL_RATED_T,
+    autoStep: 0, stepProgress: 0, cycles: 0, waterPhase: 0,
+  }));
 
   const [trend, setTrend] = useState<TrendPoint[]>(() => {
     const now = Date.now();
-    const arr: TrendPoint[] = [];
-    for (let i = TREND_CAPACITY - 1; i >= 0; i--) {
-      arr.push({ t: now - i * TICK_MS, load: null, sway: null });
-    }
-    return arr;
+    return Array.from({ length: TREND_CAPACITY }, (_, i) => ({
+      t: now - (TREND_CAPACITY - 1 - i) * TICK_MS, load: null, sway: null,
+    }));
   });
 
   const alarmStartRef = useRef<Record<string, number>>({});
-
-  // Push UI commands into state ref.
-  useEffect(() => {
-    stateRef.current.cmdSlew = cmdSlewUI;
-  }, [cmdSlewUI]);
-  useEffect(() => {
-    stateRef.current.cmdHoist = cmdHoistUI;
-  }, [cmdHoistUI]);
-
-  // Reset auto progression when mode changes.
-  useEffect(() => {
-    if (mode === "auto") {
-      stateRef.current.autoElapsedS = 0;
-      stateRef.current.autoStepIndex = 0;
-    }
-  }, [mode]);
 
   // --- Sim loop ---
   useEffect(() => {
     const interval = setInterval(() => {
       const dt = TICK_MS / 1000;
       const s = stateRef.current;
+      const moveAllowed = running && !eStop;
 
-      // 1. Wind: slow sin + noise. Range ~10..38 kt typical.
+      // 1. Wind
       s.windPhase += dt * 0.06;
       const baseWind = 18 + Math.sin(s.windPhase * 2 * Math.PI) * 9 + Math.sin(s.windPhase * 7) * 3;
       s.windKt = Math.max(0, baseWind + (Math.random() - 0.5) * 1.2);
 
-      // 2. Determine commands depending on mode.
-      let cmdSlew = s.cmdSlew;
-      let cmdHoist = s.cmdHoist;
+      // 2. Targets per mode
+      let tSlew = s.smSlew, tMain = s.smMain, tJib = s.smJib, tWire = s.smWire;
+      let rawSlew = cmdRef.current.slew;
+      let rawMain = cmdRef.current.main;
+      let rawJib = cmdRef.current.jib;
+      let rawWire = cmdRef.current.wire;
 
-      if (mode === "auto" && running && !eStop) {
-        s.autoElapsedS += dt;
-        // Find current auto step.
-        let acc = 0;
-        let stepIdx = 0;
-        for (let i = 0; i < AUTO_STEPS.length; i++) {
-          if (s.autoElapsedS < acc + AUTO_STEPS[i].durS) {
-            stepIdx = i;
+      const fkNow = craneFk(s.main, s.jib);
+      const hookZNow = fkNow.tz - s.wire;
+
+      if (mode === "auto" && moveAllowed) {
+        // Condition-based sequence — each step drives targets and completes
+        // on measured position, not on a timer.
+        const ikPickup = craneIk(PICKUP_TIP.r, PICKUP_TIP.z);
+        const ikLanding = craneIk(LANDING_TIP.r, LANDING_TIP.z);
+        switch (s.autoStep) {
+          case 0: { // position over pickup
+            rawSlew = PICKUP_SLEW; rawMain = ikPickup.mainDeg; rawJib = ikPickup.jibFoldDeg;
+            rawWire = clamp(fkNow.tz - HOVER_Z, WIRE_MIN, WIRE_MAX);
+            const dist = Math.abs(s.slew - PICKUP_SLEW) / 9 + Math.abs(fkNow.tx - PICKUP_R) + Math.abs(hookZNow - HOVER_Z) / 2;
+            if (dist < 0.45) { s.autoStep = 1; s.stepEntryDist = 1; }
+            else if (s.stepEntryDist === 1) s.stepEntryDist = Math.max(1, dist);
             break;
           }
-          acc += AUTO_STEPS[i].durS;
-          stepIdx = i + 1;
+          case 1: { // lower onto container
+            rawSlew = PICKUP_SLEW; rawMain = ikPickup.mainDeg; rawJib = ikPickup.jibFoldDeg;
+            rawWire = clamp(fkNow.tz - CONTAINER_H_M, WIRE_MIN, WIRE_MAX);
+            if (hookZNow <= CONTAINER_H_M + 0.08) { s.autoStep = 2; s.connectT = 0; }
+            break;
+          }
+          case 2: { // connect — twist-locks + load transfer
+            rawSlew = s.slew; rawMain = s.main; rawJib = s.jib; rawWire = s.wire;
+            s.connectT += dt;
+            if (s.connectT >= 1.4) { s.cargoState = "carried"; s.autoStep = 3; }
+            break;
+          }
+          case 3: { // hoist clear
+            rawSlew = PICKUP_SLEW; rawMain = ikPickup.mainDeg; rawJib = ikPickup.jibFoldDeg;
+            rawWire = clamp(fkNow.tz - TRANSIT_Z, WIRE_MIN, WIRE_MAX);
+            if (hookZNow >= TRANSIT_Z - 0.3) s.autoStep = 4;
+            break;
+          }
+          case 4: { // slew + reach out to barge
+            rawSlew = LANDING_SLEW; rawMain = ikLanding.mainDeg; rawJib = ikLanding.jibFoldDeg;
+            rawWire = clamp(fkNow.tz - TRANSIT_Z, WIRE_MIN, WIRE_MAX);
+            if (Math.abs(s.slew - LANDING_SLEW) < 1.2 && Math.abs(fkNow.tx - LANDING_R) < 0.4) s.autoStep = 5;
+            break;
+          }
+          case 5: { // lower to barge deck
+            rawSlew = LANDING_SLEW; rawMain = ikLanding.mainDeg; rawJib = ikLanding.jibFoldDeg;
+            rawWire = clamp(fkNow.tz - LAND_HOOK_Z, WIRE_MIN, WIRE_MAX);
+            if (hookZNow <= LAND_HOOK_Z + 0.08) { s.cargoState = "landed"; s.autoStep = 6; s.connectT = 0; }
+            break;
+          }
+          case 6: { // release + return empty
+            s.connectT += dt;
+            if (s.connectT < 1.0) {
+              rawSlew = s.slew; rawMain = s.main; rawJib = s.jib; rawWire = s.wire;
+            } else {
+              const clear = hookZNow >= TRANSIT_Z - 2.5;
+              rawWire = clamp(fkNow.tz - TRANSIT_Z, WIRE_MIN, WIRE_MAX);
+              rawSlew = clear ? PICKUP_SLEW : s.slew;
+              rawMain = clear ? ikPickup.mainDeg : s.main;
+              rawJib = clear ? ikPickup.jibFoldDeg : s.jib;
+              if (Math.abs(s.slew - PICKUP_SLEW) < 2 && hookZNow > HOVER_Z - 0.6) {
+                s.autoStep = 0;
+                s.autoCycleCount += 1;
+                s.cargoState = "deck"; // next container staged on deck
+              }
+            }
+            break;
+          }
         }
-        if (stepIdx >= AUTO_STEPS.length) {
-          // Cycle complete — reset.
-          s.autoElapsedS = 0;
-          s.autoCycleCount += 1;
-          s.cargoState = "deck"; // fresh container appears
-          stepIdx = 0;
-        }
-        s.autoStepIndex = stepIdx;
-        const step = AUTO_STEPS[stepIdx];
-        cmdSlew = step.slewTarget;
-        cmdHoist = step.hoistTarget;
-
-        // Cargo state transitions
-        if (step.id === "pickup_lower") {
-          // Approaching deck for pickup
-          s.cargoState = "deck";
-        } else if (step.id === "pickup_lift") {
-          // We've grabbed the container
-          if (s.hoistPct < 5) s.cargoState = "carried";
-        } else if (step.id === "slew") {
-          s.cargoState = "carried";
-        } else if (step.id === "setdown") {
-          // We release once near deck
-          if (s.hoistPct < 5) s.cargoState = "landed";
-        } else if (step.id === "return") {
-          // Container stays landed; hook returns empty
-          s.cargoState = "landed";
-        }
-      } else if (!running || eStop) {
-        // No motion command when stopped.
-        // (slider commands held but motion drained by rate limit)
       }
 
-      // 3. Anti-sway smoothing: low-pass filter on commands. Manual mode = nearly transparent.
-      const tau = mode === "manual" ? SMOOTH_TAU_MANUAL : mode === "semi" ? SMOOTH_TAU_SEMI : SMOOTH_TAU_AUTO;
-      const alpha = 1 - Math.exp(-dt / tau);
-      s.smCmdSlew += (cmdSlew - s.smCmdSlew) * alpha;
-      s.smCmdHoist += (cmdHoist - s.smCmdHoist) * alpha;
+      // 3. Anti-sway smoothing on targets
+      const tau = TAU[mode];
+      const aSlew = 1 - Math.exp(-dt / tau.slew);
+      const aOther = 1 - Math.exp(-dt / tau.other);
+      s.smSlew += (rawSlew - s.smSlew) * aSlew;
+      s.smMain += (rawMain - s.smMain) * aOther;
+      s.smJib += (rawJib - s.smJib) * aOther;
+      s.smWire += (rawWire - s.smWire) * aOther;
+      tSlew = clamp(s.smSlew, SLEW_MIN, SLEW_MAX);
+      tMain = clamp(s.smMain, MAIN_MIN, MAIN_MAX);
+      tJib = clamp(s.smJib, JIB_MIN, JIB_MAX);
+      tWire = clamp(s.smWire, WIRE_MIN, WIRE_MAX);
 
-      // 4. Rate-limited motion toward smoothed command.
-      const moveAllowed = running && !eStop;
-      if (moveAllowed) {
-        const slewMax = SLEW_RATE * dt;
-        const hoistMax = HOIST_RATE * dt;
-        const slewErr = s.smCmdSlew - s.slewPct;
-        const hoistErr = s.smCmdHoist - s.hoistPct;
-        s.slewPct += Math.max(-slewMax, Math.min(slewMax, slewErr));
-        s.hoistPct += Math.max(-hoistMax, Math.min(hoistMax, hoistErr));
-      }
+      // 4. Accel-limited axis motion
+      const prevSlewV = s.slewV;
+      [s.slew, s.slewV] = drive(s.slew, s.slewV, tSlew, AXIS_DYN.slew, dt, moveAllowed);
+      [s.main, s.mainV] = drive(s.main, s.mainV, tMain, AXIS_DYN.main, dt, moveAllowed);
+      [s.jib, s.jibV] = drive(s.jib, s.jibV, tJib, AXIS_DYN.jib, dt, moveAllowed);
+      [s.wire, s.wireV] = drive(s.wire, s.wireV, tWire, AXIS_DYN.wire, dt, moveAllowed);
 
-      // 5. Sway pendulum. Cable longer when hoistPct low (container near deck).
-      const cableLen = 3 + (1 - s.hoistPct / 100) * 9; // 3..12 m
-      const omega2 = 9.81 / cableLen;
-
-      // Trolley horizontal position derives from slew. Approximate: trolleyX in metres, span 24m.
-      const trolleyX = -s.slewPct * 0.24; // negative = leftward (toward landing)
-      const trolleyVel = (trolleyX - s.prevTrolleyX) / dt;
-      const trolleyAcc = (trolleyVel - s.trolleyVel) / dt;
-      s.prevTrolleyX = trolleyX;
-      s.trolleyVel = trolleyVel;
-
-      // Wind-induced sway force (unitless, scaled).
-      const windForce = (s.windKt - 18) * 0.0015;
-      // Trolley acceleration injects pendulum disturbance.
-      const accForce = -trolleyAcc * 0.04;
-
-      const damping = 0.7;
-      const swayRad = (s.swayDeg * Math.PI) / 180;
-      const swayAcc = -omega2 * Math.sin(swayRad) - damping * s.swayVel + windForce + accForce;
+      // 5. Pendulum sway, forced by jib-tip acceleration (in-plane) and
+      //    slew tangential acceleration (injected as equivalent disturbance).
+      const fk = craneFk(s.main, s.jib);
+      const tipVel = (fk.tx - s.prevTipX) / dt;
+      const tipAcc = (tipVel - s.prevTipVel) / dt;
+      s.prevTipX = fk.tx;
+      s.prevTipVel = tipVel;
+      const slewTangAcc = ((s.slewV - prevSlewV) / dt) * rad(1) * fk.tx; // m/s² at the tip
+      const wireLen = Math.max(1.5, s.wire);
+      const omega2 = 9.81 / wireLen;
+      const damping = 0.22 + (s.wire < 3 ? 1.0 : 0) + (s.cargoState !== "carried" ? 0.25 : 0);
+      const windForce = (s.windKt - 18) * 0.0012;
+      const forcing = -(tipAcc * 0.55 + slewTangAcc * 0.45) * Math.cos(s.swayRad) / wireLen;
+      const swayAcc = -omega2 * Math.sin(s.swayRad) - damping * s.swayVel + forcing + windForce;
       s.swayVel += swayAcc * dt;
-      const newSwayRad = swayRad + s.swayVel * dt;
-      s.swayDeg = (newSwayRad * 180) / Math.PI;
-      // Hard clamp for sanity
-      if (s.swayDeg > 30) {
-        s.swayDeg = 30;
-        s.swayVel = 0;
-      } else if (s.swayDeg < -30) {
-        s.swayDeg = -30;
-        s.swayVel = 0;
+      s.swayRad += s.swayVel * dt;
+      const maxSway = rad(25);
+      if (s.swayRad > maxSway) { s.swayRad = maxSway; s.swayVel = 0; }
+      if (s.swayRad < -maxSway) { s.swayRad = -maxSway; s.swayVel = 0; }
+
+      // 6. Hook load: ramps during connect/release, dynamic factor while carried
+      if (s.cargoState === "carried") {
+        // Dynamic amplification on the load cell — modest, like a real crane
+        const dyn = 1 + Math.abs(s.swayVel) * 0.16 + Math.abs(s.wireV) * 0.05;
+        const target = CONTAINER_T * dyn;
+        s.hookLoadT += (target - s.hookLoadT) * 0.25 + (Math.random() - 0.5) * 0.04;
+      } else if (mode === "auto" && s.autoStep === 2) {
+        s.hookLoadT = CONTAINER_T * clamp(s.connectT / 1.2, 0, 1); // load transfer
+      } else {
+        s.hookLoadT *= 0.78; // release / slack
+        if (s.hookLoadT < 0.05) s.hookLoadT = 0;
       }
 
-      // 6. Hydraulic pressure responds to motor demand.
-      const demand = (Math.abs(s.smCmdSlew - s.slewPct) + Math.abs(s.smCmdHoist - s.hoistPct)) / 2;
-      s.motorTorque = Math.min(100, demand * 4 + (s.cargoState === "carried" ? 25 : 0));
-      const targetBar = 195 + (s.motorTorque / 100) * 35 - (running ? 0 : 8);
+      // 7. Hydraulics: demand from axis motion + held load moment
+      const demand =
+        Math.abs(s.slewV) / AXIS_DYN.slew.vmax +
+        Math.abs(s.mainV) / AXIS_DYN.main.vmax +
+        Math.abs(s.jibV) / AXIS_DYN.jib.vmax +
+        Math.abs(s.wireV) / AXIS_DYN.wire.vmax;
+      s.motorTorque = Math.min(100, demand * 38 + (s.hookLoadT / SWL_RATED_T) * 30);
+      const targetBar = 192 + s.motorTorque * 0.42 + s.hookLoadT * 1.6 - (running ? 0 : 7);
       s.hydraulicBar += (targetBar - s.hydraulicBar) * 0.15 + (Math.random() - 0.5) * 0.6;
 
-      // 7. Water animation phase
+      // 8. Water + step progress
       s.waterPhase = (s.waterPhase + dt * 0.18) % 1;
+      let stepProgress = 0;
+      if (mode === "auto") {
+        if (s.autoStep === 2) stepProgress = clamp(s.connectT / 1.4, 0, 1);
+        else if (s.autoStep === 6) stepProgress = clamp(s.connectT / 3.5, 0, 1);
+        else {
+          // distance-based estimate toward the step's done condition
+          const hookZ = fk.tz - s.wire;
+          const targets: Record<number, number> = {
+            0: Math.abs(s.slew - PICKUP_SLEW) / 9 + Math.abs(fk.tx - PICKUP_R) + Math.abs(hookZ - HOVER_Z) / 2,
+            1: Math.abs(hookZ - CONTAINER_H_M),
+            3: Math.abs(hookZ - TRANSIT_Z),
+            4: Math.abs(s.slew - LANDING_SLEW) / 9 + Math.abs(fk.tx - LANDING_R),
+            5: Math.abs(hookZ - LAND_HOOK_Z),
+          };
+          const d = targets[s.autoStep] ?? 0;
+          if (d > s.stepEntryDist) s.stepEntryDist = d;
+          stepProgress = s.stepEntryDist > 0.01 ? clamp(1 - d / s.stepEntryDist, 0, 1) : 1;
+        }
+      }
 
-      // 8. Manual-mode commands (apply pending UI values to actual setpoints in a bit smoother way)
-      // (Already done via stateRef writes from useEffect.)
+      // 9. Elastic deflection under load (visual)
+      const deflectDeg = -(s.hookLoadT / SWL_RATED_T) * 0.9 * (fk.tx / (16 + 11));
 
-      // 9. Mirror to React render state.
-      const stepDuration = AUTO_STEPS[s.autoStepIndex]?.durS ?? 1;
-      let stepStart = 0;
-      for (let i = 0; i < s.autoStepIndex; i++) stepStart += AUTO_STEPS[i].durS;
-      const stepProgress = Math.min(1, Math.max(0, (s.autoElapsedS - stepStart) / stepDuration));
-
+      // 10. Mirror to render state
+      const swayDeg = (s.swayRad * 180) / Math.PI;
+      const hookZ = fk.tz - s.wire * Math.cos(s.swayRad);
       setRender({
-        slewPct: s.slewPct,
-        hoistPct: s.hoistPct,
-        swayDeg: s.swayDeg,
+        slew: s.slew, main: s.main, jib: s.jib, wire: s.wire,
+        swayDeg, deflectDeg, hookLoadT: s.hookLoadT,
         cargoState: s.cargoState,
-        windKt: s.windKt,
-        hydraulicBar: s.hydraulicBar,
-        motorTorque: s.motorTorque,
-        autoStepIndex: s.autoStepIndex,
-        autoStepProgress: stepProgress,
-        autoCycleCount: s.autoCycleCount,
+        windKt: s.windKt, hydraulicBar: s.hydraulicBar,
+        outreach: fk.tx, hookZ, swl: swlAt(fk.tx),
+        autoStep: s.autoStep, stepProgress, cycles: s.autoCycleCount,
         waterPhase: s.waterPhase,
       });
 
-      // 10. Push trend point.
+      // 11. Trend
       const now = Date.now();
-      const loadT = s.cargoState === "carried" ? RATED_CAPACITY_T : 0;
-      setTrend(prev => {
-        const next = [...prev, { t: now, load: loadT, sway: s.swayDeg }];
-        // Keep window
+      setTrend((prev) => {
+        const next = [...prev, { t: now, load: parseFloat(s.hookLoadT.toFixed(2)), sway: parseFloat(swayDeg.toFixed(2)) }];
         const cutoff = now - TREND_WINDOW_S * 1000;
         while (next.length > 1 && next[0].t < cutoff) next.shift();
         return next;
@@ -278,7 +318,16 @@ const LiveDemo = () => {
     return () => clearInterval(interval);
   }, [mode, running, eStop]);
 
-  // --- Alarm evaluator (memoised; stable IDs keyed by code) ---
+  // When entering auto, restart the sequence cleanly from wherever we are.
+  useEffect(() => {
+    if (mode === "auto") {
+      stateRef.current.autoStep = stateRef.current.cargoState === "carried" ? 4 : 0;
+      stateRef.current.stepEntryDist = 1;
+    }
+  }, [mode]);
+
+  // --- Alarms ---
+  const momentUtil = render.swl > 0 ? render.hookLoadT / render.swl : 0;
   const alarms: CraneAlarm[] = useMemo(() => {
     const result: CraneAlarm[] = [];
     const now = Date.now();
@@ -291,120 +340,97 @@ const LiveDemo = () => {
     };
 
     if (eStop) push("critical", "ESD-001", t("liveDemo.alarm.eStop"));
+    if (momentUtil > 1.0) push("critical", "MOM-002", t("liveDemo.alarm.momentCritical"));
+    else if (momentUtil > 0.9) push("warning", "MOM-001", t("liveDemo.alarm.momentHigh"));
     if (render.windKt > 45) push("critical", "WND-002", t("liveDemo.alarm.windCritical"));
     else if (render.windKt > 35) push("warning", "WND-001", t("liveDemo.alarm.windHigh"));
     if (Math.abs(render.swayDeg) > 10) push("critical", "SWY-002", t("liveDemo.alarm.swayCritical"));
     else if (Math.abs(render.swayDeg) > 5) push("warning", "SWY-001", t("liveDemo.alarm.swayHigh"));
     if (render.hydraulicBar < 165) push("warning", "HYD-001", t("liveDemo.alarm.hydraulicLow"));
     else if (render.hydraulicBar > 240) push("warning", "HYD-002", t("liveDemo.alarm.hydraulicHigh"));
-    if (render.cargoState === "carried" && render.hoistPct < 8 && Math.abs(render.swayDeg) > 6) {
+    if (render.cargoState === "carried" && render.hookZ < 1.5 && Math.abs(render.swayDeg) > 6) {
       push("warning", "COL-001", t("liveDemo.alarm.collisionRisk"));
     }
 
-    // Drop start times for codes that cleared so re-trigger gets a fresh ts.
-    Object.keys(start).forEach(k => {
-      if (!seen.has(k)) delete start[k];
-    });
-
-    // Sort: critical first, then warnings, then info.
+    Object.keys(start).forEach((k) => { if (!seen.has(k)) delete start[k]; });
     const sevRank = { critical: 0, warning: 1, info: 2 };
     return result.sort((a, b) => sevRank[a.severity] - sevRank[b.severity]);
-  }, [render.windKt, render.swayDeg, render.hydraulicBar, render.cargoState, render.hoistPct, eStop, t]);
+  }, [render.windKt, render.swayDeg, render.hydraulicBar, render.cargoState, render.hookZ, momentUtil, eStop, t]);
 
   // --- Handlers ---
-  const handleStart = () => {
-    if (eStop) return;
-    setRunning(true);
-  };
+  const handleStart = () => { if (!eStop) setRunning(true); };
   const handleStop = () => setRunning(false);
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setRunning(false);
     setEStop(false);
-    stateRef.current.slewPct = 0;
-    stateRef.current.hoistPct = 50;
-    stateRef.current.smCmdSlew = 0;
-    stateRef.current.smCmdHoist = 50;
-    stateRef.current.swayDeg = 0;
-    stateRef.current.swayVel = 0;
-    stateRef.current.cargoState = "deck";
-    stateRef.current.autoElapsedS = 0;
-    stateRef.current.autoStepIndex = 0;
-    stateRef.current.autoCycleCount = 0;
-    setCmdSlewUI(0);
-    setCmdHoistUI(50);
-  };
+    const s = stateRef.current;
+    s.slew = INIT.slew; s.slewV = 0;
+    s.main = INIT.main; s.mainV = 0;
+    s.jib = INIT.jib; s.jibV = 0;
+    s.wire = INIT.wire; s.wireV = 0;
+    s.smSlew = INIT.slew; s.smMain = INIT.main; s.smJib = INIT.jib; s.smWire = INIT.wire;
+    s.swayRad = 0; s.swayVel = 0;
+    s.hookLoadT = 0;
+    s.cargoState = "deck";
+    s.autoStep = 0; s.autoCycleCount = 0; s.stepEntryDist = 1;
+    setCmdSlew(INIT.slew); setCmdMain(INIT.main); setCmdJib(INIT.jib); setCmdWire(INIT.wire);
+  }, []);
   const handleEStop = () => {
-    setEStop(prev => {
+    setEStop((prev) => {
       const next = !prev;
       if (next) setRunning(false);
       return next;
     });
   };
 
-  // Manual hook: attach if at the right zone with hook low; release at landing or back at deck.
+  // Manual hook attach/release — position-checked like a real load-handling system
+  const fkRender = craneFk(render.main, render.jib);
+  const hookXm = fkRender.tx + render.wire * Math.sin(rad(render.swayDeg));
+  const atPickup = inSector(render.slew, PICKUP_SLEW);
+  const atLanding = inSector(render.slew, LANDING_SLEW);
+  const nearDeckCont = atPickup && Math.abs(hookXm - PICKUP_R) < 1.2 && Math.abs(render.hookZ - CONTAINER_H_M) < 0.45;
+  const nearBargeCont = atLanding && Math.abs(hookXm - LANDING_R) < 1.2 && Math.abs(render.hookZ - LAND_HOOK_Z) < 0.45;
+  const canSetDeck = atPickup && Math.abs(hookXm - PICKUP_R) < 1.6 && Math.abs(render.hookZ - CONTAINER_H_M) < 0.35;
+  const canSetBarge = atLanding && Math.abs(hookXm - LANDING_R) < 1.6 && Math.abs(render.hookZ - LAND_HOOK_Z) < 0.35;
+
+  const hookCarrying = render.cargoState === "carried";
+  const hookActionEnabled =
+    !eStop && mode !== "auto" &&
+    (hookCarrying ? canSetDeck || canSetBarge
+      : render.cargoState === "deck" ? nearDeckCont : nearBargeCont);
+
   const handleHookAction = () => {
-    if (eStop || mode === "auto") return;
+    if (!hookActionEnabled) return;
     const s = stateRef.current;
-    if (s.hoistPct > 8) return;
     if (s.cargoState === "carried") {
-      // Drop where the hook is.
-      s.cargoState = s.slewPct >= 50 ? "landed" : "deck";
-    } else if (s.cargoState === "deck" && s.slewPct <= 12) {
-      s.cargoState = "carried";
-    } else if (s.cargoState === "landed" && s.slewPct >= 88) {
+      s.cargoState = canSetBarge ? "landed" : "deck";
+    } else {
       s.cargoState = "carried";
     }
   };
 
-  // --- Derived ---
-  const loadPct = render.cargoState === "carried" ? 100 : 0;
-  const hookCarrying = render.cargoState === "carried";
-  const atDeckZone = render.slewPct <= 12;
-  const atLandingZone = render.slewPct >= 88;
-  const hookLow = render.hoistPct <= 8;
-  const hookActionEnabled =
-    !eStop &&
-    mode !== "auto" &&
-    hookLow &&
-    (hookCarrying || (render.cargoState === "deck" && atDeckZone) || (render.cargoState === "landed" && atLandingZone));
   const hookHint = hookCarrying
-    ? hookLow
+    ? canSetDeck || canSetBarge
       ? t("liveDemo.controls.hookHintReleaseReady")
-      : t("liveDemo.controls.hookHintLower")
-    : !hookLow
-    ? t("liveDemo.controls.hookHintLower")
-    : render.cargoState === "deck" && !atDeckZone
-    ? t("liveDemo.controls.hookHintToPickup")
-    : render.cargoState === "landed" && !atLandingZone
-    ? t("liveDemo.controls.hookHintToLanding")
-    : t("liveDemo.controls.hookHintAttachReady");
+      : t("liveDemo.controls.hookHintSetDown")
+    : render.cargoState === "deck"
+    ? nearDeckCont ? t("liveDemo.controls.hookHintAttachReady") : t("liveDemo.controls.hookHintToPickup")
+    : nearBargeCont ? t("liveDemo.controls.hookHintAttachReady") : t("liveDemo.controls.hookHintToLanding");
+
+  // --- Derived UI ---
   const status = eStop ? "warning" : running ? "operational" : "offline";
-  const statusLabel = eStop
-    ? t("liveDemo.status.eStop")
-    : running
-    ? t("liveDemo.status.running")
-    : t("liveDemo.status.stopped");
+  const statusLabel = eStop ? t("liveDemo.status.eStop") : running ? t("liveDemo.status.running") : t("liveDemo.status.stopped");
+  const modeLabel = mode === "manual" ? t("liveDemo.mode.manual") : mode === "semi" ? t("liveDemo.mode.semi") : t("liveDemo.mode.auto");
 
-  const modeLabel = mode === "manual"
-    ? t("liveDemo.mode.manual")
-    : mode === "semi"
-    ? t("liveDemo.mode.semi")
-    : t("liveDemo.mode.auto");
-
-  const steps: SequenceStep[] = useMemo(() => [
-    { id: "pickup_lower", label: t("liveDemo.step.pickupLower") },
-    { id: "pickup_lift",  label: t("liveDemo.step.pickupLift") },
-    { id: "slew",         label: t("liveDemo.step.slew") },
-    { id: "setdown",      label: t("liveDemo.step.setdown") },
-    { id: "return",       label: t("liveDemo.step.return") },
-  ], [t]);
+  const steps: SequenceStep[] = useMemo(
+    () => STEP_IDS.map((id, i) => ({ id, label: `${i + 1}. ${t(`liveDemo.step.${id}`)}` })),
+    [t]
+  );
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background grid + radial glow */}
       <div className="absolute inset-0 bg-[linear-gradient(hsl(200_100%_50%/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(200_100%_50%/0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-[radial-gradient(ellipse,hsl(200_100%_50%/0.08),transparent_70%)] pointer-events-none" />
-      {/* Scan-line overlay (matches HMI Dashboard) */}
       <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
 
       <Navbar />
@@ -447,27 +473,22 @@ const LiveDemo = () => {
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 font-mono text-[11px] uppercase tracking-wider">
             <span className="text-muted-foreground">
               {t("liveDemo.kpi.load")}:{" "}
-              <span className="text-foreground tabular-nums">
-                {(loadPct / 100 * RATED_CAPACITY_T).toFixed(1)} t
-              </span>
+              <span className="text-foreground tabular-nums">{render.hookLoadT.toFixed(1)} t</span>
+            </span>
+            <span className="text-muted-foreground">
+              {t("liveDemo.kpi.outreach")}:{" "}
+              <span className="text-foreground tabular-nums">{render.outreach.toFixed(1)} m</span>
             </span>
             <span className="text-muted-foreground">
               {t("liveDemo.kpi.wind")}:{" "}
-              <span className="text-foreground tabular-nums">
-                {render.windKt.toFixed(0)} kt
-              </span>
+              <span className="text-foreground tabular-nums">{render.windKt.toFixed(0)} kt</span>
             </span>
             <span className="text-muted-foreground">
-              {t("liveDemo.kpi.mode")}:{" "}
-              <span className="text-foreground">{modeLabel}</span>
+              {t("liveDemo.kpi.mode")}: <span className="text-foreground">{modeLabel}</span>
             </span>
             <span className="text-muted-foreground">
               {t("liveDemo.kpi.cycles")}:{" "}
-              <span className="text-foreground tabular-nums">{render.autoCycleCount}</span>
-            </span>
-            <span className="text-muted-foreground">
-              UTC:{" "}
-              <span className="text-foreground tabular-nums">{formatClock(Date.now())}</span>
+              <span className="text-foreground tabular-nums">{render.cycles}</span>
             </span>
           </div>
         </div>
@@ -482,10 +503,14 @@ const LiveDemo = () => {
             <div className="relative w-full overflow-hidden rounded border border-border/30 bg-background">
               <div className="aspect-[16/9]">
                 <CraneScene
-                  slewPct={render.slewPct}
-                  hoistPct={render.hoistPct}
+                  slewDeg={render.slew}
+                  mainDeg={render.main}
+                  jibFoldDeg={render.jib}
+                  wireM={render.wire}
                   swayDeg={render.swayDeg}
+                  deflectDeg={render.deflectDeg}
                   cargoState={render.cargoState}
+                  hookLoadT={render.hookLoadT}
                   windKt={render.windKt}
                   running={running}
                   eStop={eStop}
@@ -506,14 +531,22 @@ const LiveDemo = () => {
               onStop={handleStop}
               onReset={handleReset}
               onEStop={handleEStop}
-              cmdSlew={cmdSlewUI}
-              cmdHoist={cmdHoistUI}
-              onCmdSlewChange={setCmdSlewUI}
-              onCmdHoistChange={setCmdHoistUI}
+              cmdSlew={cmdSlew}
+              cmdMain={cmdMain}
+              cmdJib={cmdJib}
+              cmdWire={cmdWire}
+              slewRange={[SLEW_MIN, SLEW_MAX]}
+              mainRange={[MAIN_MIN, MAIN_MAX]}
+              jibRange={[JIB_MIN, JIB_MAX]}
+              wireRange={[WIRE_MIN, WIRE_MAX]}
+              onCmdSlewChange={setCmdSlew}
+              onCmdMainChange={setCmdMain}
+              onCmdJibChange={setCmdJib}
+              onCmdWireChange={setCmdWire}
               steps={steps}
-              activeStepIndex={render.autoStepIndex}
-              stepProgress={render.autoStepProgress}
-              cycleCount={render.autoCycleCount}
+              activeStepIndex={render.autoStep}
+              stepProgress={render.stepProgress}
+              cycleCount={render.cycles}
               hookCarrying={hookCarrying}
               hookActionEnabled={hookActionEnabled}
               hookHint={hookHint}
@@ -523,11 +556,17 @@ const LiveDemo = () => {
                 modeSemi: t("liveDemo.mode.semi"),
                 modeAuto: t("liveDemo.mode.auto"),
                 targetSlew: t("liveDemo.controls.targetSlew"),
-                targetHoist: t("liveDemo.controls.targetHoist"),
+                targetMain: t("liveDemo.controls.targetMain"),
+                targetJib: t("liveDemo.controls.targetJib"),
+                targetWire: t("liveDemo.controls.targetWire"),
                 pickupZone: t("liveDemo.controls.pickup"),
                 landingZone: t("liveDemo.controls.landing"),
-                deckLevel: t("liveDemo.controls.deck"),
-                cruiseHeight: t("liveDemo.controls.cruise"),
+                boomLow: t("liveDemo.controls.boomLow"),
+                boomHigh: t("liveDemo.controls.boomHigh"),
+                jibFolded: t("liveDemo.controls.jibFolded"),
+                jibExtended: t("liveDemo.controls.jibExtended"),
+                wireIn: t("liveDemo.controls.wireIn"),
+                wireOut: t("liveDemo.controls.wireOut"),
                 sequence: t("liveDemo.controls.sequence"),
                 cycles: t("liveDemo.controls.cycles"),
                 start: t("liveDemo.controls.start"),
@@ -546,19 +585,32 @@ const LiveDemo = () => {
         {/* Telemetry strip */}
         <HMIPanel title={t("liveDemo.telemetry.title")} className="mt-4">
           <CraneTelemetry
-            loadPct={loadPct}
-            slewPct={render.slewPct}
-            hoistPct={render.hoistPct}
+            hookLoadT={render.hookLoadT}
+            swlT={render.swl}
+            outreachM={render.outreach}
+            hookHeightM={render.hookZ}
+            wireOutM={render.wire}
+            slewDeg={render.slew}
+            mainDeg={render.main}
+            jibFoldDeg={render.jib}
             hydraulicBar={render.hydraulicBar}
             windKt={render.windKt}
             swayDeg={render.swayDeg}
+            slewSector={atPickup ? "pickup" : atLanding ? "landing" : null}
             labels={{
               load: t("liveDemo.gauge.load"),
+              swl: t("liveDemo.gauge.swl"),
+              outreach: t("liveDemo.gauge.outreach"),
+              hookHeight: t("liveDemo.gauge.hookHeight"),
+              wire: t("liveDemo.gauge.wire"),
               slew: t("liveDemo.gauge.slew"),
-              hoist: t("liveDemo.gauge.hoist"),
+              main: t("liveDemo.gauge.main"),
+              knuckle: t("liveDemo.gauge.knuckle"),
               hydraulic: t("liveDemo.gauge.hydraulic"),
-              wind: t("liveDemo.gauge.wind"),
-              sway: t("liveDemo.gauge.sway"),
+              windSway: t("liveDemo.gauge.windSway"),
+              pickup: t("liveDemo.controls.pickup"),
+              landing: t("liveDemo.controls.landing"),
+              utilization: t("liveDemo.gauge.utilization"),
             }}
           />
         </HMIPanel>
@@ -578,7 +630,7 @@ const LiveDemo = () => {
 
           <HMIPanel
             title={t("liveDemo.alarms.title")}
-            glowColor={alarms.some(a => a.severity === "critical") ? "hsl(0, 70%, 60%)" : undefined}
+            glowColor={alarms.some((a) => a.severity === "critical") ? "hsl(0, 70%, 60%)" : undefined}
           >
             <CraneAlarms
               alarms={alarms}

@@ -47,11 +47,19 @@ interface CraneSequencePanelProps {
   onStop: () => void;
   onReset: () => void;
   onEStop: () => void;
-  // Manual / Semi-Auto controls
-  cmdSlew: number;
-  cmdHoist: number;
+  // Manual / Semi-Auto controls (real engineering units)
+  cmdSlew: number;   // deg
+  cmdMain: number;   // deg
+  cmdJib: number;    // deg (knuckle fold)
+  cmdWire: number;   // m
+  slewRange: [number, number];
+  mainRange: [number, number];
+  jibRange: [number, number];
+  wireRange: [number, number];
   onCmdSlewChange: (v: number) => void;
-  onCmdHoistChange: (v: number) => void;
+  onCmdMainChange: (v: number) => void;
+  onCmdJibChange: (v: number) => void;
+  onCmdWireChange: (v: number) => void;
   // Auto sequence
   steps: SequenceStep[];
   activeStepIndex: number;
@@ -68,11 +76,17 @@ interface CraneSequencePanelProps {
     modeSemi: string;
     modeAuto: string;
     targetSlew: string;
-    targetHoist: string;
+    targetMain: string;
+    targetJib: string;
+    targetWire: string;
     pickupZone: string;
     landingZone: string;
-    deckLevel: string;
-    cruiseHeight: string;
+    boomLow: string;
+    boomHigh: string;
+    jibFolded: string;
+    jibExtended: string;
+    wireIn: string;
+    wireOut: string;
     sequence: string;
     cycles: string;
     start: string;
@@ -86,6 +100,43 @@ interface CraneSequencePanelProps {
   };
 }
 
+// Compact labelled slider used for each crane axis.
+const AxisSlider = ({
+  label, value, unit, range, step, onChange, disabled, footLeft, footRight, decimals = 0,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  range: [number, number];
+  step: number;
+  onChange: (v: number) => void;
+  disabled: boolean;
+  footLeft: string;
+  footRight: string;
+  decimals?: number;
+}) => (
+  <div className="space-y-1.5">
+    <div className="flex justify-between items-baseline">
+      <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</label>
+      <span className="text-xs font-mono text-foreground tabular-nums">
+        {value.toFixed(decimals)}{unit}
+      </span>
+    </div>
+    <Slider
+      value={[value]}
+      onValueChange={(v) => onChange(v[0])}
+      min={range[0]}
+      max={range[1]}
+      step={step}
+      disabled={disabled}
+    />
+    <div className="flex justify-between text-[8px] font-mono uppercase text-muted-foreground/60 tracking-wider">
+      <span>{footLeft}</span>
+      <span>{footRight}</span>
+    </div>
+  </div>
+);
+
 const CraneSequencePanel = ({
   mode,
   onModeChange,
@@ -96,9 +147,17 @@ const CraneSequencePanel = ({
   onReset,
   onEStop,
   cmdSlew,
-  cmdHoist,
+  cmdMain,
+  cmdJib,
+  cmdWire,
+  slewRange,
+  mainRange,
+  jibRange,
+  wireRange,
   onCmdSlewChange,
-  onCmdHoistChange,
+  onCmdMainChange,
+  onCmdJibChange,
+  onCmdWireChange,
   steps,
   activeStepIndex,
   stepProgress,
@@ -141,49 +200,26 @@ const CraneSequencePanel = ({
       {/* Manual / Semi-Auto sliders */}
       {mode !== "auto" && (
         <div className="space-y-3">
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-baseline">
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                {labels.targetSlew}
-              </label>
-              <span className="text-xs font-mono text-foreground tabular-nums">
-                {cmdSlew.toFixed(0)}%
-              </span>
-            </div>
-            <Slider
-              value={[cmdSlew]}
-              onValueChange={(v) => onCmdSlewChange(v[0])}
-              max={100}
-              step={1}
-              disabled={eStop}
-            />
-            <div className="flex justify-between text-[8px] font-mono uppercase text-muted-foreground/60 tracking-wider">
-              <span>{labels.pickupZone}</span>
-              <span>{labels.landingZone}</span>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-baseline">
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                {labels.targetHoist}
-              </label>
-              <span className="text-xs font-mono text-foreground tabular-nums">
-                {cmdHoist.toFixed(0)}%
-              </span>
-            </div>
-            <Slider
-              value={[cmdHoist]}
-              onValueChange={(v) => onCmdHoistChange(v[0])}
-              max={100}
-              step={1}
-              disabled={eStop}
-            />
-            <div className="flex justify-between text-[8px] font-mono uppercase text-muted-foreground/60 tracking-wider">
-              <span>{labels.deckLevel}</span>
-              <span>{labels.cruiseHeight}</span>
-            </div>
-          </div>
+          <AxisSlider
+            label={labels.targetSlew} value={cmdSlew} unit="°" range={slewRange} step={1}
+            onChange={onCmdSlewChange} disabled={eStop}
+            footLeft={labels.pickupZone} footRight={labels.landingZone}
+          />
+          <AxisSlider
+            label={labels.targetMain} value={cmdMain} unit="°" range={mainRange} step={0.5}
+            onChange={onCmdMainChange} disabled={eStop}
+            footLeft={labels.boomLow} footRight={labels.boomHigh}
+          />
+          <AxisSlider
+            label={labels.targetJib} value={cmdJib} unit="°" range={jibRange} step={0.5}
+            onChange={onCmdJibChange} disabled={eStop}
+            footLeft={labels.jibExtended} footRight={labels.jibFolded}
+          />
+          <AxisSlider
+            label={labels.targetWire} value={cmdWire} unit=" m" range={wireRange} step={0.1} decimals={1}
+            onChange={onCmdWireChange} disabled={eStop}
+            footLeft={labels.wireIn} footRight={labels.wireOut}
+          />
 
           {/* Hook control */}
           <div className="space-y-1.5 pt-1">
