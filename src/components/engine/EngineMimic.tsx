@@ -2,6 +2,12 @@
  * P&ID-style mimic of a medium-speed main engine with its lube-oil,
  * LT freshwater and seawater cooling circuits. Pure presentation —
  * all values come from the simulation.
+ *
+ * Drawn in layers: equipment backdrop → piping → rotating machinery →
+ * text. Every label anchor is kept out of the pipe runs, so no readout
+ * is struck through by a line. Where the seawater overboard run has to
+ * cross the freshwater header it uses a pipe hop, not a bare crossing —
+ * the two circuits are close in hue and a plain crossing reads as a tee.
  */
 
 export interface EngineMimicState {
@@ -24,8 +30,11 @@ export interface EngineMimicState {
 const LO = "hsl(38, 85%, 60%)";
 const FW = "hsl(180, 90%, 55%)";
 const SW = "hsl(210, 90%, 65%)";
+const EXH = "hsl(15, 62%, 52%)";
+const EXH_HOT = "hsl(15, 70%, 58%)";
 const DEAD = "hsl(210, 15%, 32%)";
 const HOT = "hsl(0, 70%, 55%)";
+const MUTED = "hsl(var(--muted-foreground))";
 
 const Pipe = ({ d, color, on, speed = 1.4 }: { d: string; color: string; on: boolean; speed?: number }) => (
   <>
@@ -37,156 +46,211 @@ const Pipe = ({ d, color, on, speed = 1.4 }: { d: string; color: string; on: boo
   </>
 );
 
-/** Centrifugal pump: circle with rotation indicator + run lamp. */
-const Pump = ({ x, y, color, run, label }: { x: number; y: number; color: string; run: boolean; label: string }) => (
+/** Centrifugal pump: circle with rotation indicator. Label lives in the text layer. */
+const Pump = ({ x, y, color, run }: { x: number; y: number; color: string; run: boolean }) => (
   <g>
-    <circle cx={x} cy={y} r={11} fill="hsl(var(--background))" fillOpacity={0.8}
+    <circle cx={x} cy={y} r={11} fill="hsl(var(--background))" fillOpacity={0.85}
       stroke={run ? color : DEAD} strokeWidth={1.6} />
     <polygon points={`${x - 4},${y - 5} ${x - 4},${y + 5} ${x + 6},${y}`} fill={run ? color : DEAD} />
     {run && (
       <circle cx={x} cy={y} r={14} fill="none" stroke={color} strokeWidth={0.8} strokeOpacity={0.5}
         strokeDasharray="3 8" className="sld-spin" style={{ transformOrigin: `${x}px ${y}px` }} />
     )}
-    <text x={x} y={y + 26} textAnchor="middle" fontSize={8} fontFamily="monospace"
-      fill={run ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))"} opacity={0.8}>{label}</text>
   </g>
 );
 
-/** Plate cooler / heat exchanger symbol. */
-const Cooler = ({ x, y, label }: { x: number; y: number; label: string }) => (
+/**
+ * Plate cooler. Pipes terminate exactly on the box edges, so a cooler with
+ * ports on all four sides reads as cross-flow without drawing lines through it.
+ */
+const Cooler = ({ x, y, w = 32, h = 26 }: { x: number; y: number; w?: number; h?: number }) => (
   <g>
-    <rect x={x - 16} y={y - 13} width={32} height={26} rx={2}
-      fill="hsl(var(--background))" fillOpacity={0.8} stroke="hsl(var(--muted-foreground))" strokeWidth={1.2} strokeOpacity={0.7} />
-    <line x1={x - 16} y1={y + 13} x2={x + 16} y2={y - 13} stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeOpacity={0.7} />
-    <text x={x} y={y + 25} textAnchor="middle" fontSize={8} fontFamily="monospace" fill="hsl(var(--muted-foreground))" opacity={0.8}>{label}</text>
+    <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={2}
+      fill="hsl(var(--background))" fillOpacity={0.88} stroke={MUTED} strokeWidth={1.2} strokeOpacity={0.75} />
+    <line x1={x - w / 2} y1={y + h / 2} x2={x + w / 2} y2={y - h / 2}
+      stroke={MUTED} strokeWidth={1} strokeOpacity={0.5} />
   </g>
 );
 
-/** Live value tag. */
-const Tag = ({ x, y, text, color, anchor = "middle" }: { x: number; y: number; text: string; color?: string; anchor?: "middle" | "start" | "end" }) => (
-  <text x={x} y={y} textAnchor={anchor} fontSize={9} fontFamily="monospace" className="tabular-nums"
+/** Sea chest / overboard hull penetration with grating. */
+const Grating = ({ x, y }: { x: number; y: number }) => (
+  <g stroke={SW} strokeOpacity={0.8}>
+    <rect x={x - 16} y={y} width={32} height={9} rx={1} fill="hsl(var(--background))" fillOpacity={0.6} strokeWidth={1.2} />
+    <line x1={x - 6} y1={y + 1} x2={x - 6} y2={y + 8} strokeWidth={0.9} strokeOpacity={0.5} />
+    <line x1={x + 6} y1={y + 1} x2={x + 6} y2={y + 8} strokeWidth={0.9} strokeOpacity={0.5} />
+  </g>
+);
+
+/** Equipment / section caption. */
+const Label = ({ x, y, text, color, anchor = "middle", size = 8.5 }: {
+  x: number; y: number; text: string; color?: string; anchor?: "middle" | "start" | "end"; size?: number;
+}) => (
+  <text x={x} y={y} textAnchor={anchor} fontSize={size} fontFamily="monospace"
+    fill={color ?? MUTED} opacity={0.85}>{text}</text>
+);
+
+/** Live value readout. */
+const Tag = ({ x, y, text, color, anchor = "middle", size = 9 }: {
+  x: number; y: number; text: string; color?: string; anchor?: "middle" | "start" | "end"; size?: number;
+}) => (
+  <text x={x} y={y} textAnchor={anchor} fontSize={size} fontFamily="monospace" className="tabular-nums"
     fill={color ?? "hsl(var(--foreground))"} opacity={0.92}>{text}</text>
 );
 
 const EngineMimic = ({ s }: { s: EngineMimicState }) => {
   const running = s.rpm > 5;
   const engineCol = s.shutdown ? HOT : running ? "hsl(200, 100%, 60%)" : DEAD;
+  const exhCol = running ? EXH : DEAD;
   const meanT = s.cylTemps.reduce((a, b) => a + b, 0) / s.cylTemps.length;
+
+  const loAny = s.loMainRun || s.loStbyRun;
+  const swAny = s.swMainRun || s.swStbyRun;
+  const toCooler = running && s.fwValvePct > 4;
+  const toBypass = running && s.fwValvePct < 96;
 
   return (
     <div className="overflow-x-auto">
-      <svg viewBox="0 0 900 400" className="w-full min-w-[720px]" role="img" aria-label="Engine room mimic">
-        {/* ── Engine block ── */}
-        <g>
-          <rect x={330} y={150} width={250} height={120} rx={4}
-            fill="hsl(var(--background))" fillOpacity={0.75}
-            stroke={engineCol} strokeWidth={1.8}
-            style={{ transition: "stroke 0.4s ease", filter: running ? `drop-shadow(0 0 6px ${engineCol}30)` : "none" }} />
-          <text x={455} y={222} textAnchor="middle" fontSize={13} fontFamily="monospace" fontWeight={600}
-            fill={engineCol}>MAIN ENGINE</text>
-          <text x={455} y={238} textAnchor="middle" fontSize={9} fontFamily="monospace"
-            fill="hsl(var(--muted-foreground))">6L26 — 2 040 kW</text>
-          <Tag x={455} y={258} text={`${Math.round(s.rpm)} rpm · ${Math.round(s.loadPct)} %`} color={engineCol} />
+      <svg viewBox="0 0 940 430" className="w-full min-w-[690px]" role="img" aria-label="Engine room mimic">
+        {/* ══ Layer 1: equipment backdrop — piping terminates on these edges ══ */}
+        <rect x={340} y={150} width={260} height={125} rx={4}
+          fill="hsl(var(--background))" fillOpacity={0.75}
+          stroke={engineCol} strokeWidth={1.8}
+          style={{ transition: "stroke 0.4s ease", filter: running ? `drop-shadow(0 0 6px ${engineCol}30)` : "none" }} />
+        {/* FW cooler: FW vertically (top/bottom ports), SW horizontally (left/right ports) */}
+        <Cooler x={200} y={258} w={44} h={40} />
+        <Cooler x={850} y={250} />
 
-          {/* Cylinder heads + exhaust temps */}
+        {/* ══ Layer 2: exhaust side ══ */}
+        <g>
+          {/* Cylinder heads with their exhaust risers */}
           {s.cylTemps.map((tC, i) => {
-            const x = 348 + i * 38;
+            const x = 362 + i * 38;
             const dev = tC - meanT;
-            const col = Math.abs(dev) > 35 ? HOT : Math.abs(dev) > 22 ? "hsl(38, 85%, 60%)" : "hsl(var(--muted-foreground))";
+            const col = Math.abs(dev) > 35 ? HOT : Math.abs(dev) > 22 ? LO : MUTED;
             return (
               <g key={i}>
+                <line x1={x + 13} y1={136} x2={x + 13} y2={118} stroke={exhCol} strokeWidth={1.5} strokeOpacity={0.75} />
                 <rect x={x} y={136} width={26} height={14} rx={2}
                   fill="hsl(var(--card))" stroke={col} strokeWidth={1} strokeOpacity={0.8} />
-                <text x={x + 13} y={146} textAnchor="middle" fontSize={7.5} fontFamily="monospace" fill={col}>
-                  {Math.round(tC)}°
-                </text>
-                <line x1={x + 13} y1={136} x2={x + 13} y2={118} stroke={running ? "hsl(15, 60%, 50%)" : DEAD} strokeWidth={1.5} strokeOpacity={0.7} />
+                <text x={x + 13} y={146.5} textAnchor="middle" fontSize={8} fontFamily="monospace"
+                  className="tabular-nums" fill={col}>{Math.round(tC)}°</text>
               </g>
             );
           })}
-
-          {/* Exhaust manifold → turbocharger */}
-          <line x1={355} y1={118} x2={595} y2={118} stroke={running ? "hsl(15, 60%, 50%)" : DEAD} strokeWidth={2.5} strokeOpacity={0.8} />
-          <circle cx={620} cy={118} r={16} fill="hsl(var(--background))" fillOpacity={0.8}
-            stroke={running ? "hsl(15, 70%, 58%)" : DEAD} strokeWidth={1.6} />
+          {/* Manifold runs into the turbocharger casing — no gap */}
+          <line x1={369} y1={118} x2={634} y2={118} stroke={exhCol} strokeWidth={2.5} strokeOpacity={0.85} />
+          <circle cx={650} cy={118} r={16} fill="hsl(var(--background))" fillOpacity={0.85}
+            stroke={running ? EXH_HOT : DEAD} strokeWidth={1.6} />
           {running && (
-            <circle cx={620} cy={118} r={11} fill="none" stroke="hsl(15, 70%, 58%)" strokeWidth={1}
-              strokeOpacity={0.7} strokeDasharray="4 6" className="sld-spin" style={{ transformOrigin: "620px 118px", animationDuration: "1.2s" }} />
+            <circle cx={650} cy={118} r={11} fill="none" stroke={EXH_HOT} strokeWidth={1}
+              strokeOpacity={0.7} strokeDasharray="4 6" className="sld-spin"
+              style={{ transformOrigin: "650px 118px", animationDuration: "1.2s" }} />
           )}
-          <text x={620} y={92} textAnchor="middle" fontSize={8} fontFamily="monospace" fill="hsl(var(--muted-foreground))">T/C</text>
-          <Tag x={648} y={121} text={`${(s.tcRpm / 1000).toFixed(1)}k`} color={running ? "hsl(15, 70%, 62%)" : DEAD} anchor="start" />
-          <line x1={620} y1={134} x2={620} y2={150} stroke={running ? "hsl(15, 60%, 50%)" : DEAD} strokeWidth={2} strokeOpacity={0.6} />
-          <text x={700} y={121} fontSize={8} fontFamily="monospace" fill="hsl(var(--muted-foreground))" opacity={0.7}>EXH ↑</text>
+          {/* Turbine outlet up to the funnel */}
+          <line x1={650} y1={102} x2={650} y2={78} stroke={exhCol} strokeWidth={2} strokeOpacity={0.8} />
+          <polygon points="650,66 644,78 656,78" fill={exhCol} fillOpacity={0.85} />
         </g>
 
-        {/* ── Lube oil circuit (right) ── */}
+        {/* ══ Layer 3: lube oil circuit (right) — pumps in parallel off a common header ══ */}
         <g>
-          <text x={760} y={170} fontSize={9} fontFamily="monospace" fill={LO} opacity={0.85}>LUBE OIL</text>
-          {/* Sump → pumps → cooler → engine */}
-          <Pipe d="M 580 250 L 700 250 L 700 310" color={LO} on={running || s.loMainRun || s.loStbyRun} />
-          <Pipe d="M 700 310 L 760 310" color={LO} on={s.loMainRun} />
-          <Pipe d="M 700 310 L 700 350 L 760 350" color={LO} on={s.loStbyRun} />
-          <Pump x={775} y={310} color={LO} run={s.loMainRun} label="LO P1" />
-          <Pump x={775} y={350} color={LO} run={s.loStbyRun} label="LO P2" />
-          <Pipe d="M 790 310 L 830 310 L 830 215" color={LO} on={s.loMainRun || s.loStbyRun} />
-          <Pipe d="M 790 350 L 830 350 L 830 310" color={LO} on={s.loStbyRun} />
-          <Cooler x={830} y={195} label="LO CLR" />
-          <Pipe d="M 830 180 L 830 165 L 580 165" color={LO} on={s.loMainRun || s.loStbyRun} />
-          <Tag x={845} y={168} text={`${s.loPressBar.toFixed(1)} bar`} color={s.loPressBar < 2.5 ? HOT : LO} anchor="start" />
-          <Tag x={845} y={250} text={`${Math.round(s.loTempC)}°C`} color={LO} anchor="start" />
+          <Pipe d="M 600 255 L 700 255 L 700 380" color={LO} on={running || loAny} />
+          <Pipe d="M 700 330 L 766 330" color={LO} on={s.loMainRun} />
+          <Pipe d="M 700 380 L 766 380" color={LO} on={s.loStbyRun} />
+          <Pipe d="M 794 330 L 850 330" color={LO} on={s.loMainRun} />
+          <Pipe d="M 794 380 L 850 380 L 850 330" color={LO} on={s.loStbyRun} />
+          <Pipe d="M 850 330 L 850 263" color={LO} on={loAny} />
+          <Pipe d="M 850 237 L 850 170 L 600 170" color={LO} on={loAny} />
         </g>
 
-        {/* ── LT freshwater circuit (left) ── */}
+        {/* ══ Layer 4: LT freshwater circuit (left) ══ */}
         <g>
-          <text x={60} y={170} fontSize={9} fontFamily="monospace" fill={FW} opacity={0.85}>LT FRESHWATER</text>
-          {/* Engine out → 3-way valve → cooler/bypass → pump → engine in */}
-          <Pipe d="M 330 180 L 200 180" color={FW} on={running} />
-          {/* 3-way thermostatic valve */}
-          <g>
-            <polygon points="200,172 184,180 200,188" fill="hsl(var(--background))" stroke={FW} strokeWidth={1.3} />
-            <polygon points="184,180 200,180 192,194" fill="hsl(var(--background))" stroke={FW} strokeWidth={1.3} />
-            <text x={192} y={162} textAnchor="middle" fontSize={8} fontFamily="monospace" fill={FW}>TV</text>
-            <Tag x={192} y={210} text={`${Math.round(s.fwValvePct)}%`} color={FW} />
+          <Pipe d="M 340 180 L 314 180" color={FW} on={running} />
+          <Pipe d="M 286 180 L 200 180 L 200 238" color={FW} on={toCooler} speed={2} />
+          <Pipe d="M 200 278 L 200 312 L 300 312" color={FW} on={toCooler} speed={2} />
+          <Pipe d="M 300 194 L 300 312" color={FW} on={toBypass} speed={2} />
+          <Pipe d="M 300 312 L 316 312" color={FW} on={running} />
+          <Pipe d="M 344 312 L 400 312 L 400 275" color={FW} on={running} />
+          {/* 3-way thermostatic valve: three triangles meeting at the seat.
+              Each leg is dimmed when that port is shut, so the split is readable. */}
+          <g fill="hsl(var(--background))" fillOpacity={0.85} strokeWidth={1.3}>
+            <polygon points="314,171 314,189 300,180" stroke={running ? FW : DEAD} />
+            <polygon points="286,171 286,189 300,180" stroke={toCooler ? FW : DEAD} />
+            <polygon points="291,194 309,194 300,180" stroke={toBypass ? FW : DEAD} />
           </g>
-          <Pipe d="M 184 180 L 120 180 L 120 230" color={FW} on={running && s.fwValvePct > 4} speed={2} />
-          <Cooler x={120} y={250} label="FW CLR" />
-          {/* Bypass */}
-          <Pipe d="M 192 194 L 192 290 L 150 290" color={FW} on={running && s.fwValvePct < 96} speed={2} />
-          <Pipe d="M 120 270 L 120 290 L 150 290" color={FW} on={running && s.fwValvePct > 4} speed={2} />
-          <Pipe d="M 150 290 L 230 290" color={FW} on={running} />
-          <Pump x={245} y={290} color={FW} run={running} label="FW P" />
-          <Pipe d="M 260 290 L 330 290 L 330 250" color={FW} on={running} />
-          <Tag x={300} y={172} text={`${s.fwTempC.toFixed(1)}°C`} color={s.fwTempC > 90 ? HOT : FW} />
         </g>
 
-        {/* ── Seawater circuit (bottom-left) ── */}
+        {/* ══ Layer 5: seawater circuit (bottom-left) — parallel pumps, through the
+              FW cooler, then overboard. The overboard run hops the FW header. ══ */}
         <g>
-          <text x={26} y={330} fontSize={9} fontFamily="monospace" fill={SW} opacity={0.85}>SEAWATER</text>
-          <Pipe d="M 30 385 L 30 350 L 56 350" color={SW} on={s.swMainRun || s.swStbyRun} />
-          <Pipe d="M 30 385 L 90 385 L 90 350" color={SW} on={s.swStbyRun} />
-          <Pump x={70} y={350} color={SW} run={s.swMainRun} label="SW P1" />
-          <Pump x={104} y={350} color={SW} run={s.swStbyRun} label="SW P2" />
-          <Pipe d="M 84 350 L 96 350" color={SW} on={s.swStbyRun} />
-          <Pipe d="M 118 350 L 145 350 L 145 264" color={SW} on={s.swMainRun || s.swStbyRun} />
-          {/* Through FW cooler, overboard */}
-          <Pipe d="M 145 250 L 145 236 L 60 236 L 60 250" color={SW} on={s.swMainRun || s.swStbyRun} speed={1.8} />
-          <text x={42} y={262} fontSize={8} fontFamily="monospace" fill={SW} opacity={0.7}>OVBD ↓</text>
-          <text x={14} y={398} fontSize={8} fontFamily="monospace" fill={SW} opacity={0.7}>SEA CHEST</text>
+          <Grating x={40} y={396} />
+          <Pipe d="M 40 396 L 40 330" color={SW} on={swAny} />
+          <Pipe d="M 40 330 L 86 330" color={SW} on={s.swMainRun} />
+          <Pipe d="M 40 380 L 86 380" color={SW} on={s.swStbyRun} />
+          <Pipe d="M 114 330 L 150 330" color={SW} on={s.swMainRun} />
+          <Pipe d="M 114 380 L 150 380 L 150 330" color={SW} on={s.swStbyRun} />
+          <Pipe d="M 150 330 L 150 258 L 178 258" color={SW} on={swAny} speed={1.8} />
+          <Pipe d="M 222 258 L 250 258 L 250 304 A 8 8 0 0 1 250 320 L 250 396"
+            color={SW} on={swAny} speed={1.8} />
+          <Grating x={250} y={396} />
         </g>
 
-        {/* ── Status banners ── */}
+        {/* ══ Layer 6: rotating machinery ══ */}
+        <Pump x={780} y={330} color={LO} run={s.loMainRun} />
+        <Pump x={780} y={380} color={LO} run={s.loStbyRun} />
+        <Pump x={330} y={312} color={FW} run={running} />
+        <Pump x={100} y={330} color={SW} run={s.swMainRun} />
+        <Pump x={100} y={380} color={SW} run={s.swStbyRun} />
+
+        {/* ══ Layer 7: all text, drawn last ══ */}
+        <g>
+          {/* Engine */}
+          <text x={470} y={198} textAnchor="middle" fontSize={14} fontFamily="monospace" fontWeight={600}
+            fill={engineCol}>MAIN ENGINE</text>
+          <Label x={470} y={219} text="6L26 — 2 040 kW" size={9.5} />
+          <Tag x={470} y={243} text={`${Math.round(s.rpm)} rpm · ${Math.round(s.loadPct)} %`} color={engineCol} size={10} />
+
+          {/* Exhaust */}
+          <Label x={650} y={152} text="T/C" />
+          <Label x={663} y={82} text="EXH" anchor="start" />
+          <Tag x={676} y={121} text={`${(s.tcRpm / 1000).toFixed(1)}k`} color={running ? EXH_HOT : DEAD} anchor="start" />
+
+          {/* Lube oil */}
+          <Label x={620} y={196} text="LUBE OIL" color={LO} anchor="start" size={9.5} />
+          <Label x={828} y={254} text="LO CLR" anchor="end" />
+          <Label x={780} y={356} text="LO P1" />
+          <Label x={780} y={406} text="LO P2" />
+          <Tag x={874} y={174} text={`${s.loPressBar.toFixed(1)} bar`} color={s.loPressBar < 2.5 ? HOT : LO} anchor="start" />
+          <Tag x={874} y={254} text={`${Math.round(s.loTempC)}°C`} color={LO} anchor="start" />
+
+          {/* LT freshwater */}
+          <Label x={40} y={168} text="LT FRESHWATER" color={FW} anchor="start" size={9.5} />
+          <Label x={300} y={162} text="TV" color={FW} />
+          <Label x={170} y={228} text="FW CLR" anchor="end" />
+          <Label x={330} y={338} text="FW P" />
+          <Tag x={250} y={168} text={`${s.fwTempC.toFixed(1)}°C`} color={s.fwTempC > 90 ? HOT : FW} />
+          <Tag x={284} y={207} text={`${Math.round(s.fwValvePct)}%`} color={FW} anchor="end" />
+
+          {/* Seawater */}
+          <Label x={28} y={300} text="SEAWATER" color={SW} anchor="start" size={9.5} />
+          <Label x={100} y={356} text="SW P1" />
+          <Label x={100} y={406} text="SW P2" />
+          <Label x={40} y={418} text="SEA CHEST" color={SW} />
+          <Label x={250} y={418} text="OVBD" color={SW} />
+        </g>
+
+        {/* ══ Status banners ══ */}
         {s.shutdown && (
           <g>
-            <rect x={350} y={40} width={210} height={26} rx={4} fill={HOT} fillOpacity={0.12} stroke={HOT} strokeWidth={1} />
-            <text x={455} y={57} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600}
+            <rect x={365} y={40} width={210} height={26} rx={4} fill={HOT} fillOpacity={0.12} stroke={HOT} strokeWidth={1} />
+            <text x={470} y={57} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600}
               fill={HOT} className="animate-pulse">ENGINE SHUTDOWN</text>
           </g>
         )}
         {!s.shutdown && s.slowdown && (
           <g>
-            <rect x={350} y={40} width={210} height={26} rx={4} fill="hsl(38,85%,60%)" fillOpacity={0.12} stroke="hsl(38,85%,60%)" strokeWidth={1} />
-            <text x={455} y={57} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600}
-              fill="hsl(38,85%,60%)" className="animate-pulse">SLOWDOWN ACTIVE</text>
+            <rect x={365} y={40} width={210} height={26} rx={4} fill={LO} fillOpacity={0.12} stroke={LO} strokeWidth={1} />
+            <text x={470} y={57} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600}
+              fill={LO} className="animate-pulse">SLOWDOWN ACTIVE</text>
           </g>
         )}
       </svg>
