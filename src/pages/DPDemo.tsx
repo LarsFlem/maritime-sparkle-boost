@@ -27,6 +27,9 @@ const KI_POS = 4;             // kN/(m·s)
 const KI_CLAMP = 260;         // kN
 const KP_YAW = 4.0e5;         // kNm/rad
 const KD_YAW = 5.0e6;         // kNm/(rad/s)
+// Reference slew rate. The hull can sustain ~0.46 °/s on a pure moment
+// (24 200 kNm of yaw capacity against D_YAW), so stay just inside that.
+const HEADING_RATE = 0.4;     // deg/s
 
 // ── Environment coefficients ──
 const K_WIND = 0.25;          // kN per kt²
@@ -72,8 +75,12 @@ const DPDemo = () => {
   const simRef = useRef({
     // NED position relative to setpoint (m) and heading (rad)
     n: 0.4, e: -0.3, psi: (15 * Math.PI) / 180,
+    psiRef: (15 * Math.PI) / 180, // slewed heading reference the loop chases
     u: 0, v: 0, r: 0,           // body velocities
-    intX: 0, intY: 0,           // controller integrators (body frame)
+    // Position integrators, held in NED. They exist to cancel the steady
+    // environmental force, which is fixed in NED — stored body-fixed they
+    // would point the wrong way in the world after any heading change.
+    intN: 0, intE: 0,
     thrusters: initialThrusters(),
     wavePhase: 0,
     joySurge: 0, joySway: 0,
@@ -143,7 +150,12 @@ const DPDemo = () => {
       // 2. Controller demands (body frame)
       let demX = 0, demY = 0, demM = 0;
       const psiSet = (headingSetRef.current * Math.PI) / 180;
-      const ePsi = wrapPi(psiSet - s.psi);
+      // Slew the reference toward the operator's setpoint instead of stepping
+      // to it. A step demands a moment several times the yaw capacity, which
+      // pins the allocation at its limits for the whole turn.
+      const refStep = ((HEADING_RATE * Math.PI) / 180) * dt;
+      s.psiRef += clamp(wrapPi(psiSet - s.psiRef), -refStep, refStep);
+      const ePsi = wrapPi(s.psiRef - s.psi);
 
       if (m === "auto") {
         // Position error (setpoint at origin), NED → body
@@ -151,18 +163,20 @@ const DPDemo = () => {
         const eE = -s.e;
         const eX = eN * cos + eE * sin;
         const eY = -eN * sin + eE * cos;
-        s.intX = clamp(s.intX + eX * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
-        s.intY = clamp(s.intY + eY * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
-        demX = KP_POS * eX - KD_POS * s.u + s.intX;
-        demY = KP_POS * eY - KD_POS * s.v + s.intY;
+        s.intN = clamp(s.intN + eN * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
+        s.intE = clamp(s.intE + eE * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
+        const intX = s.intN * cos + s.intE * sin;
+        const intY = -s.intN * sin + s.intE * cos;
+        demX = KP_POS * eX - KD_POS * s.u + intX;
+        demY = KP_POS * eY - KD_POS * s.v + intY;
         demM = KP_YAW * ePsi - KD_YAW * s.r;
       } else if (m === "joystick") {
         demX = s.joySurge * 500;
         demY = s.joySway * 500;
         demM = KP_YAW * ePsi - KD_YAW * s.r; // heading hold stays active
-        s.intX = 0; s.intY = 0;
+        s.intN = 0; s.intE = 0;
       } else {
-        s.intX = 0; s.intY = 0;
+        s.intN = 0; s.intE = 0;
       }
 
       // 3. Thrust allocation
@@ -189,12 +203,29 @@ const DPDemo = () => {
           fyBow = demY;
         }
 
+        // A yaw moment needs bow and stern pushing equally hard the opposite
+        // way, but the groups differ in capacity (400 vs 700 kN). Clamping
+        // them independently leaves the difference as a side force nobody
+        // asked for — 300 kN of it, more than twice the environmental load.
+        // Scale the pair together so a saturated turn just under-delivers.
+        const bowCap = tunnels.reduce((sum, tt) => sum + tt.maxKn, 0);
+        const sternCap = azis.reduce((sum, tt) => sum + tt.maxKn, 0);
+        let allocScale = 1;
+        if (bowCap > 0 && Math.abs(fyBow) > bowCap) {
+          allocScale = Math.min(allocScale, bowCap / Math.abs(fyBow));
+        }
+        if (sternCap > 0 && Math.abs(fyStern) > sternCap) {
+          allocScale = Math.min(allocScale, sternCap / Math.abs(fyStern));
+        }
+        fyBow *= allocScale;
+        fyStern *= allocScale;
+
         // Bow tunnels share their group demand
         if (tunnels.length) {
           const each = fyBow / tunnels.length;
           tunnels.forEach((tt) => {
             tt.fy = clamp(each, -tt.maxKn, tt.maxKn);
-            if (Math.abs(each) > tt.maxKn) tt.saturated = true;
+            tt.saturated = Math.abs(each) > tt.maxKn - 0.5;
           });
         }
 
@@ -210,12 +241,14 @@ const DPDemo = () => {
           azis.forEach((tt) => {
             let fx = fxEach;
             if (residualM !== 0 && azis.length === 2) {
-              // M = ΔFx · y-offset; split between the pair
-              fx += (residualM / (2 * Math.abs(tt.posY))) * (tt.posY > 0 ? 1 : -1);
+              // M = ΔFx · y-offset; split between the pair. Yaw moment about
+              // z is x·Fy − y·Fx, so the unit to port (negative y) is the one
+              // that must push ahead to swing the bow to starboard.
+              fx += (residualM / (2 * Math.abs(tt.posY))) * (tt.posY > 0 ? -1 : 1);
             }
             const mag = Math.hypot(fx, fyEach);
             const scale = mag > tt.maxKn ? tt.maxKn / mag : 1;
-            if (mag > tt.maxKn) tt.saturated = true;
+            tt.saturated = mag > tt.maxKn - 0.5;
             tt.fx = fx * scale;
             tt.fy = fyEach * scale;
           });
@@ -309,8 +342,9 @@ const DPDemo = () => {
   const handleReset = () => {
     const s = simRef.current;
     s.n = 0.4; s.e = -0.3; s.psi = (15 * Math.PI) / 180;
+    s.psiRef = (15 * Math.PI) / 180;
     s.u = 0; s.v = 0; s.r = 0;
-    s.intX = 0; s.intY = 0;
+    s.intN = 0; s.intE = 0;
     s.thrusters = initialThrusters();
     trailRef.current = [];
     setTrail([]);
