@@ -9,6 +9,7 @@ import DemoPagerNav from "@/components/DemoPagerNav";
 import { Slider } from "@/components/ui/slider";
 import DPScene, { TrailPoint } from "@/components/dp/DPScene";
 import ThrusterPanel, { ThrusterView } from "@/components/dp/ThrusterPanel";
+import VesselThrusterLayout from "@/components/dp/VesselThrusterLayout";
 import DPJoystick from "@/components/dp/DPJoystick";
 
 const TICK_MS = 100;
@@ -316,6 +317,8 @@ const DPDemo = () => {
             maxKn: tt.maxKn,
             failed: tt.failed,
             saturated: tt.saturated,
+            posX: tt.posX,
+            posY: tt.posY,
           };
         }),
       });
@@ -569,23 +572,29 @@ const DPDemo = () => {
             </div>
           </div>
 
-          {/* Thruster row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {render.thrusters.map((tt, i) => (
-              <ThrusterPanel
-                key={tt.id}
-                thruster={tt}
-                onToggleFail={() => handleToggleFail(i)}
-                labels={{
-                  run: t("dp.thruster.run"),
-                  failed: t("dp.thruster.failed"),
-                  fail: t("dp.thruster.fail"),
-                  restore: t("dp.thruster.restore"),
-                  tunnel: t("dp.thruster.tunnel"),
-                  azimuth: t("dp.thruster.azimuth"),
-                }}
-              />
-            ))}
+          {/* Thruster row: plan view beside the per-unit detail cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <HMIPanel title={t("dp.layout.title")} glowColor={anyFailed ? "hsl(0, 70%, 55%)" : anySaturated ? "hsl(38, 85%, 60%)" : undefined}>
+              <VesselThrusterLayout thrusters={render.thrusters} />
+            </HMIPanel>
+
+            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
+              {render.thrusters.map((tt, i) => (
+                <ThrusterPanel
+                  key={tt.id}
+                  thruster={tt}
+                  onToggleFail={() => handleToggleFail(i)}
+                  labels={{
+                    run: t("dp.thruster.run"),
+                    failed: t("dp.thruster.failed"),
+                    fail: t("dp.thruster.fail"),
+                    restore: t("dp.thruster.restore"),
+                    tunnel: t("dp.thruster.tunnel"),
+                    azimuth: t("dp.thruster.azimuth"),
+                  }}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Explainer */}

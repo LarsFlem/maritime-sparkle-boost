@@ -1,4 +1,5 @@
 import HMIPanel from "@/components/hmi/HMIPanel";
+import { thrusterColor } from "@/components/dp/thrusterStatus";
 
 export interface ThrusterView {
   id: string;
@@ -11,6 +12,9 @@ export interface ThrusterView {
   maxKn: number;
   failed: boolean;
   saturated: boolean;
+  /** Mounting position on the hull, m forward of / starboard of the CoG. */
+  posX: number;
+  posY: number;
 }
 
 interface ThrusterPanelProps {
@@ -24,13 +28,7 @@ const C = SIZE / 2;
 const R = C - 12;
 
 const ThrusterPanel = ({ thruster: th, onToggleFail, labels }: ThrusterPanelProps) => {
-  const col = th.failed
-    ? "hsl(0, 70%, 55%)"
-    : th.saturated
-    ? "hsl(38, 85%, 60%)"
-    : th.thrustPct > 1
-    ? "hsl(200, 100%, 60%)"
-    : "hsl(210, 15%, 50%)";
+  const col = thrusterColor(th);
 
   const arrowLen = (th.thrustPct / 100) * (R - 8);
   const rad = ((th.directionDeg - 90) * Math.PI) / 180;

@@ -426,6 +426,7 @@ export default {
   'dp.thruster.restore': 'Gjenopprett',
   'dp.thruster.tunnel': 'Tunnel',
   'dp.thruster.azimuth': 'Asimut',
+  'dp.layout.title': 'Thrusteroppsett — Skrogplan',
   'dp.explainer.title': 'Hva denne demoen viser',
   'dp.explainer.controlTitle': 'PID-regulering & Thrust-allokering',
   'dp.explainer.controlBody': 'Posisjons- og kursavvik roteres inn i fartøyets ramme og mates til PID-regulatorer. Krevd jag-, svai- og girkraft allokeres deretter over thrusterne — baugtunneler og akter-asimuter deler svai- og momentkravet ved å løse kraft/moment-balansen, og metning gir ærlig degradert posisjonsholding.',

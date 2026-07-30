@@ -413,6 +413,7 @@ export default {
   'dp.thruster.restore': 'Restore',
   'dp.thruster.tunnel': 'Tunnel',
   'dp.thruster.azimuth': 'Azimuth',
+  'dp.layout.title': 'Thruster Layout — Plan View',
   'dp.explainer.title': 'What this demo shows',
   'dp.explainer.controlTitle': 'PID Control & Thrust Allocation',
   'dp.explainer.controlBody': 'Position and heading errors are rotated into the vessel frame and fed to PID controllers. The demanded surge, sway and yaw forces are then allocated across the thrusters — bow tunnels and stern azimuths share the sway and moment demand by solving the force/moment balance, with saturation honestly degrading station keeping.',
