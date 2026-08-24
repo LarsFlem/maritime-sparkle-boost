@@ -25,13 +25,17 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('language') as Language;
-    return saved || 'en';
+    if (saved === 'no' || saved === 'en') return saved;
+    // Norwegian is the primary market - only open in English when the
+    // browser explicitly asks for it.
+    return navigator.language?.toLowerCase().startsWith('en') ? 'en' : 'no';
   });
 
   const [translations, setTranslations] = useState<Record<string, string>>({});
 
   useEffect(() => {
     localStorage.setItem('language', language);
+    document.documentElement.lang = language;
     loadTranslations(language);
   }, [language]);
 

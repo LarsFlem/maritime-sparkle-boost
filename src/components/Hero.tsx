@@ -59,7 +59,7 @@ const Hero = () => {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tighter uppercase leading-tight mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tighter uppercase leading-tight mb-6"
               initial={reduceMotion ? false : { opacity: 0, y: 30 }}
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}

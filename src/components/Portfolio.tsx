@@ -90,8 +90,8 @@ const Portfolio = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimatedSection className="text-center mb-16">
-          <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('portfolio.title')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">{t('portfolio.title')}</h2>
+          <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('portfolio.kicker')}</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight break-words">{t('portfolio.title')}</h2>
           <div className="section-divider mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('portfolio.description')}</p>
         </AnimatedSection>

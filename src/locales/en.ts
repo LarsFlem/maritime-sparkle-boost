@@ -23,6 +23,7 @@ export default {
 
   // Services Section
   'services.title': 'Professional Engineering Services',
+  'services.kicker': 'Electrical & automation',
   'services.description': 'With extensive experience in maritime automation and control systems, I deliver tailored solutions that enhance operational efficiency, safety, and reliability for vessels and offshore installations.',
   
   'services.package.title': 'Complete Engineering Packages',
@@ -57,7 +58,8 @@ export default {
   'services.experience.title': 'Experience from Leading Maritime Companies',
 
   // Portfolio Section
-  'portfolio.title': 'Project Portfolio',
+  'portfolio.title': 'Portfolio',
+  'portfolio.kicker': 'Selected projects',
   'portfolio.description': 'Explore our successful implementations across various maritime sectors, showcasing innovative automation solutions that deliver measurable results.',
   'portfolio.all': 'All Projects',
   'portfolio.offshore': 'Offshore',
@@ -302,7 +304,7 @@ export default {
   // Demo hub (landing section)
   'demos.kicker': 'Interactive Demos',
   'demos.title': 'Try the Systems Live',
-  'demos.description': 'Five fully interactive simulations built from real maritime automation engineering — power management, dynamic positioning, crane control, SCADA and data analytics. Everything runs live in your browser.',
+  'demos.description': 'Six fully interactive simulations built from real maritime automation engineering — power management, dynamic positioning, crane control, engine-room alarm monitoring, SCADA and data analytics. Everything runs live in your browser.',
   'demos.launch': 'Launch demo',
   'demos.pms.title': 'Power Management System',
   'demos.pms.desc': 'A vessel switchboard with three gensets: automatic synchronization with a live synchroscope, load-dependent start/stop, heavy-consumer power reservation, preferential trip and blackout recovery — with the actual PLC logic shown executing live.',

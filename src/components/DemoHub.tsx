@@ -223,7 +223,7 @@ const DemoHub = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimatedSection className="text-center mb-16">
           <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t("demos.kicker")}</p>
-          <h2 className="text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight">{t("demos.title")}</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight break-words">{t("demos.title")}</h2>
           <div className="section-divider mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t("demos.description")}</p>
         </AnimatedSection>

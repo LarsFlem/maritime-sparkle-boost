@@ -120,6 +120,7 @@ export default {
 
   // Services Section
   'services.title': 'Mine Tjenester',
+  'services.kicker': 'Elektro & automasjon',
   'services.description': 'Med en solid bakgrunn innen mekatronikk og erfaring fra selskaper som Moreld Apply, Red Rock, HMH, Ocean Infinity Marine, Kongsberg Maritime / Rolls Royce Marine og Optimar Stette, kan jeg bidra til din bedrifts suksess.',
   
   'services.package.title': 'Komplette Engineering-pakker',
@@ -154,7 +155,8 @@ export default {
   'services.experience.title': 'Erfaring fra Ledende Maritime Selskaper',
 
   // Portfolio Section
-  'portfolio.title': 'Prosjektportefølje',
+  'portfolio.title': 'Portefølje',
+  'portfolio.kicker': 'Utvalgte prosjekter',
   'portfolio.description': 'Utforsk våre vellykkede implementeringer på tvers av ulike maritime sektorer, som viser innovative automasjonsløsninger som leverer målbare resultater.',
   'portfolio.all': 'Alle Prosjekter',
   'portfolio.offshore': 'Offshore',
@@ -315,7 +317,7 @@ export default {
   // Demo-seksjon (forside)
   'demos.kicker': 'Interaktive Demoer',
   'demos.title': 'Prøv Systemene Live',
-  'demos.description': 'Fem fullt interaktive simuleringer bygget på reell maritim automasjonserfaring — kraftstyring, dynamisk posisjonering, kranstyring, SCADA og dataanalyse. Alt kjører live i nettleseren din.',
+  'demos.description': 'Seks fullt interaktive simuleringer bygget på reell maritim automasjonserfaring — kraftstyring, dynamisk posisjonering, kranstyring, maskinrom-alarmovervåking, SCADA og dataanalyse. Alt kjører live i nettleseren din.',
   'demos.launch': 'Start demo',
   'demos.pms.title': 'Kraftstyringssystem (PMS)',
   'demos.pms.desc': 'En skipstavle med tre generatorsett: automatisk synkronisering med live synkroskop, lastavhengig start/stopp, effektreservasjon for tunge forbrukere, preferansetripp og blackout-gjenoppretting — med selve PLS-logikken vist live.',

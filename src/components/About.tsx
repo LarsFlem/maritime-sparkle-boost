@@ -63,21 +63,21 @@ const About = () => {
 
   return (
     <section id="about" aria-label="Om oss" className="py-24 relative">
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-primary/3 rounded-full blur-3xl"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimatedSection className="text-center mb-16">
           <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('about.title')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">{t('about.subtitle')}</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight break-words">{t('about.subtitle')}</h2>
           <div className="section-divider mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('about.description')}</p>
         </AnimatedSection>
 
         <div className="grid lg:grid-cols-2 gap-10">
           {/* Left side */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             <AnimatedSection delay={0.1}>
               <Card className="glass-effect overflow-hidden border-border/30">
                 <CardContent className="p-0">
@@ -152,7 +152,7 @@ const About = () => {
           </div>
 
           {/* Right side */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             <AnimatedSection delay={0.15} direction="right">
               <Card className="glass-effect border-border/30">
                 <CardContent className="p-5">

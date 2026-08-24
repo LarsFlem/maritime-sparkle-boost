@@ -56,14 +56,14 @@ const Services = () => {
 
   return (
     <section id="services" aria-label="Tjenester" className="py-24 relative">
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <AnimatedSection className="text-center mb-16">
-          <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('services.title')}</p>
-          <h2 className="text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight">{t('services.title')}</h2>
+          <p className="text-xs font-medium tracking-widest uppercase text-primary mb-4">{t('services.kicker')}</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 text-foreground tracking-tight break-words">{t('services.title')}</h2>
           <div className="section-divider mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('services.description')}</p>
         </AnimatedSection>
