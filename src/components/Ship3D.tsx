@@ -29,10 +29,10 @@ const Crane = () => {
   useFrame((state) => {
     const t = state.clock.elapsedTime;
 
-    const slewAngle = Math.sin(t * 0.20) * 0.55;
-    const lowerAngle = REST_LOWER_ANGLE + Math.sin(t * 0.30) * 0.15;
-    const upperRelAngle = REST_UPPER_REL_ANGLE + Math.sin(t * 0.30 + 1.5) * 0.18;
-    const hoistDrop = 0.08 + Math.cos(t * 0.40) * 0.10;
+    const slewAngle = Math.sin(t * 0.42) * 0.55;
+    const lowerAngle = REST_LOWER_ANGLE + Math.sin(t * 0.62) * 0.15;
+    const upperRelAngle = REST_UPPER_REL_ANGLE + Math.sin(t * 0.62 + 1.5) * 0.18;
+    const hoistDrop = 0.08 + Math.cos(t * 0.84) * 0.10;
 
     if (slewRef.current) slewRef.current.rotation.y = slewAngle;
     if (lowerBoomRef.current) lowerBoomRef.current.rotation.z = lowerAngle;
@@ -152,7 +152,7 @@ const SOVHull = () => {
     }
     // Slight gangway sway
     if (gangwayRef.current) {
-      gangwayRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.7) * 0.02;
+      gangwayRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 1.5) * 0.02;
     }
   });
 
@@ -662,7 +662,7 @@ const Scene = () => {
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI / 2.2}
         autoRotate
-        autoRotateSpeed={0.35}
+        autoRotateSpeed={0.18}
       />
     </>
   );
