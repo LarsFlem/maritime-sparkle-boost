@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
 import engineeringIcon from "@/assets/engineering-real.jpg";
 import supportIcon from "@/assets/commissioning-real.jpg";
-import projectIcon from "@/assets/assistanse-real.jpg";
+import projectIcon from "@/assets/prosjektstotte.jpg";
 import printingIcon from "@/assets/3d-printing-collage.jpg";
 
 const Services = () => {
@@ -55,7 +55,7 @@ const Services = () => {
   const active = selectedService !== null ? services[selectedService] : null;
 
   return (
-    <section id="services" aria-label="Tjenester" className="py-24 relative">
+    <section id="services" aria-label="Tjenester" className="py-16 md:py-24 relative">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
       </div>

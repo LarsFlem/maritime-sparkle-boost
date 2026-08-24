@@ -32,7 +32,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" aria-label="Kontakt" className="py-24 relative">
+    <section id="contact" aria-label="Kontakt" className="py-16 md:py-24 relative">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-primary/4 to-transparent rounded-full blur-3xl"></div>
       </div>
@@ -49,12 +49,12 @@ const Contact = () => {
           {/* Contact Information */}
           <StaggerContainer className="lg:col-span-1 space-y-4" staggerDelay={0.08}>
             {[
-              { icon: Mail, label: t('contact.info.email'), value: "Lars@Maritime-Automation.no" },
-              { icon: Phone, label: t('contact.info.phone'), value: "+47 917 98 722" },
-              { icon: MapPin, label: t('contact.info.location'), value: "Jørpeland, Rogaland, Norge" },
-            ].map(({ icon: Icon, label, value }) => (
-              <StaggerItem key={label}>
-                <div className="flex items-center space-x-3 p-4 glass-effect rounded-xl group hover:bg-card/80 transition-all cursor-pointer">
+              { icon: Mail, label: t('contact.info.email'), value: "Lars@Maritime-Automation.no", href: "mailto:Lars@Maritime-Automation.no" },
+              { icon: Phone, label: t('contact.info.phone'), value: "+47 917 98 722", href: "tel:+4791798722" },
+              { icon: MapPin, label: t('contact.info.location'), value: "Jørpeland, Rogaland, Norge", href: null },
+            ].map(({ icon: Icon, label, value, href }) => {
+              const body = (
+                <>
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/15 transition-colors">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
@@ -62,9 +62,19 @@ const Contact = () => {
                     <p className="text-xs text-muted-foreground">{label}</p>
                     <p className="text-sm font-medium text-foreground">{value}</p>
                   </div>
-                </div>
-              </StaggerItem>
-            ))}
+                </>
+              );
+              const shell = "flex items-center space-x-3 p-4 glass-effect rounded-xl group transition-all";
+              return (
+                <StaggerItem key={label}>
+                  {href ? (
+                    <a href={href} className={`${shell} hover:bg-card/80`}>{body}</a>
+                  ) : (
+                    <div className={shell}>{body}</div>
+                  )}
+                </StaggerItem>
+              );
+            })}
 
             <StaggerItem>
               <div className="p-4 glass-effect rounded-xl">

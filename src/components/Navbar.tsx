@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Zap, Crosshair, Construction, Flame, Gauge, LineChart, LayoutGrid } from "lucide-react";
+import { Menu, X, ChevronDown, Zap, Crosshair, Construction, Flame, Gauge, LineChart, LayoutGrid, Phone } from "lucide-react";
 import logoImg from "@/assets/maritime-automation-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -218,6 +218,14 @@ const Navbar = () => {
                       <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
                     );
                   })}
+                  <a
+                    href="tel:+4791798722"
+                    className="flex items-center gap-2.5 mx-3 mt-3 mb-1 px-3 py-3 rounded-md bg-primary/10 border border-primary/20 text-sm font-medium text-primary"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Phone className="h-4 w-4 shrink-0" />
+                    {t('nav.call')}
+                  </a>
                   <div className="flex items-center justify-between px-3 py-2 gap-2">
                     <LanguageSwitcher />
                     <Button size="sm" onClick={() => setIsQuoteModalOpen(true)} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Waves, Zap, Settings } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -55,11 +55,11 @@ const Hero = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <div className="h-px w-12 bg-primary"></div>
-              <span className="text-xs font-medium tracking-widest uppercase text-primary/70">Maritime Automation</span>
+              <span className="text-xs font-medium tracking-widest uppercase text-primary/70">{t('hero.eyebrow')}</span>
             </motion.div>
 
             <motion.h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tighter uppercase leading-tight mb-6"
+              className="text-4xl md:text-5xl xl:text-6xl font-black tracking-tighter leading-[1.04] text-balance mb-6"
               initial={reduceMotion ? false : { opacity: 0, y: 30 }}
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -85,9 +85,9 @@ const Hero = () => {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8 py-6 group shadow-lg shadow-primary/20 border border-primary/20"
-                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() => document.getElementById("demos")?.scrollIntoView({ behavior: "smooth" })}
               >
-                {t('hero.cta.services')}
+                {t('hero.cta.demos')}
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
@@ -122,9 +122,9 @@ const Hero = () => {
           )}
         </div>
 
-        {/* Features */}
+        {/* Proof strip — deliberately not a repeat of the services section below */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto lg:mx-0 mt-16"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-border/40 border-y border-border/40 max-w-3xl mx-auto lg:mx-0 mt-14"
           initial={reduceMotion ? false : "hidden"}
           animate={reduceMotion ? {} : "visible"}
           variants={{
@@ -133,26 +133,20 @@ const Hero = () => {
           }}
         >
           {[
-            { icon: Settings, title: t('hero.feature1.title'), desc: t('hero.feature1.desc'), hoverClass: 'group-hover:rotate-90' },
-            { icon: Zap, title: t('hero.feature2.title'), desc: t('hero.feature2.desc'), hoverClass: 'group-hover:scale-110' },
-            { icon: Waves, title: t('hero.feature3.title'), desc: t('hero.feature3.desc'), hoverClass: '' },
-          ].map((feat, i) => (
+            { label: t('hero.proof1.label'), value: t('hero.proof1.value') },
+            { label: t('hero.proof2.label'), value: t('hero.proof2.value') },
+            { label: t('hero.proof3.label'), value: t('hero.proof3.value') },
+          ].map((item) => (
             <motion.div
-              key={i}
-              className="glass-effect rounded-xl p-5 group hover:bg-card/80 transition-all duration-300 hover:-translate-y-1"
+              key={item.label}
+              className="bg-background/50 backdrop-blur-sm px-4 py-4 text-center sm:text-left"
               variants={reduceMotion ? {} : {
-                hidden: { opacity: 0, y: 25 },
+                hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
               }}
             >
-              <div className="relative">
-                <span className="absolute -top-2 -right-1 text-5xl font-black text-primary/5 select-none leading-none">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <feat.icon className={`h-5 w-5 text-primary mb-2 transition-transform duration-500 ${feat.hoverClass}`} />
-                <h3 className="font-semibold text-sm mb-1 font-['Syne']">{feat.title}</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">{feat.desc}</p>
-              </div>
+              <p className="text-[10px] font-medium tracking-widest uppercase text-muted-foreground mb-1.5">{item.label}</p>
+              <p className="text-sm font-semibold text-foreground">{item.value}</p>
             </motion.div>
           ))}
         </motion.div>

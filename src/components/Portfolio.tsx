@@ -15,6 +15,9 @@ import portfolio3DPrint from "@/assets/h2c.jpeg";
 const Portfolio = () => {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  // Five full project cards run to 4 300 px on a phone. Show the first three
+  // and let the reader ask for the rest.
+  const [showAll, setShowAll] = useState(false);
 
   const projects: Array<{
     id: number;
@@ -83,9 +86,10 @@ const Portfolio = () => {
   const filteredProjects = selectedCategory === "all"
     ? projects
     : projects.filter((p) => p.category === selectedCategory);
+  const visibleProjects = showAll ? filteredProjects : filteredProjects.slice(0, 3);
 
   return (
-    <section id="portfolio" className="py-24 relative">
+    <section id="portfolio" className="py-16 md:py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/5 to-transparent"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -102,7 +106,7 @@ const Portfolio = () => {
               key={category.id}
               variant={selectedCategory === category.id ? "default" : "ghost"}
               size="sm"
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => { setSelectedCategory(category.id); setShowAll(false); }}
               className={`text-xs transition-all ${
                 selectedCategory === category.id
                   ? "bg-primary text-primary-foreground"
@@ -123,7 +127,7 @@ const Portfolio = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35 }}
           >
-            {filteredProjects.map((project, index) => {
+            {visibleProjects.map((project, index) => {
               const title = t(`portfolio.proj.${project.key}.title`);
               const location = t(`portfolio.proj.${project.key}.location`);
               const duration = t(`portfolio.proj.${project.key}.duration`);
@@ -225,6 +229,18 @@ const Portfolio = () => {
             })}
           </motion.div>
         </AnimatePresence>
+
+        {!showAll && filteredProjects.length > visibleProjects.length && (
+          <div className="flex justify-center mt-10">
+            <Button
+              variant="outline"
+              onClick={() => setShowAll(true)}
+              className="border-primary/40 text-foreground hover:bg-primary/8 hover:border-primary/60 px-7"
+            >
+              {t('portfolio.showAll')} ({filteredProjects.length})
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

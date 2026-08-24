@@ -65,18 +65,6 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
-  .light {
-    --background: 200 25% 96%;
-    --foreground: 210 25% 8%;
-    --card: 200 15% 98%;
-    --primary: 200 100% 45%;
-    --secondary: 200 20% 90%;
-    --muted: 200 15% 92%;
-    --accent: 180 100% 45%;
-    --border: 200 15% 85%;
-    --input: 200 15% 92%;
-  }
 }
 
 @layer base {
@@ -86,6 +74,14 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Section entrance animations slide in from x: 40, and the decorative
+     glows are wider than a phone. Clip here so neither can drag the page
+     sideways. overflow-x: clip does not create a scroll container, so
+     nothing else about the page scroll changes. */
+  main {
+    overflow-x: clip;
   }
 
   body {

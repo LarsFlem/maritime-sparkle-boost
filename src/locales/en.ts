@@ -8,18 +8,20 @@ export default {
   'nav.dataAnalysis': 'Data Analysis',
   'nav.liveDemo': 'Live Demo',
   'nav.getQuote': 'Get Quote',
+  'nav.call': 'Call +47 917 98 722',
 
   // Hero Section
-  'hero.title': 'Maritime Automation',
-  'hero.subtitle': 'Specialized in control systems, automation solutions, and digital transformation for the maritime industry',
-  'hero.cta.services': 'View My Services',
+  'hero.eyebrow': 'Electrical & automation · Jørpeland, Norway',
+  'hero.title': 'Automation for moving machinery',
+  'hero.subtitle': 'Cranes, winches, thrusters and alarm systems. I handle the engineering, the PLC programming and the commissioning — from schematic to a system handed over on board.',
+  'hero.cta.demos': 'See the systems live',
   'hero.cta.contact': 'Contact Me',
-  'hero.feature1.title': 'Complete Engineering Packages',
-  'hero.feature1.desc': 'From concept to commissioning',
-  'hero.feature2.title': 'System Integration',
-  'hero.feature2.desc': 'Expert automation solutions',
-  'hero.feature3.title': 'Project Support',
-  'hero.feature3.desc': '24/7 technical assistance',
+  'hero.proof1.label': 'Platform',
+  'hero.proof1.value': 'TwinCAT / Beckhoff',
+  'hero.proof2.label': 'Zone',
+  'hero.proof2.value': 'IECEx & ATEX',
+  'hero.proof3.label': 'Delivery',
+  'hero.proof3.value': 'Schematic to FAT',
 
   // Services Section
   'services.title': 'Professional Engineering Services',
@@ -60,7 +62,8 @@ export default {
   // Portfolio Section
   'portfolio.title': 'Portfolio',
   'portfolio.kicker': 'Selected projects',
-  'portfolio.description': 'Explore our successful implementations across various maritime sectors, showcasing innovative automation solutions that deliver measurable results.',
+  'portfolio.showAll': 'Show all projects',
+  'portfolio.description': 'Deliveries I have handled myself, across offshore, green operations and land-based industry — with the client, the year, the platform and what was actually solved.',
   'portfolio.all': 'All Projects',
   'portfolio.offshore': 'Offshore',
   'portfolio.technologies': 'Technologies',
@@ -167,6 +170,7 @@ export default {
   'contact.form.submit': 'Send Message',
 
   // Footer
+  'footer.about': 'Electrical and automation engineering for the maritime industry. PLC programming, commissioning and project support, from Jørpeland in Rogaland, Norway.',
   'footer.services': 'Services',
   'footer.expertise': 'Expertise',
   'footer.copyright': 'All rights reserved.',

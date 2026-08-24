@@ -8,6 +8,7 @@ export default {
   'nav.dataAnalysis': 'Dataanalyse',
   'nav.liveDemo': 'Live Demo',
   'nav.getQuote': 'Få Tilbud',
+  'nav.call': 'Ring 917 98 722',
 
   // Live Demo — Offshore Crane Control
   'liveDemo.statusBar': 'KRAN',
@@ -107,16 +108,17 @@ export default {
   'liveDemo.explainer.sequenceBody': 'En syv-stegs overføringssyklus — posisjoner, senk, koble, løft, sving, sett ned, frigjør — der hvert steg fullføres på målt posisjon og last, ikke på tid: samme stegsekvens-mønster som brukes i PLS-maskinprogrammer.',
 
   // Hero Section
-  'hero.title': 'Maritime Automation',
-  'hero.subtitle': 'Jeg tilbyr konsulent- og engineeringtjenester innen elektro og automasjon, med spesialisering i design og implementering av systemer for bevegelig maskineri, alarmsystemer og generell automasjon.',
-  'hero.cta.services': 'Mine Tjenester',
+  'hero.eyebrow': 'Elektro & automasjon · Jørpeland',
+  'hero.title': 'Automasjon for bevegelig maskineri',
+  'hero.subtitle': 'Kraner, vinsjer, thrustere og alarmsystemer. Jeg tar engineering, PLS-programmering og idriftsettelse — fra skjema til overlevert anlegg om bord.',
+  'hero.cta.demos': 'Se systemene live',
   'hero.cta.contact': 'Kontakt Meg',
-  'hero.feature1.title': 'Komplette Engineering-pakker',
-  'hero.feature1.desc': 'Design og implementering av automatiseringssystemer',
-  'hero.feature2.title': 'Support og Kommisjoning',
-  'hero.feature2.desc': 'Igangsetting av automasjonsutstyr og maskineri',
-  'hero.feature3.title': 'Prosjektsupportering',
-  'hero.feature3.desc': 'Teknisk assistanse og Software Change Management',
+  'hero.proof1.label': 'Plattform',
+  'hero.proof1.value': 'TwinCAT / Beckhoff',
+  'hero.proof2.label': 'Sone',
+  'hero.proof2.value': 'IECEx & ATEX',
+  'hero.proof3.label': 'Leveranse',
+  'hero.proof3.value': 'Fra skjema til FAT',
 
   // Services Section
   'services.title': 'Mine Tjenester',
@@ -157,7 +159,8 @@ export default {
   // Portfolio Section
   'portfolio.title': 'Portefølje',
   'portfolio.kicker': 'Utvalgte prosjekter',
-  'portfolio.description': 'Utforsk våre vellykkede implementeringer på tvers av ulike maritime sektorer, som viser innovative automasjonsløsninger som leverer målbare resultater.',
+  'portfolio.showAll': 'Vis alle prosjekter',
+  'portfolio.description': 'Leveranser jeg har stått for selv, på tvers av offshore, grønn drift og landbasert industri — med kunde, år, plattform og hva som faktisk ble løst.',
   'portfolio.all': 'Alle Prosjekter',
   'portfolio.offshore': 'Offshore',
   'portfolio.technologies': 'Teknologier',
@@ -259,6 +262,7 @@ export default {
   'contact.form.submit': 'Send Melding',
 
   // Footer
+  'footer.about': 'Elektro- og automasjonsengineering for maritim industri. PLS-programmering, idriftsettelse og prosjektstøtte fra Jørpeland i Rogaland.',
   'footer.services': 'Tjenester',
   'footer.expertise': 'Ekspertise',
   'footer.copyright': 'Alle rettigheter forbeholdt.',

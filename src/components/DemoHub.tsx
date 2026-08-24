@@ -215,7 +215,7 @@ const DemoHub = () => {
   ];
 
   return (
-    <section id="demos" aria-label="Interactive demos" className="py-24 relative">
+    <section id="demos" aria-label="Interactive demos" className="py-16 md:py-24 relative">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-gradient-radial from-accent/4 to-transparent rounded-full blur-3xl" />
       </div>

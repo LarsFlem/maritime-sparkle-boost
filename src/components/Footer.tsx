@@ -29,20 +29,26 @@ const Footer = () => {
                 <span className="logo-text whitespace-nowrap">Maritime Automation</span>
               </div>
               <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
-                Professional maritime automation, engineering og konsulentvirksomhet. 
-                Spesialisert på elektriske systemer, PLC-programmering og offshore løsninger.
+                {t('footer.about')}
               </p>
               <div className="space-y-2.5">
                 {[
-                  { icon: Mail, text: "Lars@Maritime-Automation.no" },
-                  { icon: Phone, text: "+47 917 98 722" },
-                  { icon: MapPin, text: "Jørpeland, Norge" },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                    <Icon className="h-3.5 w-3.5 text-primary/70" />
-                    <span>{text}</span>
-                  </div>
-                ))}
+                  { icon: Mail, text: "Lars@Maritime-Automation.no", href: "mailto:Lars@Maritime-Automation.no" },
+                  { icon: Phone, text: "+47 917 98 722", href: "tel:+4791798722" },
+                  { icon: MapPin, text: "Jørpeland, Norge", href: null },
+                ].map(({ icon: Icon, text, href }) => {
+                  const body = (
+                    <>
+                      <Icon className="h-3.5 w-3.5 text-primary/70" />
+                      <span>{text}</span>
+                    </>
+                  );
+                  return href ? (
+                    <a key={text} href={href} className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors">{body}</a>
+                  ) : (
+                    <div key={text} className="flex items-center space-x-2 text-sm text-muted-foreground">{body}</div>
+                  );
+                })}
               </div>
             </div>
 
@@ -50,9 +56,9 @@ const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">{t('footer.services')}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="hover:text-foreground transition-colors cursor-pointer">{t('services.package.title')}</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">{t('services.support.title')}</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">{t('services.project.title')}</li>
+                <li className="hover:text-foreground transition-colors">{t('services.package.title')}</li>
+                <li className="hover:text-foreground transition-colors">{t('services.support.title')}</li>
+                <li className="hover:text-foreground transition-colors">{t('services.project.title')}</li>
               </ul>
             </div>
 
@@ -60,11 +66,11 @@ const Footer = () => {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">{t('footer.expertise')}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="hover:text-foreground transition-colors cursor-pointer">TwinCAT Programming</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">Beckhoff PLC</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">IECEx & ATEX</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">SQL Databaser</li>
-                <li className="hover:text-foreground transition-colors cursor-pointer">CCTV Systemer</li>
+                <li className="hover:text-foreground transition-colors">TwinCAT Programming</li>
+                <li className="hover:text-foreground transition-colors">Beckhoff PLC</li>
+                <li className="hover:text-foreground transition-colors">IECEx & ATEX</li>
+                <li className="hover:text-foreground transition-colors">SQL Databaser</li>
+                <li className="hover:text-foreground transition-colors">CCTV Systemer</li>
               </ul>
             </div>
           </div>
