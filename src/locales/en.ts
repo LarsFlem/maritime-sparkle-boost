@@ -141,6 +141,12 @@ export default {
   'about.role.hmh': 'Senior Control System Support Engineer',
   'about.role.ocean': 'Electro-Automation Engineer, Later Team Lead',
   'about.role.kongsberg': 'Assembler, Test Engineer, Later Spare Parts Coordinator',
+  'about.period.now': 'Dec 2024 – Present',
+  'about.period.moreld': 'Sep 2024 – Dec 2025',
+  'about.period.redrock': 'Apr 2023 – Sep 2024',
+  'about.period.hmh': 'Sep 2022 – Apr 2023',
+  'about.period.ocean': 'Jun 2019 – Sep 2022',
+  'about.period.kongsberg': 'Aug 2010 – Jun 2015',
 
   // Education
   'education.title': 'Education',
@@ -154,6 +160,7 @@ export default {
   // Skills
   'skills.title': 'Skills',
   'skills.solidworks': 'SolidWorks',
+  'skills.plc': 'PLC programming',
   'skills.network': 'Network Configuration',
   'skills.leadership': 'Leadership',
   'skills.languages': 'Languages',
@@ -173,6 +180,9 @@ export default {
   'footer.about': 'Electrical and automation engineering for the maritime industry. PLC programming, commissioning and project support, from Jørpeland in Rogaland, Norway.',
   'footer.services': 'Services',
   'footer.expertise': 'Expertise',
+  'footer.exp.twincat': 'TwinCAT programming',
+  'footer.exp.sql': 'SQL databases',
+  'footer.exp.cctv': 'CCTV systems',
   'footer.copyright': 'All rights reserved.',
   'footer.tagline': 'Navigating the future of maritime automation',
 

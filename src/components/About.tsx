@@ -47,12 +47,12 @@ const About = () => {
   const { t } = useLanguage();
 
   const experience = [
-    { company: "Maritime Automation - Flem", role: t('about.ceo'), period: "Dec 2024 - Present", highlight: true },
-    { company: "Moreld Apply / via Applica", role: t('about.role.moreld'), period: "Sep 2024 - Dec 2025" },
-    { company: "Red Rock", role: t('about.role.redrock'), period: "Apr 2023 - Sep 2024" },
-    { company: "HMH (Formerly MHWirth)", role: t('about.role.hmh'), period: "Sep 2022 - Apr 2023" },
-    { company: "Ocean Infinity Marine", role: t('about.role.ocean'), period: "Jun 2019 - Sep 2022" },
-    { company: "Kongsberg Maritime / Rolls-Royce Marine", role: t('about.role.kongsberg'), period: "Aug 2010 - Jun 2015" },
+    { company: "Maritime Automation - Flem", role: t('about.ceo'), period: t('about.period.now'), highlight: true },
+    { company: "Moreld Apply / via Applica", role: t('about.role.moreld'), period: t('about.period.moreld') },
+    { company: "Red Rock", role: t('about.role.redrock'), period: t('about.period.redrock') },
+    { company: "HMH (Formerly MHWirth)", role: t('about.role.hmh'), period: t('about.period.hmh') },
+    { company: "Ocean Infinity Marine", role: t('about.role.ocean'), period: t('about.period.ocean') },
+    { company: "Kongsberg Maritime / Rolls-Royce Marine", role: t('about.role.kongsberg'), period: t('about.period.kongsberg') },
   ];
 
   const education = [
@@ -119,7 +119,7 @@ const About = () => {
                     variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }}
                   >
                     {[
-                      "TwinCAT / Beckhoff", "PLC Programming", "HMI/SCADA",
+                      "TwinCAT / Beckhoff", t('skills.plc'), "HMI/SCADA",
                       t('skills.solidworks'), "IECEx / ATEX", t('skills.network'),
                       t('skills.leadership'), "SQL / HTML / CSS / JS",
                     ].map((skill) => (

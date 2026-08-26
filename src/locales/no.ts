@@ -233,6 +233,12 @@ export default {
   'about.role.hmh': 'Senior Kontrollsystem Support Ingeniør',
   'about.role.ocean': 'Elektro-Automasjonsingeniør, Senere Teamleder',
   'about.role.kongsberg': 'Montør, Testingeniør, Senere Reservedelskoordinator',
+  'about.period.now': 'Des 2024 – nå',
+  'about.period.moreld': 'Sep 2024 – des 2025',
+  'about.period.redrock': 'Apr 2023 – sep 2024',
+  'about.period.hmh': 'Sep 2022 – apr 2023',
+  'about.period.ocean': 'Jun 2019 – sep 2022',
+  'about.period.kongsberg': 'Aug 2010 – jun 2015',
 
   // Education
   'education.title': 'Utdanning',
@@ -246,6 +252,7 @@ export default {
   // Skills
   'skills.title': 'Ferdigheter',
   'skills.solidworks': 'SolidWorks',
+  'skills.plc': 'PLS-programmering',
   'skills.network': 'Nettverkskonfigurasjon',
   'skills.leadership': 'Lederskap',
   'skills.languages': 'Språk',
@@ -265,6 +272,9 @@ export default {
   'footer.about': 'Elektro- og automasjonsengineering for maritim industri. PLS-programmering, idriftsettelse og prosjektstøtte fra Jørpeland i Rogaland.',
   'footer.services': 'Tjenester',
   'footer.expertise': 'Ekspertise',
+  'footer.exp.twincat': 'TwinCAT-programmering',
+  'footer.exp.sql': 'SQL-databaser',
+  'footer.exp.cctv': 'CCTV-systemer',
   'footer.copyright': 'Alle rettigheter forbeholdt.',
   'footer.tagline': 'Navigerer fremtiden for maritim automasjon',
 
