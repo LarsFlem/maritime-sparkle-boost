@@ -57,6 +57,7 @@ export default {
   'services.printing.feature4': 'Equipment can be procured for special requirements',
 
   'services.readMore': 'Read More',
+  'services.cta': 'Get in touch about this service',
   'services.experience.title': 'Experience from Leading Maritime Companies',
 
   // Portfolio Section

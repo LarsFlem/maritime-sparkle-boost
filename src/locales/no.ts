@@ -154,6 +154,7 @@ export default {
   'services.printing.feature4': 'Utstyr kan kjøpes inn for spesielle krav',
 
   'services.readMore': 'Les Mer',
+  'services.cta': 'Ta kontakt om denne tjenesten',
   'services.experience.title': 'Erfaring fra Ledende Maritime Selskaper',
 
   // Portfolio Section
