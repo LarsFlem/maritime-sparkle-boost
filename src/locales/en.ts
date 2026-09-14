@@ -84,9 +84,9 @@ export default {
   'portfolio.proj.crane.results': 'Multiple crane deliveries completed|Successful sea trials in Taiwan|Crew training on 3D compensated operations',
 
   'portfolio.proj.norwest.title': 'Anchor-Handling Crane Fault-Finding – NorWest',
-  'portfolio.proj.norwest.location': 'Buøy, Norway',
+  'portfolio.proj.norwest.location': 'Norway',
   'portfolio.proj.norwest.duration': '1-day callout',
-  'portfolio.proj.norwest.description': "On-site fault-finding on the AH-crane load-cell circuit aboard NorWest's Scandi Skansen (IMO 9459759) at GMC Yards, Buøy. Traced the fault to a misplaced resistor on the load-cell terminal block and a wire rope that wasn't seated correctly over the load-cell sheave, so no tension reached the sensor. Corrected the wiring, re-routed and re-tensioned the wire rope, verified feedback against load, and function-tested every crane movement with the operator.",
+  'portfolio.proj.norwest.description': "On-site electrical fault-finding on an anchor-handling crane's load-cell circuit for NorWest. Diagnosed a wiring fault and a mis-routed hoist wire that were stopping the load cell from registering load, corrected both, and function-tested every crane movement with the operator before sign-off.",
   'portfolio.proj.norwest.tech': 'Fault-finding|Load Cells|Electrical Schematics|Hydraulic Cranes|On-site Commissioning',
   'portfolio.proj.norwest.results': 'Load-cell circuit fault traced and corrected|Wire rope re-routed and re-tensioned, feedback confirmed under load|Crane fully function-tested with the operator|Follow-up items logged for the client',
 

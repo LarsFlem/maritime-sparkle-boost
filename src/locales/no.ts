@@ -181,9 +181,9 @@ export default {
   'portfolio.proj.crane.results': 'Flere kranleveranser fullført|Vellykkede sjøprøver i Taiwan|Mannskapsopplæring på 3D-kompensert drift',
 
   'portfolio.proj.norwest.title': 'Feilsøking AH-kran – NorWest',
-  'portfolio.proj.norwest.location': 'Buøy, Norge',
+  'portfolio.proj.norwest.location': 'Norge',
   'portfolio.proj.norwest.duration': '1-dags oppdrag',
-  'portfolio.proj.norwest.description': 'Feilsøking på lastcelle-kretsen til AH-krana om bord på NorWests Scandi Skansen (IMO 9459759) hos GMC Yards, Buøy. Sporet feilen til en feilplassert motstand på lastcellens rekkeklemme og en vaier som ikke lå riktig over lastcellens skive, slik at ingen last kom frem til sensoren. Rettet opp kablingen, rerutet og strammet vaieren, kontrollerte feedback mot last, og funksjonstestet samtlige kranbevegelser sammen med operatøren.',
+  'portfolio.proj.norwest.description': 'Elektrisk feilsøking på lastcelle-kretsen til en AH-kran for NorWest. Diagnostiserte en kablingsfeil og en feilrutet vaier som hindret lastcellen i å registrere last, rettet opp begge deler, og funksjonstestet samtlige kranbevegelser sammen med operatøren før overlevering.',
   'portfolio.proj.norwest.tech': 'Feilsøking|Lastceller|Elektriske skjema|Hydrauliske kraner|Idriftsettelse',
   'portfolio.proj.norwest.results': 'Feil i lastcelle-krets sporet og rettet|Vaier rerutet og strammet, feedback bekreftet under last|Krana fullt funksjonstestet med operatøren|Oppfølgingspunkter loggført for kunden',
 
