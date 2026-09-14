@@ -11,6 +11,7 @@ import portfolioBattery from "@/assets/shiftr.jpeg";
 import portfolioRacing from "@/assets/align-racing.webp";
 import portfolioKsService from "@/assets/portfolio-ks-service.png";
 import portfolio3DPrint from "@/assets/h2c.jpeg";
+import portfolioNorwest from "@/assets/norwest-scandi-skansen.jpeg";
 
 const Portfolio = () => {
   const { t } = useLanguage();
@@ -36,6 +37,15 @@ const Portfolio = () => {
       year: "2023–2024",
       client: "Red Rock / IMECA",
       image: portfolioCrane,
+      teamSize: 1,
+    },
+    {
+      id: 7,
+      key: "norwest",
+      category: "offshore",
+      year: "2026",
+      client: "NorWest",
+      image: portfolioNorwest,
       teamSize: 1,
     },
     {
