@@ -15,7 +15,7 @@ export default {
   'hero.title': 'Automation for moving machinery',
   'hero.subtitle': 'Cranes, winches, thrusters and alarm systems. I handle the engineering, the PLC programming and the commissioning — from schematic to a system handed over on board.',
   'hero.cta.demos': 'See the systems live',
-  'hero.cta.contact': 'Contact Me',
+  'hero.cta.contact': 'Contact',
   'hero.proof1.label': 'Platform',
   'hero.proof1.value': 'TwinCAT / Beckhoff',
   'hero.proof2.label': 'Zone',
@@ -119,7 +119,7 @@ export default {
   'portfolio.proj.racing.results': 'Full electronics suite delivered|13-person team led|Race regulation compliance',
 
   // Contact Section
-  'contact.title': 'Contact Me',
+  'contact.title': 'Contact',
   'contact.subtitle': "Let's Discuss Your Project",
   'contact.description': 'Ready to enhance your maritime operations? Get in touch to discuss your automation needs and discover how we can work together.',
   

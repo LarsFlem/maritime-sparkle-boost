@@ -112,7 +112,7 @@ export default {
   'hero.title': 'Automasjon for bevegelig maskineri',
   'hero.subtitle': 'Kraner, vinsjer, thrustere og alarmsystemer. Jeg tar engineering, PLS-programmering og idriftsettelse — fra skjema til overlevert anlegg om bord.',
   'hero.cta.demos': 'Se systemene live',
-  'hero.cta.contact': 'Kontakt Meg',
+  'hero.cta.contact': 'Kontakt',
   'hero.proof1.label': 'Plattform',
   'hero.proof1.value': 'TwinCAT / Beckhoff',
   'hero.proof2.label': 'Sone',
@@ -216,7 +216,7 @@ export default {
   'portfolio.proj.racing.results': 'Komplett elektronikkpakke levert|13-personers team ledet|Etterlevelse av løpsreglement',
 
   // Contact Section
-  'contact.title': 'Kontakt Meg',
+  'contact.title': 'Kontakt',
   'contact.subtitle': 'La Oss Diskutere Ditt Prosjekt',
   'contact.description': 'Klar til å forbedre dine maritime operasjoner? Ta kontakt for å diskutere dine automasjonsbehov og oppdage hvordan vi kan samarbeide.',
   
