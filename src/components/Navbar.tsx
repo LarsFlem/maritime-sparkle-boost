@@ -87,7 +87,7 @@ const Navbar = () => {
               className="flex items-center space-x-2.5 group"
               onClick={() => { if (isHomePage) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             >
-              <span className="flex items-center justify-center bg-white/90 rounded-full p-0.5 backdrop-blur-sm">
+              <span className="flex shrink-0 items-center justify-center bg-white/90 rounded-full p-0.5 backdrop-blur-sm">
                 <img
                   src={logoImg}
                   alt="Maritime Automation"
@@ -98,7 +98,7 @@ const Navbar = () => {
                   className="h-9 w-9 object-contain group-hover:scale-110 transition-transform duration-300 logo-img"
                 />
               </span>
-              <span className="logo-text ml-3 whitespace-nowrap">Maritime Automation</span>
+              <span className="logo-text whitespace-nowrap text-[0.95rem] min-[375px]:text-[1.1rem] sm:text-2xl">Maritime Automation</span>
             </Link>
 
             {/* Desktop Navigation */}

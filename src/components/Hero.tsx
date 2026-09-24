@@ -23,7 +23,7 @@ const Hero = () => {
     return () => mq.removeEventListener('change', update);
   }, []);
   return (
-    <section aria-label="Hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section aria-label="Hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 md:pb-24">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img
@@ -35,6 +35,7 @@ const Hero = () => {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/90"></div>
+        <div className="absolute inset-0 bg-background/60 lg:hidden"></div>
       </div>
 
       {/* Subtle ambient glow */}
@@ -59,7 +60,7 @@ const Hero = () => {
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-5xl xl:text-6xl font-black tracking-tighter leading-[1.04] text-balance mb-6"
+              className="text-[2rem] min-[360px]:text-4xl md:text-5xl xl:text-6xl font-black tracking-tighter leading-[1.04] text-balance mb-6"
               initial={reduceMotion ? false : { opacity: 0, y: 30 }}
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -154,7 +155,7 @@ const Hero = () => {
 
       {/* Scroll Indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50"
+        className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 opacity-50"
         initial={reduceMotion ? false : { opacity: 0 }}
         animate={reduceMotion ? {} : { opacity: 0.5 }}
         transition={{ delay: 1.2, duration: 0.6 }}

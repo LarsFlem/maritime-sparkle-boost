@@ -25,7 +25,7 @@ const DemoPagerNav = () => {
       <Link to={prev.to}
         className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors min-w-0">
         <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
-        <span className="truncate">{t(prev.key)}</span>
+        <span className="leading-snug">{t(prev.key)}</span>
       </Link>
       <Link to="/"
         className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors shrink-0">
@@ -33,8 +33,8 @@ const DemoPagerNav = () => {
         <span className="hidden sm:inline">{t("nav.allDemos")}</span>
       </Link>
       <Link to={next.to}
-        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-foreground hover:text-primary transition-colors min-w-0">
-        <span className="truncate">{t("nav.nextDemo")}: {t(next.key)}</span>
+        className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-foreground hover:text-primary transition-colors min-w-0 text-right">
+        <span className="leading-snug">{t("nav.nextDemo")}: {t(next.key)}</span>
         <ArrowRight className="w-3.5 h-3.5 shrink-0" />
       </Link>
     </div>

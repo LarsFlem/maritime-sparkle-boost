@@ -291,30 +291,30 @@ const HMIDashboard = () => {
         {/* Subtle CRT scan-line texture */}
         <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
         {/* Top status bar */}
-        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-6">
             <div className="flex items-center gap-2">
               <Radio className="w-3 h-3 text-primary animate-pulse" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary whitespace-nowrap">
                 SCADA LINK ACTIVE
               </span>
             </div>
-            <div className="h-4 w-px bg-border" />
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+            <div className="h-4 w-px bg-border hidden md:block" />
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap hidden md:inline">
               Station: NORTH SEA — Sector 7G
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap hidden sm:inline">
               UTC {currentTime.toISOString().slice(0, 10)}
             </span>
-            <div className="h-4 w-px bg-border" />
-            <span className="font-mono text-[10px] uppercase tracking-wider">
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <span className="font-mono text-[10px] uppercase tracking-wider whitespace-nowrap hidden sm:inline">
               <span className="text-muted-foreground">Output </span>
               <span className="text-primary tabular-nums">{totalEnergy.toFixed(1)} MW</span>
             </span>
-            <div className="h-4 w-px bg-border" />
-            <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <span className="font-mono text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">
               {currentTime.toTimeString().slice(0, 8)}
             </span>
           </div>
@@ -536,7 +536,7 @@ const HMIDashboard = () => {
                 }
                 return (
                   <ResponsiveContainer width="100%" height={240}>
-                    <LineChart data={trendData}>
+                    <LineChart data={trendData} margin={{ top: 5, right: 26, bottom: 5, left: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="t"
@@ -544,6 +544,10 @@ const HMIDashboard = () => {
                         scale="time"
                         domain={[domainStart, domainEnd]}
                         ticks={ticks}
+                        // on a phone the 15 s ticks sit closer than their labels are wide;
+                        // let recharts drop the ones that would collide
+                        interval="preserveStartEnd"
+                        minTickGap={14}
                         allowDataOverflow
                         stroke="hsl(var(--muted-foreground))"
                         tick={{ fontSize: 10, fontFamily: "monospace" }}

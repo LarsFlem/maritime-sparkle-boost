@@ -549,11 +549,11 @@ const PMSDemo = () => {
         <div className="pointer-events-none fixed inset-0 z-30 hmi-scanlines" />
 
         {/* Top status bar */}
-        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-6 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="border-b border-border/40 bg-card/40 backdrop-blur-sm px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-6">
             <div className="flex items-center gap-2">
               <Radio className="w-3 h-3 text-primary animate-pulse" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary whitespace-nowrap">
                 PMS — AUTO
               </span>
             </div>
@@ -562,9 +562,9 @@ const PMSDemo = () => {
               {t("pms.station")}
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[10px] uppercase tracking-wider">
-              <span className="text-muted-foreground">{t("pms.bus")} </span>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-wider whitespace-nowrap">
+              <span className="text-muted-foreground hidden sm:inline">{t("pms.bus")} </span>
               <span className={busLive ? "text-primary" : "text-destructive"}>
                 {busLive ? `${busVolt.toFixed(0)} V / ${busFreq.toFixed(2)} Hz` : t("pms.busDead")}
               </span>

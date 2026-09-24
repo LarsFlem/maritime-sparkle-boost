@@ -15,7 +15,7 @@ const Footer = () => {
             {/* Logo & Description */}
             <div className="sm:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center justify-center bg-white/90 rounded-full p-0.5">
+                <span className="flex shrink-0 items-center justify-center bg-white/90 rounded-full p-0.5">
                   <img
                     src={logoImg}
                     alt="Maritime Automation"
@@ -26,7 +26,7 @@ const Footer = () => {
                     className="h-9 w-9 object-contain"
                   />
                 </span>
-                <span className="logo-text whitespace-nowrap">Maritime Automation</span>
+                <span className="logo-text whitespace-nowrap text-[1.1rem] min-[375px]:text-[1.25rem] sm:text-2xl">Maritime Automation</span>
               </div>
               <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
                 {t('footer.about')}

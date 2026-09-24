@@ -178,8 +178,8 @@ const About = () => {
                           <Briefcase className={`h-3.5 w-3.5 ${exp.highlight ? 'text-primary-foreground' : 'text-primary'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className={`text-sm font-medium truncate ${exp.highlight ? 'text-primary' : 'text-foreground'}`}>{exp.company}</h4>
-                          <p className="text-[11px] text-muted-foreground truncate">{exp.role}</p>
+                          <h4 className={`text-sm font-medium leading-snug ${exp.highlight ? 'text-primary' : 'text-foreground'}`}>{exp.company}</h4>
+                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{exp.role}</p>
                         </div>
                         <span className="text-[11px] text-muted-foreground whitespace-nowrap hidden sm:block">{exp.period}</span>
                       </motion.div>
