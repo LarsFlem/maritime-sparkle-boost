@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(({ mode }) => ({
-  base: '/maritime-sparkle-boost/',
+  // Served from the root of maritime-automation.no (custom domain on GitHub Pages).
+  base: '/',
   server: {
     host: "::",
     port: 8080,
