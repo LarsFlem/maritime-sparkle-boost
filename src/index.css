@@ -1,0 +1,253 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Maritime Automation Design System — Refined Ocean Theme */
+
+@layer base {
+  :root {
+    /* Ocean & Maritime Color Palette */
+    --background: 210 25% 8%;
+    --foreground: 210 15% 95%;
+
+    --card: 210 20% 12%;
+    --card-foreground: 210 15% 95%;
+
+    --popover: 210 20% 12%;
+    --popover-foreground: 210 15% 95%;
+
+    --primary: 200 100% 50%;
+    --primary-foreground: 210 25% 8%;
+    --primary-glow: 200 100% 70%;
+
+    --secondary: 210 15% 20%;
+    --secondary-foreground: 210 15% 95%;
+
+    --muted: 210 15% 18%;
+    --muted-foreground: 210 10% 68%;
+
+    --accent: 180 100% 50%;
+    --accent-foreground: 210 25% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 15% 18%;
+    --input: 210 15% 18%;
+    --ring: 200 100% 50%;
+    --steel: 210 18% 40%;
+    --rust: 22 55% 42%;
+
+    /* Refined gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(215 55% 10%), hsl(205 65% 18%), hsl(195 75% 28%));
+    --gradient-deep: linear-gradient(180deg, hsl(210 25% 7%), hsl(210 28% 10%));
+    --gradient-tech: linear-gradient(45deg, hsl(200 100% 50% / 0.06), hsl(180 100% 50% / 0.06));
+    --gradient-hero: radial-gradient(ellipse at center, hsl(200 100% 50% / 0.1), transparent 50%);
+
+    /* Subtle shadows */
+    --shadow-ocean: 0 10px 30px -10px hsl(200 100% 50% / 0.2);
+    --shadow-deep: 0 20px 40px -15px hsl(210 25% 8% / 0.8);
+    --shadow-glow: 0 0 30px hsl(200 100% 70% / 0.2);
+
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Section entrance animations slide in from x: 40, and the decorative
+     glows are wider than a phone. Clip here so neither can drag the page
+     sideways. overflow-x: clip does not create a scroll container, so
+     nothing else about the page scroll changes. */
+  main {
+    overflow-x: clip;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Barlow', system-ui, sans-serif;
+    background: var(--gradient-deep);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', system-ui, sans-serif;
+    letter-spacing: -0.03em;
+  }
+
+  /* ── Glass & Surface Effects ── */
+  .glass-effect {
+    backdrop-filter: blur(16px);
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.2);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hover-lift {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px hsl(var(--primary) / 0.1);
+  }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+    border-radius: 1px;
+    margin: 0 auto;
+  }
+
+  /* ── HMI Leaflet Map Styling ── */
+  .hmi-map .leaflet-container {
+    background: hsl(var(--background)) !important;
+    font-family: 'Barlow', system-ui, sans-serif;
+    outline: none;
+  }
+
+  .hmi-map .leaflet-tile-pane {
+    filter: hue-rotate(170deg) saturate(0.6) brightness(0.85) contrast(1.05);
+  }
+
+  .hmi-leaflet-tooltip {
+    background: hsl(var(--card) / 0.92) !important;
+    color: hsl(var(--foreground)) !important;
+    border: 1px solid hsl(var(--primary) / 0.4) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.2) !important;
+    padding: 4px 8px !important;
+  }
+
+  .hmi-leaflet-tooltip::before {
+    border-top-color: hsl(var(--primary) / 0.4) !important;
+  }
+
+  .logo-text {
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+}
+
+/* HMI alarm pulse animation */
+@keyframes alarm-border-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(230, 165, 70, 0.15);
+    border-color: rgba(230, 165, 70, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(230, 165, 70, 0.4);
+    border-color: rgba(230, 165, 70, 0.85);
+  }
+}
+.alarm-pulse {
+  animation: alarm-border-pulse 2s ease-in-out infinite;
+}
+
+/* Single-line-diagram power flow (animated dashes along live conductors) */
+@keyframes sld-flow-anim {
+  to { stroke-dashoffset: -24; }
+}
+.sld-flow {
+  animation: sld-flow-anim 1s linear infinite;
+}
+
+/* Slow rotation for running-machine indicators */
+@keyframes sld-spin-anim {
+  to { transform: rotate(360deg); }
+}
+.sld-spin {
+  animation: sld-spin-anim 7s linear infinite;
+}
+
+/* DP radar sweep */
+@keyframes dp-sweep-anim {
+  to { transform: rotate(360deg); }
+}
+.dp-sweep {
+  animation: dp-sweep-anim 9s linear infinite;
+}
+
+/* Demo-hub mini previews */
+@keyframes demo-sway-anim {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(-6deg); }
+}
+.demo-sway { animation: demo-sway-anim 3.4s ease-in-out infinite; }
+
+@keyframes demo-bar-anim {
+  0%, 100% { transform: scaleY(0.55); }
+  50% { transform: scaleY(1); }
+}
+.demo-bar { animation: demo-bar-anim 3s ease-in-out infinite; }
+
+@keyframes demo-needle-anim {
+  0%, 100% { transform: rotate(-28deg); }
+  40% { transform: rotate(16deg); }
+  70% { transform: rotate(-6deg); }
+}
+.demo-needle { animation: demo-needle-anim 4.5s ease-in-out infinite; }
+
+@keyframes demo-drift-anim {
+  0%, 100% { transform: translate(0px, 0px); }
+  30% { transform: translate(3px, -2px); }
+  65% { transform: translate(-2px, 2px); }
+}
+.demo-drift { animation: demo-drift-anim 7s ease-in-out infinite; }
+
+/* HMI scan-line overlay */
+.hmi-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.022) 2px,
+    rgba(0, 0, 0, 0.022) 3px
+  );
+}
+
+/* Grain texture overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.028;
+  pointer-events: none;
+  z-index: 9999;
+}
+
