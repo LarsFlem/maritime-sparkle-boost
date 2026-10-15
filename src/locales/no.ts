@@ -175,10 +175,10 @@ export default {
   // Portfolio — Prosjekter
   'portfolio.proj.crane.title': '3D Bevegelseskompenserte Kransystemer',
   'portfolio.proj.crane.location': 'Verdensomspennende',
-  'portfolio.proj.crane.duration': '18 måneder',
-  'portfolio.proj.crane.description': 'PLS-programmering i strukturert tekst i TwinCAT for Beckhoff-baserte 3D bevegelseskompenserte offshorekraner. HMI-utvikling i HTML/CSS/JS, SQL-alarmdatabaser, nettverkskonfigurasjon, og oppfølging på sjøprøver i Taiwan for IMECA hybrid 6 t Cygnus-kran om bord på Edda Monsoon.',
-  'portfolio.proj.crane.tech': 'TwinCAT|Beckhoff PLS|HTML/CSS/JS HMI|SQL|3D-kompensering',
-  'portfolio.proj.crane.results': 'Flere kranleveranser fullført|Vellykkede sjøprøver i Taiwan|Mannskapsopplæring på 3D-kompensert drift',
+  'portfolio.proj.crane.duration': '1 uke',
+  'portfolio.proj.crane.description': 'Oppfølging på sjøprøver i Taiwan for IMECAs hybride 6 t Cygnus-kran om bord på Edda Monsoon.',
+  'portfolio.proj.crane.tech': 'CCTV|Siemens TIA|AHC|3D-kompensering',
+  'portfolio.proj.crane.results': 'Vellykkede sjøprøver i Taiwan',
 
   'portfolio.proj.norwest.title': 'Feilsøking AH-kran – NorWest',
   'portfolio.proj.norwest.location': 'Norge',

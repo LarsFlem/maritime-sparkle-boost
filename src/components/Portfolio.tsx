@@ -34,7 +34,7 @@ const Portfolio = () => {
       id: 1,
       key: "crane",
       category: "offshore",
-      year: "2023–2024",
+      year: "2025",
       client: "IMECA via Vinje Industrier",
       image: portfolioCrane,
       teamSize: 1,

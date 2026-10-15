@@ -78,10 +78,10 @@ export default {
   // Portfolio — Projects
   'portfolio.proj.crane.title': '3D Motion Compensated Crane Systems',
   'portfolio.proj.crane.location': 'Worldwide',
-  'portfolio.proj.crane.duration': '18 months',
-  'portfolio.proj.crane.description': 'Structured text PLC programming in TwinCAT for Beckhoff-based 3D motion compensated offshore cranes. HMI development in HTML/CSS/JS, SQL alarm databases, network configuration, and on-site sea trial support in Taiwan for the IMECA hybrid 6 t Cygnus crane aboard Edda Monsoon.',
-  'portfolio.proj.crane.tech': 'TwinCAT|Beckhoff PLC|HTML/CSS/JS HMI|SQL|3D Compensation',
-  'portfolio.proj.crane.results': 'Multiple crane deliveries completed|Successful sea trials in Taiwan|Crew training on 3D compensated operations',
+  'portfolio.proj.crane.duration': '1 week',
+  'portfolio.proj.crane.description': 'Sea trial support in Taiwan for IMECA\'s hybrid 6 t Cygnus crane aboard Edda Monsoon.',
+  'portfolio.proj.crane.tech': 'CCTV|Siemens TIA|AHC|3D Compensation',
+  'portfolio.proj.crane.results': 'Successful sea trials in Taiwan',
 
   'portfolio.proj.norwest.title': 'Anchor-Handling Crane Fault-Finding – NorWest',
   'portfolio.proj.norwest.location': 'Norway',
