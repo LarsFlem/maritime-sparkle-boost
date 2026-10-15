@@ -176,7 +176,7 @@ export default {
   'portfolio.proj.crane.title': '3D Bevegelseskompenserte Kransystemer',
   'portfolio.proj.crane.location': 'Verdensomspennende',
   'portfolio.proj.crane.duration': '1 uke',
-  'portfolio.proj.crane.description': 'Oppfølging på sjøprøver i Taiwan for IMECAs hybride 6 t Cygnus-kran om bord på Edda Monsoon.',
+  'portfolio.proj.crane.description': 'Oppfølging på sjøprøver i Taiwan for IMECAs hybride 6 t Cygnus-kran om bord på Edda Monsoon. Bistod under sjøprøvene av det første kombinerte gangway- og kransystemet fra Cygnus, hjalp til med feilsøking av CCTV-signalet til fjernstyringsstasjonen på broen, og deltok i SAT-prosedyren (Site Acceptance Test) slik at kranen ble godkjent i henhold til testplanen.',
   'portfolio.proj.crane.tech': 'CCTV|Siemens TIA|AHC|3D-kompensering',
   'portfolio.proj.crane.results': 'Vellykkede sjøprøver i Taiwan',
 

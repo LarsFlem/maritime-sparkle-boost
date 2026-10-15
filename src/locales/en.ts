@@ -79,7 +79,7 @@ export default {
   'portfolio.proj.crane.title': '3D Motion Compensated Crane Systems',
   'portfolio.proj.crane.location': 'Worldwide',
   'portfolio.proj.crane.duration': '1 week',
-  'portfolio.proj.crane.description': 'Sea trial support in Taiwan for IMECA\'s hybrid 6 t Cygnus crane aboard Edda Monsoon.',
+  'portfolio.proj.crane.description': 'Sea trial support in Taiwan for IMECA\'s hybrid 6 t Cygnus crane aboard Edda Monsoon. Assisted with the sea trials of the first combined Cygnus gangway and crane system, helped troubleshoot the CCTV feed to the bridge remote operation station, and supported the site acceptance test (SAT) so the crane was approved according to the test schedule.',
   'portfolio.proj.crane.tech': 'CCTV|Siemens TIA|AHC|3D Compensation',
   'portfolio.proj.crane.results': 'Successful sea trials in Taiwan',
 
