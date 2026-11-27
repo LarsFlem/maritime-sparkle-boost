@@ -27,8 +27,8 @@ const DemoPagerNav = () => {
         <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
         <span className="leading-snug">{t(prev.key)}</span>
       </Link>
-      <Link to="/"
-        className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors shrink-0">
+      <Link to="/" state={{ scrollTo: "demos" }} aria-label={t("nav.allDemos")}
+        className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors shrink-0 p-2 -m-2">
         <LayoutGrid className="w-3.5 h-3.5" />
         <span className="hidden sm:inline">{t("nav.allDemos")}</span>
       </Link>

@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send, Clock, Award } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
 
 const Contact = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -29,6 +31,8 @@ const Contact = () => {
     ].filter(Boolean).join("\n");
 
     window.location.href = `mailto:Lars@Maritime-Automation.no?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Without a mail program nothing visible happens, so always say what to do next.
+    toast({ title: t('contact.toast.opened.title'), description: t('contact.toast.opened.description') });
   };
 
   return (

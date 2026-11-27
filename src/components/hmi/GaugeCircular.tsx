@@ -9,6 +9,11 @@ interface GaugeCircularProps {
   size?: number;
   warningThreshold?: number;
   criticalThreshold?: number;
+  /**
+   * Which end of the scale is abnormal. "high" (default) for temperature/vibration,
+   * "low" for health or pressure, "none" for values with no alarm limits (output, efficiency).
+   */
+  alarmWhen?: "high" | "low" | "none";
 }
 
 const GaugeCircular = ({
@@ -20,6 +25,7 @@ const GaugeCircular = ({
   size = 140,
   warningThreshold = 70,
   criticalThreshold = 90,
+  alarmWhen = "high",
 }: GaugeCircularProps) => {
   const percentage = Math.min((value / max) * 100, 100);
   const radius = (size - 20) / 2;
@@ -30,8 +36,13 @@ const GaugeCircular = ({
   const filledLength = (percentage / 100) * arcLength;
 
   const getColor = () => {
-    if (percentage >= criticalThreshold) return "hsl(0, 70%, 55%)";
-    if (percentage >= warningThreshold) return "hsl(38, 92%, 60%)";
+    if (alarmWhen === "high") {
+      if (percentage >= criticalThreshold) return "hsl(0, 70%, 55%)";
+      if (percentage >= warningThreshold) return "hsl(38, 92%, 60%)";
+    } else if (alarmWhen === "low") {
+      if (percentage <= criticalThreshold) return "hsl(0, 70%, 55%)";
+      if (percentage <= warningThreshold) return "hsl(38, 92%, 60%)";
+    }
     return color;
   };
 

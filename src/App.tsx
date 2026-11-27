@@ -1,4 +1,5 @@
-import { lazy, Suspense, type ComponentType } from "react";
+import { Suspense } from "react";
+import { lazyWithReload } from "@/lib/lazyWithReload";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,33 +7,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ScrollManager from "@/components/ScrollManager";
 import Index from "./pages/Index";
 
-// Every deploy renames the lazy chunks, and GitHub Pages caches index.html
-// for ten minutes. A tab opened before a deploy therefore asks for chunk files
-// that no longer exist, and the import fails. Reload once to pick up the new
-// index.html; the session flag stops a genuinely broken chunk from looping.
-const RELOAD_FLAG = "chunk-reload-attempted";
-const lazyRoute = (load: () => Promise<{ default: ComponentType }>) =>
-  lazy(() =>
-    load().then(
-      (module) => {
-        try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* storage unavailable */ }
-        return module;
-      },
-      (error) => {
-        let alreadyTried = true;
-        try {
-          alreadyTried = sessionStorage.getItem(RELOAD_FLAG) === "1";
-          if (!alreadyTried) sessionStorage.setItem(RELOAD_FLAG, "1");
-        } catch { /* storage unavailable: do not risk a reload loop */ }
-        if (alreadyTried) throw error;
-        window.location.reload();
-        // Keep the route spinner up until the reload takes over.
-        return new Promise<never>(() => {});
-      },
-    ),
-  );
+// Lazy routes reload the page once if their chunk has gone missing after a deploy.
+const lazyRoute = lazyWithReload;
 
 const HMIDashboard = lazyRoute(() => import("./pages/HMIDashboard"));
 const DataAnalysis = lazyRoute(() => import("./pages/DataAnalysis"));
@@ -74,6 +53,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <HashRouter>
+            <ScrollManager />
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<Index />} />

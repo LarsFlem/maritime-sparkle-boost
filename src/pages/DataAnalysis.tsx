@@ -34,12 +34,15 @@ const generateHistoricalData = (days: number) => {
     date.setDate(startDate.getDate() + i);
     const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
     
-    const seasonalWave = Math.sin((dayOfYear - 80) * 2 * Math.PI / 365);
+    // North Sea: roughest around midwinter, calmest around midsummer…
+    const seasonalWave = Math.cos((dayOfYear - 10) * 2 * Math.PI / 365);
+    // …while the sea itself is warmest in late August and coldest in early March.
+    const seaSeason = Math.cos((dayOfYear - 236) * 2 * Math.PI / 365);
     const weatherCycle = Math.sin(i / 5) * 0.3 + Math.sin(i / 13) * 0.2;
     
     const waveHeight = Math.max(0.3, 2.5 + seasonalWave * 1.2 + weatherCycle * 0.8 + (Math.random() - 0.5) * 0.6);
     const windSpeed = Math.max(1, 12 + seasonalWave * 4 + weatherCycle * 3 + (Math.random() - 0.5) * 4);
-    const seaTemp = 10 - seasonalWave * 5 + (Math.random() - 0.5) * 1.5;
+    const seaTemp = 10.5 + seaSeason * 4.5 + (Math.random() - 0.5) * 1.5;
     const currentSpeed = Math.max(0.1, 1.2 + Math.sin(i / 8) * 0.4 + (Math.random() - 0.5) * 0.3);
     
     const basePower = (waveHeight * 120 + windSpeed * 15);
@@ -104,6 +107,9 @@ const maintenanceLog = [
   { date: '1 week ago', item: 'WG-1 Control System Update', type: 'Completed', severity: 'medium' },
 ];
 
+/** Formats a KPI value, showing a dash when the period holds no data. */
+const fmt = (v: number, decimals: number) => (Number.isFinite(v) ? v.toFixed(decimals) : '–');
+
 function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
   label: string; value: string; unit?: string; icon: LucideIcon; delta?: number; deltaLabel?: string;
 }) {
@@ -114,7 +120,7 @@ function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
             <p className="text-2xl font-bold mt-1 font-mono tabular-nums">{value}<span className="text-sm font-normal font-sans text-muted-foreground ml-1">{unit}</span></p>
-            {delta !== undefined && (
+            {delta !== undefined && Number.isFinite(delta) && (
               <div className={`flex items-center gap-0.5 mt-1 text-xs font-medium ${delta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {delta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                 {Math.abs(delta).toFixed(1)}% {deltaLabel || 'vs prev. period'}
@@ -191,7 +197,12 @@ export default function DataAnalysis() {
   }, [historicalData]);
 
   const stats = useMemo(() => {
-    const totalEnergy = historicalData.reduce((acc, item) => acc + item.total_power, 0) / 1000;
+    if (historicalData.length === 0) {
+      // A custom period outside the selected range holds no rows: show dashes, not NaN.
+      return { totalEnergy: NaN, avgEff: NaN, peakPower: NaN, avgVibration: NaN, avgBearingTemp: NaN, avgWave: NaN, effDelta: NaN, powerDelta: NaN };
+    }
+    // One row per day holding the day's mean power (kW): energy = kW × 24 h, shown in MWh.
+    const totalEnergy = historicalData.reduce((acc, item) => acc + item.total_power, 0) * 24 / 1000;
     const avgEff = historicalData.reduce((acc, item) => acc + item.efficiency, 0) / historicalData.length;
     const peakPower = Math.max(...historicalData.map(d => d.total_power));
     const avgVibration = historicalData.reduce((acc, item) => acc + item.vibration, 0) / historicalData.length;
@@ -329,12 +340,12 @@ export default function DataAnalysis() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <KPICard label="Total Energy" value={stats.totalEnergy.toFixed(1)} unit="MWh" icon={Zap} delta={stats.powerDelta} />
-          <KPICard label="Avg Efficiency" value={stats.avgEff.toFixed(1)} unit="%" icon={Gauge} delta={stats.effDelta} />
-          <KPICard label="Peak Power" value={stats.peakPower.toFixed(0)} unit="kW" icon={TrendingUp} />
-          <KPICard label="Avg Vibration" value={stats.avgVibration.toFixed(1)} unit="mm/s" icon={Activity} />
-          <KPICard label="Bearing Temp" value={stats.avgBearingTemp.toFixed(1)} unit="°C" icon={Thermometer} />
-          <KPICard label="Avg Wave Ht." value={stats.avgWave.toFixed(2)} unit="m" icon={Waves} />
+          <KPICard label="Total Energy" value={fmt(stats.totalEnergy, 1)} unit="MWh" icon={Zap} delta={stats.powerDelta} />
+          <KPICard label="Avg Efficiency" value={fmt(stats.avgEff, 1)} unit="%" icon={Gauge} delta={stats.effDelta} />
+          <KPICard label="Peak Power" value={fmt(stats.peakPower, 0)} unit="kW" icon={TrendingUp} />
+          <KPICard label="Avg Vibration" value={fmt(stats.avgVibration, 1)} unit="mm/s" icon={Activity} />
+          <KPICard label="Bearing Temp" value={fmt(stats.avgBearingTemp, 1)} unit="°C" icon={Thermometer} />
+          <KPICard label="Avg Wave Ht." value={fmt(stats.avgWave, 2)} unit="m" icon={Waves} />
         </div>
 
         <Tabs defaultValue="power" className="space-y-6">

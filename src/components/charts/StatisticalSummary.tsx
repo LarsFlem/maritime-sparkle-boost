@@ -7,6 +7,7 @@ interface StatisticalSummaryProps {
   metrics: { key: string; label: string; unit: string; decimals?: number }[];
 }
 
+/** `values` must be in time order: the trend compares the latest 20 % with the earliest 20 %. */
 function calcStats(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const n = sorted.length;
@@ -22,8 +23,8 @@ function calcStats(values: number[]) {
   
   // Recent trend: compare last 20% vs first 20%
   const slice = Math.max(Math.floor(n * 0.2), 1);
-  const recentAvg = sorted.slice(-slice).reduce((a, b) => a + b, 0) / slice;
-  const earlyAvg = sorted.slice(0, slice).reduce((a, b) => a + b, 0) / slice;
+  const recentAvg = values.slice(-slice).reduce((a, b) => a + b, 0) / slice;
+  const earlyAvg = values.slice(0, slice).reduce((a, b) => a + b, 0) / slice;
   const changePct = earlyAvg !== 0 ? ((recentAvg - earlyAvg) / earlyAvg) * 100 : 0;
 
   return { mean, stdDev, min, max, p25, p50, p75, changePct };
@@ -36,6 +37,19 @@ export default function StatisticalSummary({ data, metrics }: StatisticalSummary
       return { ...m, ...calcStats(values) };
     });
   }, [data, metrics]);
+
+  if (data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Statistical Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">No data in the selected period.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

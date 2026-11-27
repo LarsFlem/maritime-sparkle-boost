@@ -88,7 +88,9 @@ const HMIDashboard = () => {
     { id: "T006", name: "WG-Foxtrot", status: "operational", energyOutput: 2.2, efficiency: 84, health: 89, position: { x: 70, y: 55 }, lat: 58.50, lng: 2.55, temperature: 46, vibration: 2.3 },
   ]);
 
-  const [selectedTurbine, setSelectedTurbine] = useState<Turbine | null>(null);
+  // Keep only the id: storing the turbine object froze the diagnostics panel at click time.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedTurbine = turbines.find((t) => t.id === selectedId) ?? null;
   const [selectedSeries, setSelectedSeries] = useState<Set<string>>(new Set()); // empty = show all + total
   const [totalEnergy, setTotalEnergy] = useState(0);
   const [windowSeconds, setWindowSeconds] = useState<number>(DEFAULT_WINDOW);
@@ -356,7 +358,7 @@ const HMIDashboard = () => {
               </div>
             </HMIPanel>
             <HMIPanel title="Avg Efficiency" glowColor={COLOR_PRIMARY}>
-              <GaugeCircular value={avgEfficiency} max={100} label="" unit="%" color={COLOR_PRIMARY} size={120} />
+              <GaugeCircular value={avgEfficiency} max={100} label="" unit="%" color={COLOR_PRIMARY} size={120} alarmWhen="none" />
             </HMIPanel>
             <HMIPanel title="System Health" glowColor={COLOR_ACCENT}>
               <GaugeCircular
@@ -368,6 +370,7 @@ const HMIDashboard = () => {
                 size={120}
                 warningThreshold={50}
                 criticalThreshold={30}
+                alarmWhen="low"
               />
             </HMIPanel>
           </div>
@@ -414,7 +417,7 @@ const HMIDashboard = () => {
                     lng: t.lng,
                   }))}
                   selectedId={selectedTurbine?.id}
-                  onSelect={(id) => setSelectedTurbine(turbines.find(t => t.id === id) ?? null)}
+                  onSelect={(id) => setSelectedId(id)}
                   getStatusColor={getStatusColor}
                 />
               ) : (
@@ -432,7 +435,7 @@ const HMIDashboard = () => {
                       key={turbine.id}
                       className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-[left,top] duration-1000 ease-out"
                       style={{ left: `${turbine.position.x}%`, top: `${turbine.position.y}%` }}
-                      onClick={() => setSelectedTurbine(turbine)}
+                      onClick={() => setSelectedId(turbine.id)}
                     >
                       <div
                         className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
@@ -650,12 +653,12 @@ const HMIDashboard = () => {
                 glowColor={getStatusColor(turbine.status)}
                 className={`cursor-pointer transition-all ${selectedTurbine?.id === turbine.id ? "ring-1 ring-primary/50" : ""}`}
               >
-                <div className="space-y-3" onClick={() => setSelectedTurbine(turbine)}>
+                <div className="space-y-3" onClick={() => setSelectedId(turbine.id)}>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-muted-foreground">{turbine.name}</span>
                     <StatusIndicator status={turbine.status} size="sm" label="" />
                   </div>
-                  <GaugeCircular value={turbine.energyOutput} max={3} label="" unit="MW" color={getStatusColor(turbine.status)} size={90} warningThreshold={85} criticalThreshold={95} />
+                  <GaugeCircular value={turbine.energyOutput} max={3} label="" unit="MW" color={getStatusColor(turbine.status)} size={90} alarmWhen="none" />
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                     <div className="flex items-center gap-1">
                       <ThermometerSun className="w-3 h-3 text-muted-foreground" />
@@ -690,9 +693,9 @@ const HMIDashboard = () => {
           {selectedTurbine && (
             <HMIPanel title={`${selectedTurbine.id} — ${selectedTurbine.name} — DIAGNOSTICS`} glowColor={getStatusColor(selectedTurbine.status)}>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center">
-                <GaugeCircular value={selectedTurbine.energyOutput} max={3} label="Output" unit="MW" color={COLOR_PRIMARY} size={130} />
-                <GaugeCircular value={selectedTurbine.efficiency} max={100} label="Efficiency" unit="%" color={COLOR_ACCENT} size={130} />
-                <GaugeCircular value={selectedTurbine.health} max={100} label="Health" unit="%" color={COLOR_HEALTH} size={130} warningThreshold={50} criticalThreshold={30} />
+                <GaugeCircular value={selectedTurbine.energyOutput} max={3} label="Output" unit="MW" color={COLOR_PRIMARY} size={130} alarmWhen="none" />
+                <GaugeCircular value={selectedTurbine.efficiency} max={100} label="Efficiency" unit="%" color={COLOR_ACCENT} size={130} alarmWhen="none" />
+                <GaugeCircular value={selectedTurbine.health} max={100} label="Health" unit="%" color={COLOR_HEALTH} size={130} warningThreshold={50} criticalThreshold={30} alarmWhen="low" />
                 <GaugeCircular value={selectedTurbine.temperature} max={60} label="Temperature" unit="°C" color={COLOR_PRIMARY} size={130} warningThreshold={75} criticalThreshold={90} />
                 <GaugeCircular value={selectedTurbine.vibration} max={5} label="Vibration" unit="Hz" color={COLOR_ACCENT} size={130} warningThreshold={60} criticalThreshold={80} />
                 <div className="flex flex-col gap-3">

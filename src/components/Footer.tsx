@@ -2,6 +2,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoImg from "@/assets/maritime-automation-logo.png";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import PrivacyDialog from "@/components/PrivacyDialog";
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -78,8 +79,21 @@ const Footer = () => {
 
         <div className="border-t border-border/20 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-xs text-muted-foreground">
+            {/* Business identification (e-handelsloven § 8) and privacy statement. */}
+            <p className="text-xs text-muted-foreground text-center md:text-left">
               © {currentYear} Maritime Automation. {t('footer.copyright')}
+              <span className="mx-1.5" aria-hidden="true">·</span>
+              {t('footer.orgNr')}{" "}
+              <a
+                href="https://virksomhet.brreg.no/nb/oppslag/enheter/934304179"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline-offset-2 hover:underline hover:text-foreground transition-colors"
+              >
+                934 304 179
+              </a>
+              <span className="mx-1.5" aria-hidden="true">·</span>
+              <PrivacyDialog />
             </p>
             <p className="text-xs text-muted-foreground mt-2 md:mt-0">{t('footer.tagline')}</p>
           </div>

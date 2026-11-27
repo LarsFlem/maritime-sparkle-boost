@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, Zap, Crosshair, Construction, Flame, Gauge, LineChart, LayoutGrid, Phone } from "lucide-react";
 import logoImg from "@/assets/maritime-automation-logo.png";
@@ -7,6 +7,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { QuoteModal } from "@/components/QuoteModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { scrollToSection } from "@/lib/scroll";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,11 +35,13 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { label: t('nav.home'), to: "/", type: "link" },
-    { label: t('nav.services'), to: isHomePage ? "#services" : "/", type: isHomePage ? "anchor" : "link" },
-    { label: t('nav.portfolio'), to: isHomePage ? "#portfolio" : "/", type: isHomePage ? "anchor" : "link" },
-    { label: t('nav.contact'), to: isHomePage ? "#contact" : "/", type: isHomePage ? "anchor" : "link" },
+  // Every item is a real route link (so "open in new tab" and copied links work);
+  // `section` makes the front page scroll to that section on arrival.
+  const navItems: Array<{ label: string; section?: string }> = [
+    { label: t('nav.home') },
+    { label: t('nav.services'), section: "services" },
+    { label: t('nav.portfolio'), section: "portfolio" },
+    { label: t('nav.contact'), section: "contact" },
   ];
 
   const demoItems = [
@@ -51,26 +54,49 @@ const Navbar = () => {
   ];
   const onDemoPage = demoItems.some((d) => d.to === location.pathname);
 
-  const goToAllDemos = () => {
-    setIsOpen(false);
-    if (isHomePage) {
-      document.getElementById("demos")?.scrollIntoView({ behavior: "smooth" });
+  // A scroll started while the mobile menu is collapsing gets cancelled, so when the
+  // menu is open the jump is queued and run once its exit animation has finished.
+  const pendingScroll = useRef<string | null>(null);
+  const runScroll = (target: string) => {
+    if (target === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+    else scrollToSection(target);
+  };
+
+  const goTo = (target: string) => {
+    if (!isHomePage) {
+      navigate("/", target === "top" ? undefined : { state: { scrollTo: target } });
+      setIsOpen(false);
+      return;
+    }
+    if (isOpen) {
+      pendingScroll.current = target;
+      setIsOpen(false);
     } else {
-      navigate("/");
-      setTimeout(() => document.getElementById("demos")?.scrollIntoView({ behavior: "smooth" }), 350);
+      runScroll(target);
     }
   };
 
-  const handleNavClick = (item: { label: string; to: string; type: string }, e?: React.MouseEvent) => {
-    if (item.label === t('nav.home') && isHomePage) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    if (item.type === "anchor" && e) {
-      e.preventDefault();
-      const id = item.to.replace("#", "");
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    }
+  const goToAllDemos = () => goTo("demos");
+
+  const handleNavClick = (e: React.MouseEvent, item: { section?: string }) => {
+    // Let modified clicks (new tab/window) through to the browser.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    goTo(item.section ?? "top");
+  };
+
+  // Close the mobile menu on page change and with Escape.
+  useEffect(() => { setIsOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
+  const openQuote = () => {
     setIsOpen(false);
+    setIsQuoteModalOpen(true);
   };
 
   return (
@@ -105,10 +131,8 @@ const Navbar = () => {
             <div className="hidden lg:flex items-center space-x-1">
               {navItems.slice(0, 3).map((item) => {
                 const className = "px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-md hover:bg-primary/5";
-                return item.type === "link" ? (
-                  <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
-                ) : (
-                  <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
+                return (
+                  <Link key={item.label} to="/" state={item.section ? { scrollTo: item.section } : undefined} className={className} onClick={(e) => handleNavClick(e, item)}>{item.label}</Link>
                 );
               })}
 
@@ -152,15 +176,13 @@ const Navbar = () => {
 
               {navItems.slice(3).map((item) => {
                 const className = "px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-md hover:bg-primary/5";
-                return item.type === "link" ? (
-                  <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
-                ) : (
-                  <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
+                return (
+                  <Link key={item.label} to="/" state={item.section ? { scrollTo: item.section } : undefined} className={className} onClick={(e) => handleNavClick(e, item)}>{item.label}</Link>
                 );
               })}
               <div className="ml-2 pl-2 border-l border-border/50 flex items-center space-x-2">
                 <LanguageSwitcher />
-                <Button size="sm" onClick={() => setIsQuoteModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4">
+                <Button size="sm" onClick={openQuote} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4">
                   {t('nav.getQuote')}
                 </Button>
               </div>
@@ -168,29 +190,43 @@ const Navbar = () => {
 
             {/* Mobile menu button */}
             <div className="lg:hidden">
-              <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="text-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-foreground h-11 w-11 p-0"
+                aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+                aria-expanded={isOpen}
+                aria-controls="mobile-menu"
+              >
                 {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
 
           {/* Mobile Navigation */}
-          <AnimatePresence>
+          <AnimatePresence
+            onExitComplete={() => {
+              const target = pendingScroll.current;
+              pendingScroll.current = null;
+              if (target) runScroll(target);
+            }}
+          >
             {isOpen && (
               <motion.div
+                id="mobile-menu"
                 className="lg:hidden"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
               >
-                <div className="px-2 pt-2 pb-3 space-y-1 bg-card/95 backdrop-blur-xl rounded-lg mt-2 border border-border/30">
+                {/* Scrolls on its own when taller than the screen (phones in landscape). */}
+                <div className="px-2 pt-2 pb-3 space-y-1 bg-card/95 backdrop-blur-xl rounded-lg mt-2 border border-border/30 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
                   {navItems.slice(0, 3).map((item) => {
                     const className = "block px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors";
-                    return item.type === "link" ? (
-                      <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
-                    ) : (
-                      <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
+                    return (
+                      <Link key={item.label} to="/" state={item.section ? { scrollTo: item.section } : undefined} className={className} onClick={(e) => handleNavClick(e, item)}>{item.label}</Link>
                     );
                   })}
 
@@ -212,10 +248,8 @@ const Navbar = () => {
 
                   {navItems.slice(3).map((item) => {
                     const className = "block px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors";
-                    return item.type === "link" ? (
-                      <Link key={item.label} to={item.to} className={className} onClick={() => handleNavClick(item)}>{item.label}</Link>
-                    ) : (
-                      <a key={item.label} href={item.to} className={className} onClick={(e) => handleNavClick(item, e)}>{item.label}</a>
+                    return (
+                      <Link key={item.label} to="/" state={item.section ? { scrollTo: item.section } : undefined} className={className} onClick={(e) => handleNavClick(e, item)}>{item.label}</Link>
                     );
                   })}
                   <a
@@ -228,7 +262,7 @@ const Navbar = () => {
                   </a>
                   <div className="flex items-center justify-between px-3 py-2 gap-2">
                     <LanguageSwitcher />
-                    <Button size="sm" onClick={() => setIsQuoteModalOpen(true)} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <Button size="sm" onClick={openQuote} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
                       {t('nav.getQuote')}
                     </Button>
                   </div>

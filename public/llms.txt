@@ -18,7 +18,7 @@ Igangsetting av automasjonsutstyr og maskineri, feilsøking og teknisk støtte p
 Støtte i prosjektledelse inkludert estimering av tid og kostnader for tekniske oppgraderinger, assistanse i håndtering av programvareoppdateringer og endringer, FMEA-assistanse (Failure Modes and Effects Analysis), og implementering av verktøy som AutoCAD, Vault og TwinCAT.
 
 ### 3D Printing og Modellering
-3D-printingstjenester med Bambu P1P-printer som støtter PLA, PETG, TPU og andre materialer. Modellering og print av spesialtilpassede braketter og komponenter, rådgivning om filamentvalg, og print av skalerte modeller og prototyper.
+3D-printingstjenester med Bambu Lab H2C-printer som støtter PLA, PETG, TPU og andre materialer. Modellering og print av spesialtilpassede braketter og komponenter, rådgivning om filamentvalg, og print av skalerte modeller og prototyper.
 
 ## Kjernekompetanse
 

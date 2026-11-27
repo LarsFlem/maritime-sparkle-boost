@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/maritime-hero.jpg";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { lazyWithReload } from "@/lib/lazyWithReload";
 import { motion, useReducedMotion } from "framer-motion";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-const Ship3D = lazy(() => import("@/components/Ship3D"));
+const Ship3D = lazyWithReload(() => import("@/components/Ship3D"));
 
 const Hero = () => {
   const { t } = useLanguage();

@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 const VIDEO_ID = "LHXEMvQGN-E";
 
 const YoutubeEmbed = () => {
+  const { t } = useLanguage();
   const [active, setActive] = useState(false);
   const thumbnail = `https://img.youtube.com/vi/${VIDEO_ID}/hqdefault.jpg`;
 
@@ -16,8 +17,10 @@ const YoutubeEmbed = () => {
     return (
       <iframe
         className="w-full h-full"
-        src={`https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1`}
-        title="Portrait interview - Lars Jørgen Flem"
+        // youtube-nocookie: YouTube sets no tracking cookies until the visitor plays the video.
+        src={`https://www.youtube-nocookie.com/embed/${VIDEO_ID}?autoplay=1&rel=0&playsinline=1`}
+        title={t('about.video.title')}
+        referrerPolicy="strict-origin-when-cross-origin"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
@@ -26,13 +29,16 @@ const YoutubeEmbed = () => {
 
   return (
     <button
+      type="button"
       className="relative w-full h-full flex items-center justify-center bg-black/60 group"
       onClick={() => setActive(true)}
-      aria-label="Play interview video"
+      aria-label={t('about.video.play')}
     >
       <img
         src={thumbnail}
-        alt="Video thumbnail"
+        alt=""
+        loading="lazy"
+        decoding="async"
         className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity"
         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
       />
@@ -85,9 +91,20 @@ const About = () => {
                     <YoutubeEmbed />
                   </div>
                   <div className="p-3 bg-primary/5 border-t border-border/20">
-                    <div className="flex items-center space-x-2">
-                      <Play className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-xs font-medium text-foreground">{t('about.watchInterview')}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <Play className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-xs font-medium text-foreground">{t('about.watchInterview')}</span>
+                      </div>
+                      {/* Fallback for networks that block embedded YouTube. */}
+                      <a
+                        href={`https://www.youtube.com/watch?v=${VIDEO_ID}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline shrink-0"
+                      >
+                        {t('about.video.openOnYoutube')}
+                      </a>
                     </div>
                   </div>
                 </CardContent>

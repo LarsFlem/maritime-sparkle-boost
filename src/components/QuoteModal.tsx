@@ -180,7 +180,8 @@ export const QuoteModal = ({ open, onOpenChange }: QuoteModalProps) => {
         description: t("quote.toast.opened.description"),
       });
 
-      setFormData(EMPTY_FORM);
+      // Keep what the visitor typed: on a PC without a mail program nothing opens,
+      // and wiping the form would lose the request.
       onOpenChange(false);
     } catch (error) {
       console.error("Error opening quote request e-mail:", error);
