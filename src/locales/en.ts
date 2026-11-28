@@ -419,6 +419,8 @@ export default {
   'dp.status.inPosition': 'In Position',
   'dp.status.warning': 'Excursion Warning',
   'dp.status.alarm': 'Position Alarm',
+  'dp.status.headingWarning': 'Heading warning',
+  'dp.status.headingAlarm': 'Heading alarm',
   'dp.alarm.position': 'POSITION ALARM — vessel outside 5 m watch circle',
   'dp.alarm.excursion': 'Excursion warning — vessel outside 3 m watch circle',
   'dp.alarm.thruster': 'Thruster unavailable — capability reduced',

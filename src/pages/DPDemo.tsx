@@ -25,17 +25,28 @@ const D_YAW = 3.0e6;          // kNm per rad/s
 const KP_POS = 100;           // kN/m
 const KD_POS = 1500;          // kN/(m/s)
 const KI_POS = 4;             // kN/(m·s)
-const KI_CLAMP = 260;         // kN
+// Integrator limit as a share of the available thrust. It must be able to carry the
+// whole steady environmental load; a fixed 260 kN cap left the vessel off position
+// (and in warning) in weather the thrusters could still hold.
+const KI_CLAMP_SHARE = 0.8;
 const KP_YAW = 4.0e5;         // kNm/rad
 const KD_YAW = 5.0e6;         // kNm/(rad/s)
 // Reference slew rate. The hull can sustain ~0.46 °/s on a pure moment
 // (24 200 kNm of yaw capacity against D_YAW), so stay just inside that.
 const HEADING_RATE = 0.4;     // deg/s
 
-// ── Environment coefficients ──
+// ── Environment coefficients (beam-on load) ──
 const K_WIND = 0.25;          // kN per kt²
 const K_CURRENT = 45;         // kN per kt²
 const K_WAVE = 8;             // kN per m² (drift)
+// Head-on load relative to beam-on: a PSV meeting the weather bow-first sees
+// roughly a third of the beam load. This is why operators keep the bow to the weather.
+const HEAD_ON_FACTOR = 0.3;
+// Yaw-moment lever (m) at 45° to the weather, per source
+const LEVER_WIND = 9, LEVER_CURRENT = 5, LEVER_WAVE = 5;
+
+const HDG_WARN_DEG = 3;       // heading deviation warning
+const HDG_ALARM_DEG = 5;      // heading deviation alarm
 
 const WARN_RADIUS = 3;        // m
 const ALARM_RADIUS = 5;       // m
@@ -82,6 +93,7 @@ const DPDemo = () => {
     // environmental force, which is fixed in NED — stored body-fixed they
     // would point the wrong way in the world after any heading change.
     intN: 0, intE: 0,
+    envN: 0, envE: 0,           // last environmental force in NED (kN)
     thrusters: initialThrusters(),
     wavePhase: 0,
     joySurge: 0, joySway: 0,
@@ -104,6 +116,8 @@ const DPDemo = () => {
     thrusters: [] as ThrusterView[],
   });
   const [trail, setTrail] = useState<TrailPoint[]>([]);
+  // Plot radius widens in steps (8/16/32/64 m) so a drifting vessel stays on screen.
+  const [plotRange, setPlotRange] = useState(8);
   const trailRef = useRef<TrailPoint[]>([]);
   const trailTimerRef = useRef(0);
 
@@ -126,27 +140,27 @@ const DPDemo = () => {
       const env = envRef.current;
       const m = modeRef.current;
 
-      // 1. Environment forces (NED frame). Directions are "coming FROM".
+      // 1. Environment forces. Directions are "coming FROM". Each source is
+      //    resolved against the hull: full load beam-on, ~30 % head-on, and a
+      //    yaw moment that peaks at 45° off the bow and vanishes head-on/beam-on.
       const toRad = (d: number) => ((d + 180) * Math.PI) / 180; // force acts toward FROM+180
-      const fWind = K_WIND * env.windKt * env.windKt;
-      const fCur = K_CURRENT * env.currentKt * env.currentKt;
-      const fWave = K_WAVE * env.waveHs * env.waveHs;
-      const envN =
-        fWind * Math.cos(toRad(env.windDir)) +
-        fCur * Math.cos(toRad(env.currentDir)) +
-        fWave * Math.cos(toRad(env.windDir));
-      const envE =
-        fWind * Math.sin(toRad(env.windDir)) +
-        fCur * Math.sin(toRad(env.currentDir)) +
-        fWave * Math.sin(toRad(env.windDir));
-
-      // Rotate env into body frame
       const cos = Math.cos(s.psi);
       const sin = Math.sin(s.psi);
-      const envX = envN * cos + envE * sin;
-      const envY = -envN * sin + envE * cos;
-      // Weathervaning moments — pressure centres offset from CoG
-      const envM = envY * 10 * (fWind / Math.max(1, fWind + fCur)) + envY * 4 * (fCur / Math.max(1, fWind + fCur));
+      let envX = 0, envY = 0, envM = 0;
+      const addSource = (beamOnKn: number, fromDeg: number, lever: number) => {
+        const beta = toRad(fromDeg) - s.psi; // force direction relative to the bow
+        const fx = beamOnKn * HEAD_ON_FACTOR * Math.cos(beta);
+        const fy = beamOnKn * Math.sin(beta);
+        envX += fx;
+        envY += fy;
+        envM += fy * lever * Math.cos(beta);
+      };
+      addSource(K_WIND * env.windKt * env.windKt, env.windDir, LEVER_WIND);
+      addSource(K_CURRENT * env.currentKt * env.currentKt, env.currentDir, LEVER_CURRENT);
+      addSource(K_WAVE * env.waveHs * env.waveHs, env.windDir, LEVER_WAVE);
+      // Keep the NED components for a bumpless switch into Auto Pos.
+      s.envN = envX * cos - envY * sin;
+      s.envE = envX * sin + envY * cos;
 
       // 2. Controller demands (body frame)
       let demX = 0, demY = 0, demM = 0;
@@ -164,8 +178,9 @@ const DPDemo = () => {
         const eE = -s.e;
         const eX = eN * cos + eE * sin;
         const eY = -eN * sin + eE * cos;
-        s.intN = clamp(s.intN + eN * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
-        s.intE = clamp(s.intE + eE * KI_POS * dt, -KI_CLAMP, KI_CLAMP);
+        const kiClamp = KI_CLAMP_SHARE * s.thrusters.filter((tt) => !tt.failed).reduce((sum, tt) => sum + tt.maxKn, 0);
+        s.intN = clamp(s.intN + eN * KI_POS * dt, -kiClamp, kiClamp);
+        s.intE = clamp(s.intE + eE * KI_POS * dt, -kiClamp, kiClamp);
         const intX = s.intN * cos + s.intE * sin;
         const intY = -s.intN * sin + s.intE * cos;
         demX = KP_POS * eX - KD_POS * s.u + intX;
@@ -291,6 +306,13 @@ const DPDemo = () => {
       // 7. Mirror to render state
       const psiDeg = ((s.psi * 180) / Math.PI) % 360;
       const offsetM = Math.hypot(s.n, s.e);
+      const trailMax = trailRef.current.reduce((mx, p) => Math.max(mx, Math.abs(p.n), Math.abs(p.e)), 0);
+      const need = Math.max(offsetM, trailMax) * 1.15;
+      setPlotRange((cur) => {
+        const next = [8, 16, 32, 64].find((r) => r >= need) ?? 64;
+        // Widen at once; narrow only when well inside the smaller range.
+        return next > cur || need < cur * 0.4 ? next : cur;
+      });
       const totalCap = th.filter((tt) => !tt.failed).reduce((sum, tt) => sum + tt.maxKn, 0);
       const totalThrust = th.reduce((sum, tt) => sum + Math.hypot(tt.fx, tt.fy), 0);
       const powerKw = th.reduce(
@@ -303,7 +325,9 @@ const DPDemo = () => {
         posE: dispE,
         headingDeg: psiDeg,
         offsetM,
-        headingErrDeg: (wrapPi(psiSet - s.psi) * 180) / Math.PI,
+        // Deviation from the (rate-limited) heading reference: a commanded turn is
+        // not an error, drifting off the reference is.
+        headingErrDeg: (wrapPi(s.psiRef - s.psi) * 180) / Math.PI,
         thrustUtilPct: totalCap > 0 ? (totalThrust / totalCap) * 100 : 0,
         powerKw,
         thrusters: th.map((tt) => {
@@ -328,6 +352,26 @@ const DPDemo = () => {
   }, []);
 
   // ── Handlers ──
+  // Entering Auto Pos or Joystick keeps the vessel where it is: the current
+  // position and heading become the setpoint, and the position integrators are
+  // preset to the present environmental load so nothing is dragged anywhere.
+  const handleModeChange = (next: DPMode) => {
+    const s = simRef.current;
+    if (next !== "standby" && next !== mode) {
+      const hdg = ((Math.round((s.psi * 180) / Math.PI) % 360) + 360) % 360;
+      s.psiRef = s.psi;
+      headingSetRef.current = hdg;
+      setHeadingSet(hdg);
+      if (next === "auto") {
+        trailRef.current = trailRef.current.map((p) => ({ n: p.n - s.n, e: p.e - s.e }));
+        setTrail(trailRef.current);
+        s.n = 0; s.e = 0;
+        s.intN = -s.envN; s.intE = -s.envE;
+      }
+    }
+    setMode(next);
+  };
+
   const handleToggleFail = (idx: number) => {
     const tt = simRef.current.thrusters[idx];
     tt.failed = !tt.failed;
@@ -351,6 +395,7 @@ const DPDemo = () => {
     s.thrusters = initialThrusters();
     trailRef.current = [];
     setTrail([]);
+    setPlotRange(8);
     setHeadingSet(15);
     setWindKt(18); setWindDir(225);
     setCurrentKt(0.8); setCurrentDir(190);
@@ -361,15 +406,17 @@ const DPDemo = () => {
   // ── Derived ──
   const posWarn = render.offsetM > WARN_RADIUS;
   const posAlarm = render.offsetM > ALARM_RADIUS;
-  const hdgWarn = Math.abs(render.headingErrDeg) > 3;
+  // Heading is only controlled outside Standby, so only judged there.
+  const hdgWarn = mode !== "standby" && Math.abs(render.headingErrDeg) > HDG_WARN_DEG;
+  const hdgAlarm = mode !== "standby" && Math.abs(render.headingErrDeg) > HDG_ALARM_DEG;
   const anyFailed = render.thrusters.some((tt) => tt.failed);
   const anySaturated = render.thrusters.some((tt) => tt.saturated);
-  const statusColor = posAlarm ? "hsl(0, 70%, 55%)" : posWarn || anySaturated ? "hsl(38, 85%, 60%)" : "hsl(150, 70%, 55%)";
+  const statusColor = posAlarm || hdgAlarm ? "hsl(0, 70%, 55%)" : posWarn || hdgWarn || anySaturated ? "hsl(38, 85%, 60%)" : "hsl(150, 70%, 55%)";
 
   const modeBtn = (m: DPMode, label: string) => (
     <button
       key={m}
-      onClick={() => setMode(m)}
+      onClick={() => handleModeChange(m)}
       className={`flex-1 px-2 py-2 rounded font-mono text-[10px] uppercase tracking-wider border transition-colors ${
         mode === m
           ? "bg-primary/15 border-primary/50 text-primary"
@@ -417,7 +464,7 @@ const DPDemo = () => {
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor, boxShadow: `0 0 6px ${statusColor}` }} />
               <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: statusColor }}>
-                {posAlarm ? t("dp.status.alarm") : posWarn ? t("dp.status.warning") : t("dp.status.inPosition")}
+                {posAlarm ? t("dp.status.alarm") : hdgAlarm ? t("dp.status.headingAlarm") : posWarn ? t("dp.status.warning") : hdgWarn ? t("dp.status.headingWarning") : t("dp.status.inPosition")}
               </span>
             </span>
           </div>
@@ -488,6 +535,7 @@ const DPDemo = () => {
                 warnRadius={WARN_RADIUS}
                 alarmRadius={ALARM_RADIUS}
                 labels={{ setpoint: t("dp.scene.setpoint"), wind: t("dp.scene.wind"), current: t("dp.scene.current") }}
+                rangeM={plotRange}
               />
             </HMIPanel>
 

@@ -432,6 +432,8 @@ export default {
   'dp.status.inPosition': 'I Posisjon',
   'dp.status.warning': 'Avviksvarsel',
   'dp.status.alarm': 'Posisjonsalarm',
+  'dp.status.headingWarning': 'Kursvarsel',
+  'dp.status.headingAlarm': 'Kursalarm',
   'dp.alarm.position': 'POSISJONSALARM — fartøy utenfor 5 m varselsirkel',
   'dp.alarm.excursion': 'Avviksvarsel — fartøy utenfor 3 m varselsirkel',
   'dp.alarm.thruster': 'Thruster utilgjengelig — redusert kapasitet',

@@ -18,12 +18,13 @@ interface DPSceneProps {
   warnRadius: number;
   alarmRadius: number;
   labels: { setpoint: string; wind: string; current: string };
+  /** Plot radius in metres; the page widens it when the vessel drifts further off. */
+  rangeM?: number;
 }
 
 const SIZE = 480;
 const C = SIZE / 2;
-const VIEW_M = 8;            // plot shows ±8 m
-const SCALE = (C - 38) / VIEW_M;
+const PLOT_R = C - 38;        // plot radius in px
 
 const OK = "hsl(150, 70%, 55%)";
 const WARN = "hsl(38, 85%, 60%)";
@@ -31,15 +32,16 @@ const ALARM = "hsl(0, 70%, 55%)";
 const WIND = "hsl(180, 100%, 55%)";
 const CURRENT = "hsl(265, 60%, 68%)";
 
-const toXY = (n: number, e: number) => ({ x: C + e * SCALE, y: C - n * SCALE });
 
 const DPScene = ({
   posN, posE, headingDeg, headingSetDeg, trail,
   windKt, windFromDeg, currentKt, currentFromDeg,
-  warnRadius, alarmRadius, labels,
+  warnRadius, alarmRadius, labels, rangeM = 8,
 }: DPSceneProps) => {
+  const scale = PLOT_R / rangeM;
+  const toXY = (n: number, e: number) => ({ x: C + e * scale, y: C - n * scale });
   const vessel = toXY(posN, posE);
-  const rOuter = VIEW_M * SCALE;
+  const rOuter = PLOT_R;
 
   // Environment arrows sit on the outer rim, pointing inward (direction FROM)
   const envArrow = (fromDeg: number, color: string, label: string, magnitude: string, show: boolean) => {
@@ -100,18 +102,18 @@ const DPScene = ({
         />
       </g>
 
-      {/* Range rings every metre; emphasized watch circles */}
-      {Array.from({ length: VIEW_M }, (_, i) => i + 1).map((m) => {
+      {/* Eight range rings across the plot; emphasized watch circles */}
+      {Array.from({ length: 8 }, (_, i) => ((i + 1) * rangeM) / 8).map((m, i) => {
         const emphasized = m === warnRadius || m === alarmRadius;
         const col = m === warnRadius ? WARN : m === alarmRadius ? ALARM : "hsl(var(--border))";
         return (
           <g key={m}>
-            <circle cx={C} cy={C} r={m * SCALE} fill="none"
+            <circle cx={C} cy={C} r={m * scale} fill="none"
               stroke={col} strokeWidth={emphasized ? 1.2 : 0.6}
               strokeOpacity={emphasized ? 0.55 : 0.35}
               strokeDasharray={emphasized ? "6 5" : undefined} />
-            {(m === 2 || m === VIEW_M - 2 || emphasized) && (
-              <text x={C + m * SCALE + 2} y={C - 3} fontSize={8} fontFamily="monospace"
+            {(i === 1 || i === 5 || emphasized) && (
+              <text x={C + m * scale + 2} y={C - 3} fontSize={8} fontFamily="monospace"
                 fill={col} opacity={emphasized ? 0.8 : 0.45}>{m}m</text>
             )}
           </g>
