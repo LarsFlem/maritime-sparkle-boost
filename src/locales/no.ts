@@ -494,7 +494,7 @@ export default {
   'engine.kpi.load': 'Motorlast',
   'engine.kpi.ofMcr': 'av MCR',
   'engine.kpi.loPress': 'Smøreoljetrykk',
-  'engine.kpi.fwTemp': 'LT FV Temp',
+  'engine.kpi.fwTemp': 'HT FV temp',
   'engine.mimic.title': 'Hovedmotor — Systemmimikk',
   'engine.telegraph.title': 'Maskintelegraf',
   'engine.telegraph.lever': 'Hendel',
@@ -523,8 +523,8 @@ export default {
   'engine.alm.loShutdown': 'HM SHUTDOWN — smøreoljetrykk lav-lav 1,6 bar',
   'engine.alm.loStby': 'Standby smøreoljepumpe startet — auto omkobling',
   'engine.alm.cylDev': 'Syl 4 eksostemp avvik > 35 °C fra middel',
-  'engine.alm.fwHigh': 'LT FV temperatur høy — 90 °C grense',
-  'engine.alm.fwSlowdown': 'HM SLOWDOWN — LT FV temperatur 95 °C',
+  'engine.alm.fwHigh': 'HT FV (sylinderkjølevann) temperatur høy — 90 °C grense',
+  'engine.alm.fwSlowdown': 'HM SLOWDOWN — HT FV temperatur 95 °C',
   'engine.alm.swStop': 'SV-pumpe 1 stoppet — standby start beordret',
   'engine.plc.title': 'PLS-logikk — Live Online-visning (IEC 61131-3 ST)',
   'engine.plc.hint': 'Beskyttelses- og reguleringslogikken som driver denne simuleringen, live: smøreolje-sikkerhetsstigen med standby-omkobling, PI-temperatursløyfen med anti-windup, og sylinderavviks-overvåkingen — skrevet nøyaktig slik de ville vært i et TwinCAT maskinstyringsprosjekt.',
@@ -534,7 +534,7 @@ export default {
   'engine.explainer.safetyTitle': 'Sikkerhetskjeder & Standby-omkobling',
   'engine.explainer.safetyBody': 'Fallende smøreoljetrykk går gjennom den reelle beskyttelsesstigen: alarm ved 2,5 bar, automatisk standby-pumpestart, slowdown til 35 % MCR ved 2,0 bar og låst shutdown ved 1,6 bar. Pumpeomkoblinger skjer automatisk — nøyaktig slik klassekrav forventer at maskineribeskyttelse oppfører seg.',
   'engine.explainer.controlTitle': 'Lukket Sløyfe Temperaturregulering',
-  'engine.explainer.controlBody': 'LT-ferskvannstemperaturen holdes på 82 °C av en PI-regulert treveisventil som fordeler strømmen mellom kjøler og bypass — se ventilposisjonen jobbe når last og sjøvannskjøling endrer seg.',
+  'engine.explainer.controlBody': 'HT-ferskvannstemperaturen (sylinderkjølevannet) holdes på 82 °C av en PI-regulert treveisventil som fordeler strømmen mellom kjøler og bypass — se ventilposisjonen jobbe når last og sjøvannskjøling endrer seg.',
 
   // Quote request modal
   'quote.title': 'Be om tilbud',

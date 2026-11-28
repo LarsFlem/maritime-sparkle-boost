@@ -103,7 +103,7 @@ const EnginePlcView = ({ snap, hint }: EnginePlcViewProps) => {
 
   const err = snap.fwTemp - 82;
   const piLines: CodeLine[] = [
-    { toks: [{ t: "(* LT FW temperature — PI on three-way valve, SP 82.0 °C *)", c: "cm" }] },
+    { toks: [{ t: "(* HT FW (jacket water) temperature — PI on three-way valve, SP 82.0 °C *)", c: "cm" }] },
     {
       toks: [
         { t: "rErr", c: "id" }, { t: "   := ", c: "op" },

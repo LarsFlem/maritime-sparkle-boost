@@ -223,7 +223,7 @@ const EngineMimic = ({ s }: { s: EngineMimicState }) => {
           <Tag x={874} y={254} text={`${Math.round(s.loTempC)}°C`} color={LO} anchor="start" />
 
           {/* LT freshwater */}
-          <Label x={40} y={168} text="LT FRESHWATER" color={FW} anchor="start" size={9.5} />
+          <Label x={40} y={168} text="HT FRESHWATER" color={FW} anchor="start" size={9.5} />
           <Label x={300} y={162} text="TV" color={FW} />
           <Label x={170} y={228} text="FW CLR" anchor="end" />
           <Label x={330} y={338} text="FW P" />

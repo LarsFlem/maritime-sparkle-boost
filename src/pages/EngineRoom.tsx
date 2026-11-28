@@ -13,6 +13,12 @@ import EnginePlcView, { EnginePlcSnapshot } from "@/components/engine/EnginePlcV
 
 const TICK_MS = 100;
 const MCR_RPM = 750;
+// Slowdown limits the engine to 35 % MCR. On a propeller curve load ∝ rpm³,
+// so that is ~70 % speed, not 35 % speed (which would be 4 % load).
+const SLOWDOWN_LOAD = 0.35;
+const SLOWDOWN_RPM = Math.cbrt(SLOWDOWN_LOAD) * MCR_RPM;
+// Start interlock: the engine is not turned over until pre-lubrication has built pressure.
+const PRELUBE_START_BAR = 1.5;
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -48,7 +54,8 @@ const EngineRoom = () => {
     loTemp: 45,
     loFault: false,
     loFaultT: 0,
-    loStbyRun: false,
+    loStbyRun: false,           // electric LO pump running (pre-lube or standby duty)
+    loStbyAuto: false,          // started by low pressure while running = changeover alarm
     loStbyDelay: 0,
     runT: 0,
     fwTemp: 70,
@@ -95,8 +102,10 @@ const EngineRoom = () => {
 
       // 1. Engine speed: telegraph → rpm with lag; slowdown caps, shutdown kills
       let target = (telegraphRef.current / 100) * MCR_RPM;
-      if (s.slowdown) target = Math.min(target, 0.35 * MCR_RPM);
+      if (s.slowdown) target = Math.min(target, SLOWDOWN_RPM);
       if (s.shutdown) target = 0;
+      // Start blocked until the pre-lube pump has pressure up.
+      if (s.rpm < 5 && s.loPress < PRELUBE_START_BAR) target = 0;
       s.rpm += (target - s.rpm) * dt / 2.6;
       if (s.rpm < 2) s.rpm = 0;
       const running = s.rpm > 100;
@@ -112,7 +121,8 @@ const EngineRoom = () => {
       const cylTemps = s.cylBase.map((b, i) => {
         const wobble = Math.sin(s.phase * 0.7 + i * 1.9) * 5 + Math.sin(s.phase * 2.3 + i) * 2;
         const base = running ? 178 + s.loadPct * 2.45 : Math.max(25, 178 * (s.rpm / 300));
-        return base + b + wobble + (i === 3 ? s.cyl4Offset : 0);
+        // A burning-side fault only shows when the cylinder is firing.
+        return base + b + wobble + (i === 3 ? s.cyl4Offset * Math.min(1, s.rpm / 300) : 0);
       });
 
       // 3. Turbocharger
@@ -131,12 +141,14 @@ const EngineRoom = () => {
         pressTarget = Math.max(1.2, base - s.loFaultT * 0.09);
       } else pressTarget = 4.1 + s.loadPct * 0.007;
       s.loPress += (pressTarget - s.loPress) * dt / 3.2 + (Math.random() - 0.5) * 0.02;
-      if (s.loPress < 2.5 && running && !s.loStbyRun) {
+      if (s.loPress < 2.5 && running && s.runT > 6 && !s.loStbyAuto) {
         s.loStbyDelay += dt;
-        if (s.loStbyDelay > 1.0) s.loStbyRun = true; // auto changeover
+        if (s.loStbyDelay > 1.0) { s.loStbyRun = true; s.loStbyAuto = true; } // auto changeover
       } else {
         s.loStbyDelay = 0;
-        if (!s.loFault && s.loPress > 3.8) s.loStbyRun = false;
+        // Pre-lube duty ends quietly once the engine-driven pump delivers;
+        // a changeover start stays until the fault is gone.
+        if (!s.loFault && running && s.loPress > 3.8) { s.loStbyRun = false; s.loStbyAuto = false; }
       }
       s.loTemp += ((running ? 56 + s.loadPct * 0.13 : 45) - s.loTemp) * dt / 12;
 
@@ -173,10 +185,11 @@ const EngineRoom = () => {
       // 7. AMS alarm state machine (IMO ack/clear semantics)
       const meanT = cylTemps.reduce((a, b) => a + b, 0) / 6;
       const conditions: Record<string, boolean> = {
-        LO_P_LOW: s.runT > 2 && s.loPress < 2.5,
+        // Pressure alarms arm once the engine-driven pump has had time to take over.
+        LO_P_LOW: s.runT > 6 && s.loPress < 2.5,
         LO_SLOWDOWN: loSlow,
         LO_SHUTDOWN: s.shutdown,
-        LO_STBY: s.loStbyRun && running,
+        LO_STBY: s.loStbyAuto && running,
         CYL_DEV: running && Math.abs(cylTemps[3] - meanT) > 35,
         FW_T_HIGH: s.fwTemp > 90,
         FW_SLOWDOWN: fwSlow,
@@ -245,6 +258,7 @@ const EngineRoom = () => {
   };
   const handleResetFaults = () => {
     const s = simRef.current;
+    const wasShutdown = s.shutdown;
     s.cyl4Fault = false;
     s.loFault = false;
     s.loFaultT = 0;
@@ -254,7 +268,10 @@ const EngineRoom = () => {
     s.swStbyRun = false;
     s.swStbyDelay = 0;
     s.loStbyDelay = 0;
-    if (s.rpm < 5) setTelegraph(0);
+    s.loStbyAuto = false;
+    // Resetting a shutdown never restarts the engine by itself: the telegraph
+    // goes to STOP and the operator has to order speed again.
+    if (wasShutdown || s.rpm < 5) { setTelegraph(0); telegraphRef.current = 0; }
   };
 
   const faultBtn = (label: string, active: boolean, onClick: () => void) => (
@@ -379,7 +396,7 @@ const EngineRoom = () => {
 
               <HMIPanel title={t("engine.faults.title")}>
                 <div className="space-y-2">
-                  {faultBtn(t("engine.faults.cyl4"), mimic.cylTemps[3] - meanT > 30, () => setFault("cyl4Fault"))}
+                  {faultBtn(t("engine.faults.cyl4"), simRef.current.cyl4Fault, () => setFault("cyl4Fault"))}
                   {faultBtn(t("engine.faults.lo"), simRef.current.loFault, () => setFault("loFault"))}
                   {faultBtn(t("engine.faults.sw"), simRef.current.swFault, () => setFault("swFault"))}
                   <button onClick={handleResetFaults}

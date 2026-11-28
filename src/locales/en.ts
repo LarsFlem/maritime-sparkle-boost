@@ -481,7 +481,7 @@ export default {
   'engine.kpi.load': 'Engine Load',
   'engine.kpi.ofMcr': 'of MCR',
   'engine.kpi.loPress': 'LO Pressure',
-  'engine.kpi.fwTemp': 'LT FW Temp',
+  'engine.kpi.fwTemp': 'HT FW temp',
   'engine.mimic.title': 'Main Engine — System Mimic',
   'engine.telegraph.title': 'Engine Telegraph',
   'engine.telegraph.lever': 'Lever',
@@ -510,8 +510,8 @@ export default {
   'engine.alm.loShutdown': 'ME SHUTDOWN — lube oil pressure low-low 1.6 bar',
   'engine.alm.loStby': 'Standby LO pump started — auto changeover',
   'engine.alm.cylDev': 'Cyl 4 exhaust temp deviation > 35°C from mean',
-  'engine.alm.fwHigh': 'LT FW temperature high — 90°C limit',
-  'engine.alm.fwSlowdown': 'ME SLOWDOWN — LT FW temperature 95°C',
+  'engine.alm.fwHigh': 'HT FW (jacket water) temperature high — 90°C limit',
+  'engine.alm.fwSlowdown': 'ME SLOWDOWN — HT FW temperature 95°C',
   'engine.alm.swStop': 'SW pump 1 stopped — standby start ordered',
   'engine.plc.title': 'PLC Logic — Live Online View (IEC 61131-3 ST)',
   'engine.plc.hint': 'The protection and control logic driving this simulation, live: the lube-oil safety ladder with standby changeover, the PI temperature loop with anti-windup, and the cylinder deviation monitor — written exactly as they would be in a TwinCAT machinery-control project.',
@@ -521,7 +521,7 @@ export default {
   'engine.explainer.safetyTitle': 'Safety Chains & Standby Changeover',
   'engine.explainer.safetyBody': 'Falling lube-oil pressure walks through the real protection ladder: alarm at 2.5 bar, automatic standby pump start, slowdown to 35% MCR at 2.0 bar and latched shutdown at 1.6 bar. Pump changeovers are automatic — exactly how class rules expect machinery protection to behave.',
   'engine.explainer.controlTitle': 'Closed-Loop Temperature Control',
-  'engine.explainer.controlBody': 'The LT freshwater temperature is held at 82 °C by a PI-controlled three-way valve splitting flow between cooler and bypass — watch the valve position work as load and seawater cooling change.',
+  'engine.explainer.controlBody': 'The HT freshwater (jacket water) temperature is held at 82 °C by a PI-controlled three-way valve splitting flow between cooler and bypass — watch the valve position work as load and seawater cooling change.',
 
   // Common
   'ship3d.rotateHint': '🖱️ Drag to rotate',
