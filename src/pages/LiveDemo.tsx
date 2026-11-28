@@ -765,7 +765,10 @@ const LiveDemo = () => {
                 swl: render.swl,
                 swayDeg: render.swayDeg,
                 cmdRawSlew: render.cmdRawSlew,
-                cmdSmSlew: render.cmdSmSlew,
+                wire: render.wire,
+                shaperDelay: render.shaperDelay,
+                momTrip: render.momTrip,
+                cycles: render.cycles,
               }}
               hint={t("liveDemo.plc.hint")}
             />

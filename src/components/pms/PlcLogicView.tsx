@@ -1,4 +1,5 @@
 import PlcCodeView, { CodeLine } from "@/components/hmi/PlcCodeView";
+import { st } from "@/components/hmi/st";
 
 export interface PlcSnapshot {
   busLoadKw: number;
@@ -19,6 +20,9 @@ export interface PlcSnapshot {
   reserveOk: boolean;
   overload: boolean;
   shedStage: number;
+  incoming: boolean;
+  shedTimerS: number;
+  blackout: boolean;
 }
 
 interface PlcLogicViewProps {
@@ -26,230 +30,85 @@ interface PlcLogicViewProps {
   hint: string;
 }
 
+/**
+ * Simplified structured-text view of the PMS logic the simulation follows
+ * (PMSDemo.tsx), with live values. Not a complete PMS.
+ */
 const PlcLogicView = ({ snap, hint }: PlcLogicViewProps) => {
   const fmt = (n: number, d = 1) => n.toFixed(d);
+  const hc = (s: PlcSnapshot["hcSeq"]) => snap.hcSeq === s;
 
   const ldLines: CodeLine[] = [
-    { toks: [{ t: "(* Load-dependent start / stop — main bus *)", c: "cm" }] },
-    {
-      toks: [
-        { t: "rBusLoadPct", c: "id" }, { t: " := ", c: "op" },
-        { t: "rBusLoad_kW", c: "id" }, { t: " / ", c: "op" },
-        { t: "rOnlineCap_kW", c: "id" }, { t: " * ", c: "op" },
-        { t: "100.0", c: "num" }, { t: ";", c: "op" },
-      ],
-      watch: [{ label: "=", value: `${fmt(snap.busLoadPct)} %` }],
-    },
-    {
-      toks: [
-        { t: "bHighLoad", c: "id" }, { t: " := ", c: "op" },
-        { t: "rBusLoadPct", c: "id" }, { t: " > ", c: "op" },
-        { t: "rStartLimit", c: "id" }, { t: ";", c: "op" },
-        { t: "   (* 85.0 % *)", c: "cm" },
-      ],
-      watch: [{ label: "=", value: snap.highLoad }],
-    },
-    {
-      toks: [
-        { t: "bLowLoad", c: "id" }, { t: "  := (", c: "op" },
-        { t: "rBusLoadPct", c: "id" }, { t: " < ", c: "op" },
-        { t: "rStopLimit", c: "id" }, { t: ") ", c: "op" },
-        { t: "AND", c: "kw" }, { t: " (", c: "op" },
-        { t: "nOnline", c: "id" }, { t: " > ", c: "op" },
-        { t: "1", c: "num" }, { t: ");", c: "op" },
-      ],
-      watch: [{ label: "=", value: snap.lowLoad }],
-    },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "fbTonStart", c: "fn" }, { t: "(", c: "op" },
-        { t: "IN", c: "id" }, { t: " := ", c: "op" },
-        { t: "bHighLoad", c: "id" }, { t: ", ", c: "op" },
-        { t: "PT", c: "id" }, { t: " := ", c: "op" },
-        { t: "T#5S", c: "type" }, { t: ");", c: "op" },
-      ],
+    st("(* Load-dependent start / stop: main bus *)"),
+    st("IF rOnlineCap_kW > 0.0 THEN", { watch: [{ label: "cap", value: `${fmt(snap.onlineCapKw, 0)} kW` }] }),
+    st("  rBusLoad_pct := rBusLoad_kW / rOnlineCap_kW * 100.0;", {
+      watch: [{ label: "load", value: `${fmt(snap.busLoadKw, 0)} kW` }, { label: "=", value: `${fmt(snap.busLoadPct)} %` }],
+    }),
+    st("ELSE"),
+    st("  rBusLoad_pct := 0.0;  (* dead bus: handled by the blackout sequence *)", { active: snap.blackout }),
+    st("END_IF"),
+    st(""),
+    st("fbTonStart(IN := rBusLoad_pct > 85.0, PT := T#5S);", {
       watch: [{ label: "ET", value: `${fmt(snap.startTimerS)}s` }, { label: "Q", value: snap.startTimerQ }],
-    },
-    {
-      toks: [
-        { t: "fbTonStop", c: "fn" }, { t: " (", c: "op" },
-        { t: "IN", c: "id" }, { t: " := ", c: "op" },
-        { t: "bLowLoad", c: "id" }, { t: ",  ", c: "op" },
-        { t: "PT", c: "id" }, { t: " := ", c: "op" },
-        { t: "T#15S", c: "type" }, { t: ");", c: "op" },
-      ],
-      watch: [{ label: "ET", value: `${fmt(snap.stopTimerS)}s` }, { label: "Q", value: snap.stopTimerQ }],
-    },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "IF", c: "kw" }, { t: " fbTonStart.Q ", c: "id" },
-        { t: "AND", c: "kw" }, { t: " bStandbyAvail ", c: "id" },
-        { t: "THEN", c: "kw" },
-      ],
-      watch: [{ label: "stby", value: snap.standbyAvail }],
-      active: snap.startTimerQ && snap.standbyAvail,
-    },
-    {
-      toks: [{ t: "    " }, { t: "PMS_StartNextStandby", c: "fn" }, { t: "();", c: "op" }],
-      active: snap.startTimerQ && snap.standbyAvail,
-    },
-    { toks: [{ t: "END_IF", c: "kw" }] },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "IF", c: "kw" }, { t: " fbTonStop.Q ", c: "id" }, { t: "THEN", c: "kw" },
-      ],
-      active: snap.stopTimerQ,
-    },
-    {
-      toks: [{ t: "    " }, { t: "PMS_StopLastOnline", c: "fn" }, { t: "();", c: "op" }],
-      active: snap.stopTimerQ,
-    },
-    { toks: [{ t: "END_IF", c: "kw" }] },
+    }),
+    st("IF fbTonStart.Q AND bStandbyAvail AND NOT bIncoming THEN", {
+      watch: [{ label: "stby", value: snap.standbyAvail }, { label: "incoming", value: snap.incoming }],
+      active: snap.startTimerQ,
+    }),
+    st("  PMS_StartNextStandby();  (* start, synchronise, close *)", { active: snap.startTimerQ }),
+    st("END_IF"),
+    st(""),
+    st("fbTonStop(IN := rBusLoad_pct < 35.0 AND nOnline > 1, PT := T#15S);", {
+      watch: [{ label: "ET", value: `${fmt(snap.stopTimerS)}s` }, { label: "online", value: String(snap.onlineCount) }],
+    }),
+    st("rRemainCap_kW := rOnlineCap_kW - rLastOnCap_kW;"),
+    st("IF fbTonStop.Q AND rRemainCap_kW > 0.0", { active: snap.stopTimerQ }),
+    st("   AND rBusLoad_kW / rRemainCap_kW < 0.80 THEN  (* capacity check *)", { active: snap.stopTimerQ }),
+    st("  PMS_StopLastOn();  (* unload, open breaker, cool down *)", { active: snap.stopTimerQ }),
+    st("END_IF"),
   ];
 
   const hcLines: CodeLine[] = [
-    { toks: [{ t: "(* Heavy consumer request — bow thruster 300 kW *)", c: "cm" }] },
-    {
-      toks: [
-        { t: "rReserve_kW", c: "id" }, { t: " := ", c: "op" },
-        { t: "rOnlineCap_kW", c: "id" }, { t: " - ", c: "op" },
-        { t: "rBusLoad_kW", c: "id" }, { t: ";", c: "op" },
-      ],
-      watch: [{ label: "=", value: `${Math.round(snap.reserveKw)} kW` }],
-    },
-    {
-      toks: [
-        { t: "bReserveOK", c: "id" }, { t: "  := ", c: "op" },
-        { t: "rReserve_kW", c: "id" }, { t: " >= ", c: "op" },
-        { t: "rHcDemand_kW", c: "id" }, { t: " * ", c: "op" },
-        { t: "1.1", c: "num" }, { t: ";", c: "op" },
-      ],
-      watch: [{ label: "=", value: snap.reserveOk }],
-    },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "CASE", c: "kw" }, { t: " eHcSeq ", c: "id" }, { t: "OF", c: "kw" },
-      ],
-      watch: [{ label: "=", value: `HC_${snap.hcSeq}` }],
-    },
-    {
-      toks: [{ t: "  " }, { t: "HC_IDLE", c: "type" }, { t: ":", c: "op" }],
-      active: snap.hcSeq === "IDLE",
-    },
-    {
-      toks: [
-        { t: "    " }, { t: "IF", c: "kw" }, { t: " bHcRequest ", c: "id" },
-        { t: "THEN", c: "kw" }, { t: " eHcSeq", c: "id" }, { t: " := ", c: "op" },
-        { t: "HC_CHECK", c: "type" }, { t: "; ", c: "op" }, { t: "END_IF", c: "kw" },
-      ],
-      watch: [{ label: "req", value: snap.hcRequest }],
-      active: snap.hcSeq === "IDLE" && snap.hcRequest,
-    },
-    {
-      toks: [{ t: "  " }, { t: "HC_CHECK", c: "type" }, { t: ":", c: "op" }],
-      active: snap.hcSeq === "CHECK",
-    },
-    {
-      toks: [
-        { t: "    " }, { t: "IF", c: "kw" }, { t: " bReserveOK ", c: "id" },
-        { t: "THEN", c: "kw" }, { t: " eHcSeq", c: "id" }, { t: " := ", c: "op" },
-        { t: "HC_GRANT", c: "type" }, { t: ";", c: "op" },
-      ],
-      active: snap.hcSeq === "CHECK" && snap.reserveOk,
-    },
-    {
-      toks: [
-        { t: "    " }, { t: "ELSIF", c: "kw" }, { t: " bStandbyAvail ", c: "id" }, { t: "THEN", c: "kw" },
-      ],
-      active: snap.hcSeq === "STARTING",
-    },
-    {
-      toks: [
-        { t: "        " }, { t: "PMS_StartNextStandby", c: "fn" }, { t: "();", c: "op" },
-        { t: "  (* reserve power first *)", c: "cm" },
-      ],
-      active: snap.hcSeq === "STARTING",
-    },
-    { toks: [{ t: "    " }, { t: "END_IF", c: "kw" }] },
-    {
-      toks: [{ t: "  " }, { t: "HC_GRANT", c: "type" }, { t: ":", c: "op" }],
-      active: snap.hcSeq === "GRANT",
-    },
-    {
-      toks: [
-        { t: "    " }, { t: "bHcCloseCB", c: "id" }, { t: " := ", c: "op" },
-        { t: "TRUE", c: "kw" }, { t: ";", c: "op" },
-        { t: "   (* connect consumer *)", c: "cm" },
-      ],
-      active: snap.hcSeq === "GRANT",
-    },
-    { toks: [{ t: "END_CASE", c: "kw" }] },
+    st("(* Heavy consumer: power reservation before the bow thruster connects *)"),
+    st("rReserve_kW := rOnlineCap_kW - rBusLoad_kW;", { watch: [{ label: "=", value: `${fmt(snap.reserveKw, 0)} kW` }] }),
+    st("bReserveOk := rReserve_kW >= rBowThr_Rated_kW * 1.10;", {
+      watch: [{ label: "need", value: `${fmt(snap.hcDemandKw * 1.1, 0)} kW` }, { label: "=", value: snap.reserveOk }],
+    }),
+    st("CASE eHcSeq OF", { watch: [{ label: "=", value: `HC_${snap.hcSeq}` }] }),
+    st("  HC_IDLE:", { active: hc("IDLE") }),
+    st("    IF bBowThrRequest THEN eHcSeq := HC_CHECK; END_IF", { active: hc("IDLE"), watch: [{ label: "req", value: snap.hcRequest }] }),
+    st("  HC_CHECK:", { active: hc("CHECK") }),
+    st("    IF NOT bBowThrRequest THEN eHcSeq := HC_IDLE;", { active: hc("CHECK") }),
+    st("    ELSIF bReserveOk THEN eHcSeq := HC_GRANT;", { active: hc("CHECK") }),
+    st("    ELSIF bStandbyAvail AND NOT bIncoming THEN", { active: hc("CHECK") }),
+    st("      PMS_StartNextStandby(); eHcSeq := HC_STARTING;", { active: hc("CHECK") }),
+    st("    END_IF", { active: hc("CHECK") }),
+    st("  HC_STARTING:", { active: hc("STARTING") }),
+    st("    IF NOT bBowThrRequest THEN eHcSeq := HC_IDLE;", { active: hc("STARTING") }),
+    st("    ELSIF bReserveOk AND NOT bIncoming THEN eHcSeq := HC_GRANT; END_IF", { active: hc("STARTING") }),
+    st("  HC_GRANT:", { active: hc("GRANT") }),
+    st("    bBowThrCloseCB := TRUE;  (* reservation granted, connect *)", { active: hc("GRANT") }),
+    st("    eHcSeq := HC_IDLE;", { active: hc("GRANT") }),
+    st("END_CASE"),
   ];
 
   const ptLines: CodeLine[] = [
-    { toks: [{ t: "(* Preferential trip — staged load shedding *)", c: "cm" }] },
-    {
-      toks: [
-        { t: "bOverload", c: "id" }, { t: " := ", c: "op" },
-        { t: "rBusLoad_kW", c: "id" }, { t: " > ", c: "op" },
-        { t: "rOnlineCap_kW", c: "id" }, { t: " * ", c: "op" },
-        { t: "0.95", c: "num" }, { t: ";", c: "op" },
-      ],
-      watch: [{ label: "=", value: snap.overload }],
-    },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "IF", c: "kw" }, { t: " bOverload ", c: "id" }, { t: "THEN", c: "kw" },
-      ],
-      active: snap.overload,
-    },
-    {
-      toks: [
-        { t: "    " }, { t: "CASE", c: "kw" }, { t: " nShedStage ", c: "id" }, { t: "OF", c: "kw" },
-      ],
-      watch: [{ label: "=", value: `${snap.shedStage}` }],
-      active: snap.overload,
-    },
-    {
-      toks: [
-        { t: "      " }, { t: "0", c: "num" }, { t: ": ", c: "op" },
-        { t: "PMS_Shed", c: "fn" }, { t: "(", c: "op" },
-        { t: "CB_GALLEY", c: "type" }, { t: ");", c: "op" },
-        { t: "  (* stage 1 — hotel *)", c: "cm" },
-      ],
-      active: snap.overload && snap.shedStage === 0,
-    },
-    {
-      toks: [
-        { t: "      " }, { t: "1", c: "num" }, { t: ": ", c: "op" },
-        { t: "PMS_Shed", c: "fn" }, { t: "(", c: "op" },
-        { t: "CB_HVAC", c: "type" }, { t: ");", c: "op" },
-        { t: "    (* stage 2 — comfort *)", c: "cm" },
-      ],
-      active: snap.overload && snap.shedStage === 1,
-    },
-    {
-      toks: [
-        { t: "      " }, { t: "2", c: "num" }, { t: ": ", c: "op" },
-        { t: "PMS_Shed", c: "fn" }, { t: "(", c: "op" },
-        { t: "CB_CRANE", c: "type" }, { t: ");", c: "op" },
-        { t: "   (* stage 3 — deck *)", c: "cm" },
-      ],
-      active: snap.overload && snap.shedStage === 2,
-    },
-    { toks: [{ t: "    " }, { t: "END_CASE", c: "kw" }] },
-    { toks: [{ t: "END_IF", c: "kw" }] },
-    { toks: [{ t: "" }] },
-    {
-      toks: [
-        { t: "(* Essential consumers — steering, propulsion — are never shed *)", c: "cm" },
-      ],
-    },
+    st("(* Preferential trip: staged shedding of non-essential load on overload *)"),
+    st("bOverload := rBusLoad_pct > 95.0;", { watch: [{ label: "=", value: snap.overload }], active: snap.overload }),
+    st("fbTonShed(IN := bOverload AND NOT fbTonShed.Q, PT := T#2500MS);  (* re-arms each stage *)", {
+      watch: [{ label: "ET", value: `${fmt(snap.shedTimerS)}s` }],
+    }),
+    st("IF fbTonShed.Q AND nShedStage < 3 THEN", { active: snap.overload }),
+    st("  aShedCB[nShedStage] := FALSE;  (* 0 GALLEY, 1 HVAC, 2 CRANE *)", { active: snap.overload }),
+    st("  nShedStage := nShedStage + 1;", { active: snap.overload, watch: [{ label: "stage", value: String(snap.shedStage) }] }),
+    st("END_IF"),
+    st("IF NOT bOverload AND rBusLoad_pct < 80.0 THEN nShedStage := 0; END_IF  (* reset *)"),
+    st(""),
+    st("(* Blackout: dead bus starts the recovery, essentials reconnect staggered *)"),
+    st("IF NOT bBusLive AND NOT bRecovery THEN", { watch: [{ label: "blackout", value: snap.blackout }], active: snap.blackout }),
+    st("  FOR i := 0 TO 5 DO aConsumerCB[i] := FALSE; END_FOR  (* undervoltage trip *)", { active: snap.blackout }),
+    st("  bRecovery := TRUE; PMS_StartNextStandby();  (* dead-bus closure *)", { active: snap.blackout }),
+    st("END_IF"),
   ];
 
   return (

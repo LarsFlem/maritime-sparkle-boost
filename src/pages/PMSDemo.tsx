@@ -455,6 +455,9 @@ const PMSDemo = () => {
         reserveOk,
         overload,
         shedStage: Math.min(s.shedStage, SHED_ORDER.length - 1),
+        incoming: anyIncoming,
+        shedTimerS: s.shedTimerS,
+        blackout: s.blackout,
       });
 
       if (logQueue.current.length) {

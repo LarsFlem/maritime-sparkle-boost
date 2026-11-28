@@ -227,6 +227,9 @@ const EngineRoom = () => {
       setPlcSnap({
         loPress: s.loPress,
         loStbyRun: s.loStbyRun,
+        loStbyAuto: s.loStbyAuto,
+        slowdownLo: loSlow,
+        slowdownFw: fwSlow,
         stbyDelayS: s.loStbyDelay,
         runT: s.runT,
         protArmed,
