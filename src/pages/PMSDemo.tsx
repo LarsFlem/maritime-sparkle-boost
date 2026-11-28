@@ -17,6 +17,8 @@ import {
   ConsumerView,
   PmsLogEvent,
   PmsLogSev,
+  SYNC_WIN_DEG,
+  BREAKER_CLOSE_S,
 } from "@/components/pms/pmsTypes";
 
 const TICK_MS = 100;
@@ -47,6 +49,8 @@ interface GensetSim {
   syncSlip: number;
   hours: number;
   breakerClosed: boolean;
+  /** ≥ 0 while the breaker is closing after an in-window close command */
+  closingT: number;
 }
 
 interface ConsumerSim {
@@ -65,9 +69,9 @@ interface ConsumerSim {
 type HcSeq = "IDLE" | "CHECK" | "STARTING" | "GRANT";
 
 const initialGensets = (): GensetSim[] => [
-  { id: "DG1", name: "Diesel Gen 1", ratedKw: 850, state: "online", stateT: 0, kw: 0, freqHz: 60, syncAngle: 0, syncSlip: 0, hours: 4211.6, breakerClosed: true },
-  { id: "DG2", name: "Diesel Gen 2", ratedKw: 850, state: "standby", stateT: 0, kw: 0, freqHz: 0, syncAngle: 0, syncSlip: 0, hours: 3978.2, breakerClosed: false },
-  { id: "DG3", name: "Diesel Gen 3", ratedKw: 850, state: "standby", stateT: 0, kw: 0, freqHz: 0, syncAngle: 0, syncSlip: 0, hours: 2456.9, breakerClosed: false },
+  { id: "DG1", name: "Diesel Gen 1", ratedKw: 850, state: "online", stateT: 0, kw: 0, freqHz: 60, syncAngle: 0, syncSlip: 0, hours: 4211.6, breakerClosed: true, closingT: -1 },
+  { id: "DG2", name: "Diesel Gen 2", ratedKw: 850, state: "standby", stateT: 0, kw: 0, freqHz: 0, syncAngle: 0, syncSlip: 0, hours: 3978.2, breakerClosed: false, closingT: -1 },
+  { id: "DG3", name: "Diesel Gen 3", ratedKw: 850, state: "standby", stateT: 0, kw: 0, freqHz: 0, syncAngle: 0, syncSlip: 0, hours: 2456.9, breakerClosed: false, closingT: -1 },
 ];
 
 const initialConsumers = (): ConsumerSim[] => [
@@ -103,6 +107,7 @@ const PMSDemo = () => {
     recoveryT: -1, // ≥0 → recovery sequence running
     recoveryStage: 0,
     hcSeq: "IDLE" as HcSeq,
+    noStandbyLogged: false,
     startOrderQueued: false,
   });
 
@@ -149,6 +154,20 @@ const PMSDemo = () => {
       const onlineGens = () => s.gensets.filter((g) => g.state === "online" && g.breakerClosed);
       const busIsLive = onlineGens().length > 0;
 
+      // 0. Blackout detection. Losing the last generator — trip, stop or the
+      //    "simulate blackout" button — always starts the same automatic
+      //    recovery, as SOLAS requires for an unattended machinery space.
+      if (!busIsLive && s.recoveryT < 0) {
+        s.consumers.forEach((c) => { if (c.state !== "off") c.state = "off"; }); // undervoltage trip
+        s.blackout = true;
+        s.recoveryT = 0;
+        s.recoveryStage = 0;
+        s.hcSeq = "IDLE";
+        s.noStandbyLogged = false;
+        pushLog("err", "BUS", "BLACKOUT — main bus dead, consumer breakers tripped on undervoltage");
+        pushLog("warn", "PMS", "Auto recovery sequence initiated");
+      }
+
       // 1. Consumer demand (only drawn when bus live & consumer online)
       s.consumers.forEach((c) => {
         c.wobblePhase += dt * (0.25 + c.ratedKw / 2000);
@@ -192,7 +211,10 @@ const PMSDemo = () => {
                 g.stateT = 0;
                 g.breakerClosed = true;
                 g.freqHz = 60;
-                pushLog("ok", g.id, "Dead-bus closure — bus energized");
+                // The bus takes the generator's voltage and frequency the moment the breaker closes.
+                s.busFreq = 60;
+                s.busVolt = 690;
+                pushLog("ok", g.id, "Dead-bus closure — bus energized 690 V / 60 Hz");
                 // Recovery: reconnect essentials in stage order
                 if (s.recoveryT >= 0) s.recoveryStage = 1;
               } else {
@@ -206,19 +228,37 @@ const PMSDemo = () => {
             break;
           }
           case "sync": {
+            if (!busIsLive) {
+              // Bus lost while synchronising: abort and close as a dead-bus closure instead.
+              g.closingT = -1;
+              g.state = "starting";
+              g.stateT = 2.5;
+              break;
+            }
+            if (g.closingT >= 0) {
+              // Close command given: angle held while the breaker closes, so the
+              // synchroscope shows the in-window moment.
+              g.closingT += dt;
+              if (g.closingT >= BREAKER_CLOSE_S) {
+                g.state = "online";
+                g.stateT = 0;
+                g.closingT = -1;
+                g.breakerClosed = true;
+                g.freqHz = s.busFreq;
+                pushLog("ok", g.id, "Breaker closed — sharing load");
+              }
+              break;
+            }
             // Governor pulls slip toward a small positive value, then in-window closure
             g.syncSlip += (0.06 - g.syncSlip) * dt * 0.65 + (Math.random() - 0.5) * 0.01;
             g.freqHz = s.busFreq + g.syncSlip;
             g.syncAngle += g.syncSlip * 360 * dt;
             if (g.syncAngle > 180) g.syncAngle -= 360;
             if (g.syncAngle < -180) g.syncAngle += 360;
-            const inWindow = Math.abs(g.syncSlip) < 0.12 && Math.abs(g.syncAngle) < 12;
+            const inWindow = Math.abs(g.syncSlip) < 0.12 && Math.abs(g.syncAngle) < SYNC_WIN_DEG;
             if (inWindow && g.stateT > 2) {
-              g.state = "online";
-              g.stateT = 0;
-              g.breakerClosed = true;
-              g.freqHz = s.busFreq;
-              pushLog("ok", g.id, "Breaker closed — sharing load");
+              g.closingT = 0;
+              pushLog("info", g.id, `In window (Δf ${g.syncSlip.toFixed(2)} Hz, Δφ ${g.syncAngle.toFixed(0)}°) — close command`);
             }
             break;
           }
@@ -329,13 +369,20 @@ const PMSDemo = () => {
       if (s.recoveryT >= 0) {
         s.recoveryT += dt;
         if (s.recoveryStage === 0 && s.recoveryT >= 1.5) {
-          const dg1 = s.gensets[0];
-          if (dg1.state === "standby") {
-            dg1.state = "starting";
-            dg1.stateT = 0;
-            pushLog("warn", "PMS", "Blackout recovery — start order DG1");
+          // First available generator in priority order; faulted units are skipped.
+          const incoming = s.gensets.find((g) => g.state === "starting" || g.state === "sync");
+          const next = s.gensets.find((g) => g.state === "standby");
+          if (incoming) {
+            s.recoveryStage = -1;
+          } else if (next) {
+            next.state = "starting";
+            next.stateT = 0;
+            pushLog("warn", "PMS", `Blackout recovery — start order ${next.id}`);
+            s.recoveryStage = -1; // wait for dead-bus closure (handled in state machine)
+          } else if (!s.noStandbyLogged) {
+            pushLog("err", "PMS", "Blackout recovery — no generator available (reset faults)");
+            s.noStandbyLogged = true;
           }
-          s.recoveryStage = -1; // wait for dead-bus closure (handled in state machine)
         }
         if (s.recoveryStage >= 1) {
           // Reconnect essential consumers, staggered
@@ -357,8 +404,8 @@ const PMSDemo = () => {
       }
       if (busIsLive) s.blackout = false;
 
-      // 9. Bus electrical values
-      if (busIsLive) {
+      // 9. Bus electrical values (after this tick's breaker operations)
+      if (onlineGens().length > 0) {
         const droop = (busLoadPct - 50) * 0.004;
         const sag = busLoadPct > OVERLOAD_PCT ? (busLoadPct - OVERLOAD_PCT) * 0.02 : 0;
         s.busFreq += (60 - droop - sag - s.busFreq) * 0.1 + (Math.random() - 0.5) * 0.008;
@@ -374,6 +421,7 @@ const PMSDemo = () => {
           id: g.id, name: g.name, ratedKw: g.ratedKw, state: g.state,
           kw: g.kw, freqHz: g.freqHz, rpm: (g.freqHz / 60) * 1800, hours: g.hours,
           breakerClosed: g.breakerClosed, syncAngleDeg: g.syncAngle, syncSlipHz: g.syncSlip,
+          closing: g.closingT >= 0,
         }))
       );
       setConsumers(
@@ -453,10 +501,15 @@ const PMSDemo = () => {
     const g = s.gensets[idx];
     if (g.state !== "online") return;
     const online = s.gensets.filter((x) => x.state === "online");
+    if (online.length === 1) {
+      // In AUTO the PMS refuses to black out the ship on an operator stop.
+      pushLog("warn", "PMS", `Stop ${g.id} blocked — last generator on the bus. Start another one first.`);
+      return;
+    }
     g.state = "cooldown";
     g.stateT = 0;
     g.breakerClosed = false;
-    pushLog(online.length === 1 ? "warn" : "info", "OPR", `Manual stop order ${g.id}${online.length === 1 ? " — bus will go dead" : ""}`);
+    pushLog("info", "OPR", `Manual stop order ${g.id}`);
   };
 
   const handleTripGenset = (idx: number) => {
@@ -480,23 +533,18 @@ const PMSDemo = () => {
 
   const handleBlackout = () => {
     const s = simRef.current;
+    // Every running machine drops off the bus. Faulted units stay faulted;
+    // the blackout detection in the sim loop runs the recovery.
     s.gensets.forEach((g) => {
+      if (g.state === "fault") return;
       g.state = "standby";
       g.stateT = 0;
+      g.closingT = -1;
       g.breakerClosed = false;
       g.kw = 0;
       g.freqHz = 0;
     });
-    // Everything drops out; essentials get priority restart, the rest await the operator
-    s.consumers.forEach((c) => {
-      c.state = "off";
-    });
-    s.blackout = true;
-    s.recoveryT = 0;
-    s.recoveryStage = 0;
-    s.hcSeq = "IDLE";
-    pushLog("err", "BUS", "BLACKOUT — main bus dead");
-    pushLog("warn", "PMS", "Auto recovery sequence initiated");
+    pushLog("err", "OPR", "Blackout simulated — all running generators lost");
   };
 
   const handleReset = () => {
@@ -518,9 +566,7 @@ const PMSDemo = () => {
 
   // ── Derived ──
   const syncing = gensets.find((g) => g.state === "sync");
-  const closing = syncing
-    ? Math.abs(syncing.syncSlipHz) < 0.12 && Math.abs(syncing.syncAngleDeg) < 12
-    : false;
+  const closing = syncing ? syncing.closing : false;
   const onlineCapacity = gensets.filter((g) => g.state === "online").reduce((s, g) => s + g.ratedKw, 0);
   const reservePct = onlineCapacity > 0 ? Math.max(0, ((onlineCapacity - busKw) / onlineCapacity) * 100) : 0;
   const overloadNow = plcSnap?.overload ?? false;

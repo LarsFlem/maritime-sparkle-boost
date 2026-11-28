@@ -1,3 +1,8 @@
+/** Synchronising window: breaker may close within ±this phase angle (deg). Shared by logic and synchroscope. */
+export const SYNC_WIN_DEG = 12;
+/** Time the breaker takes to close once the synchroniser gives the close command (s). */
+export const BREAKER_CLOSE_S = 0.6;
+
 export type GensetState =
   | "standby"
   | "starting"
@@ -20,6 +25,8 @@ export interface GensetView {
   syncAngleDeg: number;
   /** Frequency difference vs bus while synchronizing (Hz) */
   syncSlipHz: number;
+  /** Close command given, breaker closing (synchroscope shows "in window") */
+  closing: boolean;
 }
 
 export type ConsumerState = "off" | "request" | "online" | "shed";

@@ -1,3 +1,4 @@
+import { SYNC_WIN_DEG } from "./pmsTypes";
 interface SynchroscopeProps {
   /** Phase angle in degrees, -180..180. 0 = in phase (12 o'clock). */
   angleDeg: number;
@@ -30,8 +31,8 @@ const Synchroscope = ({
   const rTick = rOuter - 6;
   const active = activeUnit !== null;
 
-  // Sync window: ±15° around top.
-  const windowDeg = 15;
+  // Sync window around top — the same limit the synchroniser logic uses.
+  const windowDeg = SYNC_WIN_DEG;
   const arc = (a1: number, a2: number, r: number) => {
     const toRad = (d: number) => ((d - 90) * Math.PI) / 180;
     const x1 = c + r * Math.cos(toRad(a1));

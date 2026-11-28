@@ -402,7 +402,7 @@ export default {
   'pms.scenario.title': 'Scenarier',
   'pms.scenario.blackout': 'Simuler Blackout',
   'pms.scenario.reset': 'Nullstill Simulering',
-  'pms.scenario.hint': 'Prøv: koble inn HVAC, bysse og kran til lasten passerer 85 % — et standby-aggregat starter og synkroniserer automatisk. Tripp en generator under høy last for å se preferansetripp. Be om baugthruster på én generator for å se effektreservasjon.',
+  'pms.scenario.hint': 'Prøv: koble inn HVAC, bysse og kran til lasten passerer 85 % — et standby-aggregat starter og synkroniserer automatisk. Koble inn baugthrusteren og alle hotell-lastene, og tripp så en generator for å se preferansetripp. Be om baugthruster på én generator for å se effektreservasjon.',
   'pms.genset.start': 'Start',
   'pms.genset.stop': 'Stopp',
   'pms.genset.trip': 'Tripp',

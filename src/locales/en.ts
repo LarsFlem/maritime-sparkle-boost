@@ -389,7 +389,7 @@ export default {
   'pms.scenario.title': 'Scenarios',
   'pms.scenario.blackout': 'Simulate Blackout',
   'pms.scenario.reset': 'Reset Simulation',
-  'pms.scenario.hint': 'Try: switch in HVAC, galley and crane until the load passes 85% — a standby genset auto-starts and synchronizes. Trip a genset under high load to see preferential trip. Request the bow thruster on one genset to see power reservation.',
+  'pms.scenario.hint': 'Try: switch in HVAC, galley and crane until the load passes 85% — a standby genset auto-starts and synchronizes. Switch in the bow thruster and all hotel loads, then trip a genset to see preferential trip. Request the bow thruster on one genset to see power reservation.',
   'pms.genset.start': 'Start',
   'pms.genset.stop': 'Stop',
   'pms.genset.trip': 'Trip',
