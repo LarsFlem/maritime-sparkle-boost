@@ -32,12 +32,34 @@ const AXIS_DYN = {
   wire: { vmax: 1.5, acc: 1.8 }, // m/s
 };
 
-// Anti-sway command smoothing (s) per mode — slew is the sway driver.
+// Softer acceleration ramps for the shaped (anti-sway / auto) reference: a load
+// lags its sheave by roughly a/g while the boom accelerates, so gentle ramps keep
+// the swing small during the move and the shaper removes what is left at the end.
+const SHAPED_DYN = {
+  slew: { vmax: 9, acc: 2.0 },
+  main: { vmax: 3.5, acc: 1.0 },
+  jib: { vmax: 6, acc: 2.0 },
+};
+
+// Command smoothing (s) per mode. This only takes the edge off slider steps;
+// sway suppression is done by the input shaper in the sim loop.
 const TAU = {
   manual: { slew: 0.06, other: 0.05 },
-  semi: { slew: 1.1, other: 0.45 },
-  auto: { slew: 0.6, other: 0.3 },
+  semi: { slew: 0.25, other: 0.2 },
+  auto: { slew: 0.2, other: 0.15 },
 };
+
+// Input-shaper history: enough reference samples for half a pendulum period
+// at the longest wire (28 m → ~5.3 s).
+const SHAPER_HISTORY = 80;
+
+// Surfaces under the hook (m above main deck), matching the scene drawing.
+const DECK_EDGE_R = 13.5;
+const BARGE_R_MIN = 16.5;
+const BARGE_R_MAX = 25.5;
+const WATER_Z = -4;
+const MOMENT_TRIP = 0.98; // load-moment utilisation that blocks outreach-increasing motion
+const MOMENT_RESET = 0.95;
 
 // Auto-sequence working points — all verified reachable inside the axis
 // limits via craneIk (main ≤ 80°, fold ≤ 150°).
@@ -49,6 +71,33 @@ const LAND_HOOK_Z = BARGE_DECK_Z + CONTAINER_H_M; // hook when container sits on
 
 // Initial pose = IK solution for the pickup tip position
 const INIT = { slew: PICKUP_SLEW, main: 79, jib: 136, wire: 5 };
+// Jib-tip outreach in the initial pose. The sway model differentiates the tip
+// position, so it must start here (not at 0) or the first tick reads as a 90 m/s jerk.
+const TIP0 = craneFk(INIT.main, INIT.jib).tx;
+
+type ShaperSample = { slew: number; main: number; jib: number };
+
+/** Lowest hook height allowed at outreach `r`: the hook (or the carried container) rests on whatever is below. */
+const hookFloor = (r: number, slew: number, cargo: "deck" | "carried" | "landed"): number => {
+  const overBarge = inSector(slew, LANDING_SLEW) && r >= BARGE_R_MIN && r <= BARGE_R_MAX;
+  const surface = r <= DECK_EDGE_R ? 0 : overBarge ? BARGE_DECK_Z : WATER_Z;
+  if (cargo === "carried") return surface + CONTAINER_H_M;
+  // Empty hook: stops on top of a container sitting under it.
+  if (cargo === "deck" && inSector(slew, PICKUP_SLEW) && Math.abs(r - PICKUP_R) < 1.5) return CONTAINER_H_M;
+  if (cargo === "landed" && overBarge && Math.abs(r - LANDING_R) < 1.5) return BARGE_DECK_Z + CONTAINER_H_M;
+  return surface + 0.3;
+};
+
+/** Reference position `delay` seconds ago, linearly interpolated from the 10 Hz history. */
+const sampleHistory = (hist: ShaperSample[], delay: number, dt: number): ShaperSample => {
+  const back = delay / dt;
+  const iHi = hist.length - 1 - Math.floor(back);
+  const iLo = iHi - 1;
+  if (iLo < 0) return hist[0];
+  const f = back - Math.floor(back);
+  const a = hist[iHi], b = hist[iLo];
+  return { slew: a.slew + (b.slew - a.slew) * f, main: a.main + (b.main - a.main) * f, jib: a.jib + (b.jib - a.jib) * f };
+};
 
 const formatClock = (ms: number) => {
   const d = new Date(ms);
@@ -79,8 +128,13 @@ const LiveDemo = () => {
     jib: INIT.jib, jibV: 0,
     wire: INIT.wire, wireV: 0,
     smSlew: INIT.slew, smMain: INIT.main, smJib: INIT.jib, smWire: INIT.wire,
+    // Rate-limited reference trajectory fed to the input shaper (anti-sway / auto)
+    refSlew: INIT.slew, refSlewV: 0, refMain: INIT.main, refMainV: 0, refJib: INIT.jib, refJibV: 0,
+    hist: [] as ShaperSample[],
+    shaperHalf: 2.2, shaperK: 0.3,
+    momTrip: false,
     swayRad: 0, swayVel: 0,
-    prevTipX: 0, prevTipVel: 0,
+    prevTipX: TIP0, prevTipVel: 0,
     hookLoadT: 0,
     cargoState: "deck" as "deck" | "carried" | "landed",
     connectT: 0,
@@ -109,6 +163,7 @@ const LiveDemo = () => {
     outreach: 0, hookZ: 0, swl: SWL_RATED_T,
     autoStep: 0, stepProgress: 0, cycles: 0, waterPhase: 0,
     cmdRawSlew: INIT.slew, cmdSmSlew: INIT.slew,
+    momTrip: false, shaperDelay: 0,
   }));
 
   const [trend, setTrend] = useState<TrendPoint[]>(() => {
@@ -220,11 +275,72 @@ const LiveDemo = () => {
       tJib = clamp(s.smJib, JIB_MIN, JIB_MAX);
       tWire = clamp(s.smWire, WIRE_MIN, WIRE_MAX);
 
-      // 4. Accel-limited axis motion
+      // 3b. Interlocks, as a load-moment limiter would enforce them.
+      //   - Load moment ≥ 98 % of the load chart: block any boom motion that increases outreach.
+      //   - Hoist lower limit: the hook (or the carried container) stops on the deck,
+      //     the barge or the water instead of passing through.
+      const shapingActive = mode !== "manual";
+      const refMain = shapingActive ? s.refMain : s.main;
+      const refJib = shapingActive ? s.refJib : s.jib;
+      const util = s.cargoState === "carried" ? s.hookLoadT / swlAt(fkNow.tx) : 0;
+      s.momTrip = s.momTrip ? util > MOMENT_RESET : util >= MOMENT_TRIP;
+      if (s.momTrip && craneFk(tMain, tJib).tx > craneFk(refMain, refJib).tx + 0.01) {
+        tMain = refMain; tJib = refJib;
+      }
+      const floorZ = hookFloor(fkNow.tx, s.slew, s.cargoState);
+      tWire = Math.min(tWire, Math.max(WIRE_MIN, fkNow.tz - floorZ));
+
+      // 4. Accel-limited axis motion.
+      //    Manual: the axes follow the operator directly.
+      //    Anti-sway / auto: a rate-limited reference trajectory goes through a
+      //    zero-vibration (ZV) input shaper tuned to the pendulum, so the boom
+      //    accelerates in two steps half a sway period apart and the second
+      //    cancels the swing the first one starts.
+      const wireLen = Math.max(1.5, s.wire);
+      const omega = Math.sqrt(9.81 / wireLen);
+      // Anti-sway / auto also close the loop on the measured sway rate (the tip is nudged
+      // to follow the swing), which shows up in this 1-DOF model as extra damping.
+      const SWAY_FEEDBACK = 0.9;
+      // Short wire damps the swing hard; ramp that in over 1 m so the damping
+      // (and the shaper tuned from it) never jumps.
+      const shortWire = clamp((3.5 - s.wire) / 1.0, 0, 1);
+      const damping = 0.22 + shortWire * 1.0 + (s.cargoState !== "carried" ? 0.25 : 0)
+        + (shapingActive && moveAllowed ? SWAY_FEEDBACK : 0);
+      const zeta = Math.min(0.6, damping / (2 * omega));
+      const halfPeriodNow = Math.PI / (omega * Math.sqrt(1 - zeta * zeta));
+      const Know = Math.exp((-zeta * Math.PI) / Math.sqrt(1 - zeta * zeta));
+      // Retune the shaper gradually: a sudden change while the boom moves would
+      // itself shift the axes and kick the load.
+      const retune = 1 - Math.exp(-dt / 0.8);
+      s.shaperHalf += (halfPeriodNow - s.shaperHalf) * retune;
+      s.shaperK += (Know - s.shaperK) * retune;
+      const halfPeriod = s.shaperHalf;
+      const a1 = 1 / (1 + s.shaperK), a2 = s.shaperK / (1 + s.shaperK);
+
       const prevSlewV = s.slewV;
-      [s.slew, s.slewV] = drive(s.slew, s.slewV, tSlew, AXIS_DYN.slew, dt, moveAllowed);
-      [s.main, s.mainV] = drive(s.main, s.mainV, tMain, AXIS_DYN.main, dt, moveAllowed);
-      [s.jib, s.jibV] = drive(s.jib, s.jibV, tJib, AXIS_DYN.jib, dt, moveAllowed);
+      if (shapingActive && moveAllowed) {
+        [s.refSlew, s.refSlewV] = drive(s.refSlew, s.refSlewV, tSlew, SHAPED_DYN.slew, dt, true);
+        [s.refMain, s.refMainV] = drive(s.refMain, s.refMainV, tMain, SHAPED_DYN.main, dt, true);
+        [s.refJib, s.refJibV] = drive(s.refJib, s.refJibV, tJib, SHAPED_DYN.jib, dt, true);
+        s.hist.push({ slew: s.refSlew, main: s.refMain, jib: s.refJib });
+        if (s.hist.length > SHAPER_HISTORY) s.hist.shift();
+        const old = sampleHistory(s.hist, halfPeriod, dt);
+        const nSlew = a1 * s.refSlew + a2 * old.slew;
+        const nMain = a1 * s.refMain + a2 * old.main;
+        const nJib = a1 * s.refJib + a2 * old.jib;
+        s.slewV = (nSlew - s.slew) / dt; s.slew = nSlew;
+        s.mainV = (nMain - s.main) / dt; s.main = nMain;
+        s.jibV = (nJib - s.jib) / dt; s.jib = nJib;
+      } else {
+        [s.slew, s.slewV] = drive(s.slew, s.slewV, tSlew, AXIS_DYN.slew, dt, moveAllowed);
+        [s.main, s.mainV] = drive(s.main, s.mainV, tMain, AXIS_DYN.main, dt, moveAllowed);
+        [s.jib, s.jibV] = drive(s.jib, s.jibV, tJib, AXIS_DYN.jib, dt, moveAllowed);
+        // Keep the shaper's reference on the real axes so it takes over without a bump.
+        s.refSlew = s.slew; s.refSlewV = s.slewV;
+        s.refMain = s.main; s.refMainV = s.mainV;
+        s.refJib = s.jib; s.refJibV = s.jibV;
+        s.hist = [];
+      }
       [s.wire, s.wireV] = drive(s.wire, s.wireV, tWire, AXIS_DYN.wire, dt, moveAllowed);
 
       // 5. Pendulum sway, forced by jib-tip acceleration (in-plane) and
@@ -235,9 +351,7 @@ const LiveDemo = () => {
       s.prevTipX = fk.tx;
       s.prevTipVel = tipVel;
       const slewTangAcc = ((s.slewV - prevSlewV) / dt) * rad(1) * fk.tx; // m/s² at the tip
-      const wireLen = Math.max(1.5, s.wire);
-      const omega2 = 9.81 / wireLen;
-      const damping = 0.22 + (s.wire < 3 ? 1.0 : 0) + (s.cargoState !== "carried" ? 0.25 : 0);
+      const omega2 = omega * omega;
       const windForce = (s.windKt - 18) * 0.0012;
       const forcing = -(tipAcc * 0.55 + slewTangAcc * 0.45) * Math.cos(s.swayRad) / wireLen;
       const swayAcc = -omega2 * Math.sin(s.swayRad) - damping * s.swayVel + forcing + windForce;
@@ -307,6 +421,7 @@ const LiveDemo = () => {
         autoStep: s.autoStep, stepProgress, cycles: s.autoCycleCount,
         waterPhase: s.waterPhase,
         cmdRawSlew: rawSlew, cmdSmSlew: s.smSlew,
+        momTrip: s.momTrip, shaperDelay: shapingActive ? halfPeriod : 0,
       });
 
       // 11. Trend
@@ -351,7 +466,7 @@ const LiveDemo = () => {
     if (Math.abs(render.swayDeg) > 10) push("critical", "SWY-002", t("liveDemo.alarm.swayCritical"));
     else if (Math.abs(render.swayDeg) > 5) push("warning", "SWY-001", t("liveDemo.alarm.swayHigh"));
     if (render.hydraulicBar < 165) push("warning", "HYD-001", t("liveDemo.alarm.hydraulicLow"));
-    else if (render.hydraulicBar > 240) push("warning", "HYD-002", t("liveDemo.alarm.hydraulicHigh"));
+    else if (render.hydraulicBar > 248) push("warning", "HYD-002", t("liveDemo.alarm.hydraulicHigh"));
     if (render.cargoState === "carried" && render.hookZ < 1.5 && Math.abs(render.swayDeg) > 6) {
       push("warning", "COL-001", t("liveDemo.alarm.collisionRisk"));
     }
@@ -362,6 +477,18 @@ const LiveDemo = () => {
   }, [render.windKt, render.swayDeg, render.hydraulicBar, render.cargoState, render.hookZ, momentUtil, eStop, t]);
 
   // --- Handlers ---
+  // Bumpless transfer: a mode change never moves the crane by itself. The manual
+  // command sliders and the shaper reference take over from where the axes are now.
+  const handleModeChange = useCallback((next: CraneMode) => {
+    const s = stateRef.current;
+    setCmdSlew(s.slew); setCmdMain(s.main); setCmdJib(s.jib); setCmdWire(s.wire);
+    cmdRef.current = { slew: s.slew, main: s.main, jib: s.jib, wire: s.wire };
+    s.smSlew = s.slew; s.smMain = s.main; s.smJib = s.jib; s.smWire = s.wire;
+    s.refSlew = s.slew; s.refSlewV = s.slewV; s.refMain = s.main; s.refMainV = s.mainV; s.refJib = s.jib; s.refJibV = s.jibV;
+    s.hist = [];
+    setMode(next);
+  }, []);
+
   const handleStart = () => { if (!eStop) setRunning(true); };
   const handleStop = () => setRunning(false);
   const handleReset = useCallback(() => {
@@ -373,6 +500,9 @@ const LiveDemo = () => {
     s.jib = INIT.jib; s.jibV = 0;
     s.wire = INIT.wire; s.wireV = 0;
     s.smSlew = INIT.slew; s.smMain = INIT.main; s.smJib = INIT.jib; s.smWire = INIT.wire;
+    s.refSlew = INIT.slew; s.refSlewV = 0; s.refMain = INIT.main; s.refMainV = 0; s.refJib = INIT.jib; s.refJibV = 0;
+    s.hist = []; s.momTrip = false;
+    s.prevTipX = TIP0; s.prevTipVel = 0;
     s.swayRad = 0; s.swayVel = 0;
     s.hookLoadT = 0;
     s.cargoState = "deck";
@@ -528,7 +658,7 @@ const LiveDemo = () => {
           <HMIPanel title={t("liveDemo.controls.title")}>
             <CraneSequencePanel
               mode={mode}
-              onModeChange={setMode}
+              onModeChange={handleModeChange}
               running={running}
               eStop={eStop}
               onStart={handleStart}
