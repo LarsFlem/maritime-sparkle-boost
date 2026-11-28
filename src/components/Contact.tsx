@@ -21,14 +21,14 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const body = [
-      `Name: ${name}`,
-      company ? `Company: ${company}` : "",
-      phone ? `Phone: ${phone}` : "",
-      email ? `Reply-to: ${email}` : "",
-      "",
-      message,
-    ].filter(Boolean).join("\n");
+    // Field labels follow the page language; a blank line separates them from the message.
+    const header = [
+      `${t('contact.form.name')}: ${name}`,
+      company ? `${t('contact.form.company')}: ${company}` : "",
+      phone ? `${t('contact.form.phone')}: ${phone}` : "",
+      email ? `${t('contact.form.email')}: ${email}` : "",
+    ].filter(Boolean);
+    const body = [...header, "", message].join("\n");
 
     window.location.href = `mailto:Lars@Maritime-Automation.no?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     // Without a mail program nothing visible happens, so always say what to do next.

@@ -53,7 +53,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     } catch {
       // Not being able to remember the choice is not worth breaking the page.
     }
-    document.documentElement.lang = language;
+    // Norwegian content is bokmål: "nb" lets browsers and screen readers pick the right voice and hyphenation.
+    document.documentElement.lang = language === 'no' ? 'nb' : 'en';
   }, [language]);
 
   const value = useMemo<LanguageContextType>(() => {

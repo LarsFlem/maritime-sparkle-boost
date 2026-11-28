@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
@@ -31,6 +32,7 @@ function calcStats(values: number[]) {
 }
 
 export default function StatisticalSummary({ data, metrics }: StatisticalSummaryProps) {
+  const { t } = useLanguage();
   const stats = useMemo(() => {
     return metrics.map(m => {
       const values = data.map(d => d[m.key]).filter((v): v is number => typeof v === 'number');
@@ -42,10 +44,10 @@ export default function StatisticalSummary({ data, metrics }: StatisticalSummary
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Statistical Summary</CardTitle>
+          <CardTitle className="text-base">{t('da.stats.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No data in the selected period.</p>
+          <p className="text-sm text-muted-foreground">{t('da.stats.noData')}</p>
         </CardContent>
       </Card>
     );
@@ -54,22 +56,22 @@ export default function StatisticalSummary({ data, metrics }: StatisticalSummary
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Statistical Summary</CardTitle>
+        <CardTitle className="text-base">{t('da.stats.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground">
-                <th className="text-left py-2 pr-4 font-medium">Metric</th>
-                <th className="text-right py-2 px-2 font-medium">Mean</th>
-                <th className="text-right py-2 px-2 font-medium">Std Dev</th>
+                <th className="text-left py-2 pr-4 font-medium">{t('da.stats.metric')}</th>
+                <th className="text-right py-2 px-2 font-medium">{t('da.stats.mean')}</th>
+                <th className="text-right py-2 px-2 font-medium">{t('da.stats.stdDev')}</th>
                 <th className="text-right py-2 px-2 font-medium">Min</th>
                 <th className="text-right py-2 px-2 font-medium">P25</th>
                 <th className="text-right py-2 px-2 font-medium">P50</th>
                 <th className="text-right py-2 px-2 font-medium">P75</th>
                 <th className="text-right py-2 px-2 font-medium">Max</th>
-                <th className="text-right py-2 pl-2 font-medium">Trend</th>
+                <th className="text-right py-2 pl-2 font-medium">{t('da.stats.trend')}</th>
               </tr>
             </thead>
             <tbody>

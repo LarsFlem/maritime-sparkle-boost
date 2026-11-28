@@ -8,16 +8,16 @@ Maritime Automation er eid og drevet av Lars Jørgen Flem, mekatronikk-ingeniør
 
 ## Tjenester
 
-### Komplette Engineering-pakker
-Design og implementering av automatiseringssystemer for bevegelig maskineri. Inkluderer alarmsystemer, generell automasjon, planlegging og gjennomføring av elektriske systemer i samsvar med IECEx- og ATEX-standarder, og programmering av PLC-er (spesielt TwinCAT for Beckhoff).
+### Komplette engineeringpakker
+Design og implementering av automatiseringssystemer for bevegelig maskineri. Inkluderer alarmsystemer, generell automasjon, planlegging og gjennomføring av elektriske systemer i samsvar med IECEx- og ATEX-standarder, og programmering av PLS-er (spesielt TwinCAT for Beckhoff).
 
-### Support og Kommisjoning
-Igangsetting av automasjonsutstyr og maskineri, feilsøking og teknisk støtte på elektrisk og automasjonsutstyr, nettverkskonfigurasjon for routere, access points og brannmurer, samt leveranse av detaljert as-built dokumentasjon.
+### Support og idriftsettelse
+Idriftsettelse av automasjonsutstyr og maskineri, feilsøking og teknisk støtte på elektrisk og automasjonsutstyr, nettverkskonfigurasjon for routere, access points og brannmurer, samt leveranse av detaljert as-built dokumentasjon.
 
-### Prosjektsupportering og Assistanse
+### Prosjektstøtte og rådgivning
 Støtte i prosjektledelse inkludert estimering av tid og kostnader for tekniske oppgraderinger, assistanse i håndtering av programvareoppdateringer og endringer, FMEA-assistanse (Failure Modes and Effects Analysis), og implementering av verktøy som AutoCAD, Vault og TwinCAT.
 
-### 3D Printing og Modellering
+### 3D-printing og modellering
 3D-printingstjenester med Bambu Lab H2C-printer som støtter PLA, PETG, TPU og andre materialer. Modellering og print av spesialtilpassede braketter og komponenter, rådgivning om filamentvalg, og print av skalerte modeller og prototyper.
 
 ## Kjernekompetanse

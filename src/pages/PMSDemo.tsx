@@ -124,6 +124,13 @@ const PMSDemo = () => {
   const nextEventId = useRef(1);
   const logQueue = useRef<PmsLogEvent[]>([]);
 
+  // The sim loop is created once, so it reads the current language through a ref.
+  const tRef = useRef(t);
+  tRef.current = t;
+  /** Translated text with {name} placeholders filled in. */
+  const tr = (key: string, params: Record<string, string | number> = {}) =>
+    tRef.current(key).replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? ""));
+  const cname = (id: string) => tRef.current(`pms.consumer.${id}`);
   const pushLog = (sev: PmsLogSev, unit: string, msg: string) => {
     logQueue.current.push({ id: nextEventId.current++, ts: Date.now(), sev, unit, msg });
   };
@@ -138,9 +145,9 @@ const PMSDemo = () => {
   useEffect(() => {
     const now = Date.now();
     setEventLog([
-      { id: 0, ts: now - 12000, sev: "ok", unit: "PMS", msg: "PMS in AUTO — load-dependent start/stop armed" },
-      { id: -1, ts: now - 30000, sev: "info", unit: "DG1", msg: "On load — single genset operation" },
-      { id: -2, ts: now - 55000, sev: "ok", unit: "BUS", msg: "Main bus energized — 690 V / 60 Hz" },
+      { id: 0, ts: now - 12000, sev: "ok", unit: "PMS", msg: tr("pms.log.seedAuto") },
+      { id: -1, ts: now - 30000, sev: "info", unit: "DG1", msg: tr("pms.log.seedSingle") },
+      { id: -2, ts: now - 55000, sev: "ok", unit: "BUS", msg: tr("pms.log.seedBus") },
     ]);
     nextEventId.current = 1;
   }, []);
@@ -164,8 +171,8 @@ const PMSDemo = () => {
         s.recoveryStage = 0;
         s.hcSeq = "IDLE";
         s.noStandbyLogged = false;
-        pushLog("err", "BUS", "BLACKOUT — main bus dead, consumer breakers tripped on undervoltage");
-        pushLog("warn", "PMS", "Auto recovery sequence initiated");
+        pushLog("err", "BUS", tr("pms.log.blackout"));
+        pushLog("warn", "PMS", tr("pms.log.recoveryStart"));
       }
 
       // 1. Consumer demand (only drawn when bus live & consumer online)
@@ -214,7 +221,7 @@ const PMSDemo = () => {
                 // The bus takes the generator's voltage and frequency the moment the breaker closes.
                 s.busFreq = 60;
                 s.busVolt = 690;
-                pushLog("ok", g.id, "Dead-bus closure — bus energized 690 V / 60 Hz");
+                pushLog("ok", g.id, tr("pms.log.deadBusClose"));
                 // Recovery: reconnect essentials in stage order
                 if (s.recoveryT >= 0) s.recoveryStage = 1;
               } else {
@@ -222,7 +229,7 @@ const PMSDemo = () => {
                 g.stateT = 0;
                 g.syncSlip = 0.42 + Math.random() * 0.15;
                 g.syncAngle = -150 + Math.random() * 300;
-                pushLog("info", g.id, "Synchronizing to main bus");
+                pushLog("info", g.id, tr("pms.log.syncing"));
               }
             }
             break;
@@ -245,7 +252,7 @@ const PMSDemo = () => {
                 g.closingT = -1;
                 g.breakerClosed = true;
                 g.freqHz = s.busFreq;
-                pushLog("ok", g.id, "Breaker closed — sharing load");
+                pushLog("ok", g.id, tr("pms.log.breakerClosed"));
               }
               break;
             }
@@ -258,7 +265,7 @@ const PMSDemo = () => {
             const inWindow = Math.abs(g.syncSlip) < 0.12 && Math.abs(g.syncAngle) < SYNC_WIN_DEG;
             if (inWindow && g.stateT > 2) {
               g.closingT = 0;
-              pushLog("info", g.id, `In window (Δf ${g.syncSlip.toFixed(2)} Hz, Δφ ${g.syncAngle.toFixed(0)}°) — close command`);
+              pushLog("info", g.id, tr("pms.log.inWindow", { df: g.syncSlip.toFixed(2), dphi: g.syncAngle.toFixed(0) }));
             }
             break;
           }
@@ -273,7 +280,7 @@ const PMSDemo = () => {
               g.state = "standby";
               g.stateT = 0;
               g.freqHz = 0;
-              pushLog("info", g.id, "Cooldown complete — back in standby");
+              pushLog("info", g.id, tr("pms.log.cooldownDone"));
             }
             break;
           }
@@ -291,7 +298,7 @@ const PMSDemo = () => {
         standby.state = "starting";
         standby.stateT = 0;
         s.startTimerS = 0;
-        pushLog("warn", "PMS", `Load ${Math.round(busLoadPct)}% > ${LD_START_PCT}% — start order ${standby.id}`);
+        pushLog("warn", "PMS", tr("pms.log.ldStart", { load: Math.round(busLoadPct), limit: LD_START_PCT, id: standby.id }));
       }
 
       // 5. Load-dependent stop (last-on-first-off, capacity check)
@@ -305,7 +312,7 @@ const PMSDemo = () => {
           candidate.state = "cooldown";
           candidate.stateT = 0;
           candidate.breakerClosed = false;
-          pushLog("info", "PMS", `Load ${Math.round(busLoadPct)}% < ${LD_STOP_PCT}% — stop order ${candidate.id}`);
+          pushLog("info", "PMS", tr("pms.log.ldStop", { load: Math.round(busLoadPct), limit: LD_STOP_PCT, id: candidate.id }));
         }
         s.stopTimerS = 0;
       }
@@ -328,7 +335,7 @@ const PMSDemo = () => {
           } else if (standby && !anyIncoming) {
             standby.state = "starting";
             standby.stateT = 0;
-            pushLog("warn", "PMS", `Insufficient reserve for BOW THR — start order ${standby.id}`);
+            pushLog("warn", "PMS", tr("pms.log.hcStart", { name: cname("bowThr"), id: standby.id }));
             s.hcSeq = "STARTING";
           }
           break;
@@ -339,7 +346,7 @@ const PMSDemo = () => {
         case "GRANT":
           if (bow.state === "request") {
             bow.state = "online";
-            pushLog("ok", "PMS", "Power reserved — BOW THR connected");
+            pushLog("ok", "PMS", tr("pms.log.hcGranted", { name: cname("bowThr") }));
           }
           s.hcSeq = "IDLE";
           break;
@@ -355,7 +362,7 @@ const PMSDemo = () => {
           const victim = s.consumers.find((c) => c.id === SHED_ORDER[s.shedStage]);
           if (victim && victim.state === "online") {
             victim.state = "shed";
-            pushLog("err", "PMS", `PREF TRIP stage ${s.shedStage + 1} — ${victim.name} shed`);
+            pushLog("err", "PMS", tr("pms.log.shed", { stage: s.shedStage + 1, name: cname(victim.id) }));
           }
           s.shedStage += 1;
           s.shedTimerS = 0;
@@ -377,10 +384,10 @@ const PMSDemo = () => {
           } else if (next) {
             next.state = "starting";
             next.stateT = 0;
-            pushLog("warn", "PMS", `Blackout recovery — start order ${next.id}`);
+            pushLog("warn", "PMS", tr("pms.log.recoveryOrder", { id: next.id }));
             s.recoveryStage = -1; // wait for dead-bus closure (handled in state machine)
           } else if (!s.noStandbyLogged) {
-            pushLog("err", "PMS", "Blackout recovery — no generator available (reset faults)");
+            pushLog("err", "PMS", tr("pms.log.recoveryNone"));
             s.noStandbyLogged = true;
           }
         }
@@ -391,14 +398,14 @@ const PMSDemo = () => {
           essentials.forEach((c, i) => {
             if (i <= idx && c.state === "off") {
               c.state = "online";
-              pushLog("ok", "PMS", `Priority restart — ${c.name} reconnected`);
+              pushLog("ok", "PMS", tr("pms.log.priorityRestart", { name: cname(c.id) }));
             }
           });
           if (essentials.every((c) => c.state === "online")) {
             s.recoveryT = -1;
             s.recoveryStage = 0;
             s.blackout = false;
-            pushLog("ok", "PMS", "Blackout recovery complete");
+            pushLog("ok", "PMS", tr("pms.log.recoveryDone"));
           }
         }
       }
@@ -418,7 +425,7 @@ const PMSDemo = () => {
       // 10. Mirror to render state
       setGensets(
         s.gensets.map((g) => ({
-          id: g.id, name: g.name, ratedKw: g.ratedKw, state: g.state,
+          id: g.id, name: tr("pms.genset.name", { n: g.id.slice(2) }), ratedKw: g.ratedKw, state: g.state,
           kw: g.kw, freqHz: g.freqHz, rpm: (g.freqHz / 60) * 1800, hours: g.hours,
           breakerClosed: g.breakerClosed, syncAngleDeg: g.syncAngle, syncSlipHz: g.syncSlip,
           closing: g.closingT >= 0,
@@ -426,7 +433,7 @@ const PMSDemo = () => {
       );
       setConsumers(
         s.consumers.map((c) => ({
-          id: c.id, name: c.name, ratedKw: c.ratedKw, kw: c.kw,
+          id: c.id, name: cname(c.id), ratedKw: c.ratedKw, kw: c.kw,
           enabled: c.state === "online" || c.state === "request",
           state: c.state, essential: c.essential, sheddable: c.sheddable, heavy: c.heavy,
         }))
@@ -478,15 +485,15 @@ const PMSDemo = () => {
     if (c.state === "online" || c.state === "request") {
       c.state = "off";
       if (c.heavy) s.hcSeq = "IDLE";
-      pushLog("info", "OPR", `${c.name} disconnect order`);
+      pushLog("info", "OPR", tr("pms.log.disconnect", { name: cname(c.id) }));
     } else {
       // shed → off → request/online again by operator
       if (c.heavy) {
         c.state = "request";
-        pushLog("info", "OPR", `${c.name} connect request — awaiting PMS reservation`);
+        pushLog("info", "OPR", tr("pms.log.connectRequest", { name: cname(c.id) }));
       } else {
         c.state = "online";
-        pushLog("info", "OPR", `${c.name} connected`);
+        pushLog("info", "OPR", tr("pms.log.connected", { name: cname(c.id) }));
       }
     }
   };
@@ -496,7 +503,7 @@ const PMSDemo = () => {
     if (g.state !== "standby") return;
     g.state = "starting";
     g.stateT = 0;
-    pushLog("info", "OPR", `Manual start order ${g.id}`);
+    pushLog("info", "OPR", tr("pms.log.manualStart", { id: g.id }));
   };
 
   const handleStopGenset = (idx: number) => {
@@ -506,13 +513,13 @@ const PMSDemo = () => {
     const online = s.gensets.filter((x) => x.state === "online");
     if (online.length === 1) {
       // In AUTO the PMS refuses to black out the ship on an operator stop.
-      pushLog("warn", "PMS", `Stop ${g.id} blocked — last generator on the bus. Start another one first.`);
+      pushLog("warn", "PMS", tr("pms.log.stopBlocked", { id: g.id }));
       return;
     }
     g.state = "cooldown";
     g.stateT = 0;
     g.breakerClosed = false;
-    pushLog("info", "OPR", `Manual stop order ${g.id}`);
+    pushLog("info", "OPR", tr("pms.log.manualStop", { id: g.id }));
   };
 
   const handleTripGenset = (idx: number) => {
@@ -523,7 +530,7 @@ const PMSDemo = () => {
     g.breakerClosed = false;
     g.kw = 0;
     g.freqHz = 0;
-    pushLog("err", g.id, "BREAKER TRIP — generator fault");
+    pushLog("err", g.id, tr("pms.log.trip"));
   };
 
   const handleResetFault = (idx: number) => {
@@ -531,7 +538,7 @@ const PMSDemo = () => {
     if (g.state !== "fault") return;
     g.state = "standby";
     g.stateT = 0;
-    pushLog("ok", g.id, "Fault reset — available for start");
+    pushLog("ok", g.id, tr("pms.log.faultReset"));
   };
 
   const handleBlackout = () => {
@@ -547,7 +554,7 @@ const PMSDemo = () => {
       g.kw = 0;
       g.freqHz = 0;
     });
-    pushLog("err", "OPR", "Blackout simulated — all running generators lost");
+    pushLog("err", "OPR", tr("pms.log.blackoutSim"));
   };
 
   const handleReset = () => {
@@ -564,7 +571,7 @@ const PMSDemo = () => {
     s.recoveryT = -1;
     s.recoveryStage = 0;
     s.hcSeq = "IDLE";
-    pushLog("ok", "OPR", "Simulation reset to initial state");
+    pushLog("ok", "OPR", tr("pms.log.reset"));
   };
 
   // ── Derived ──

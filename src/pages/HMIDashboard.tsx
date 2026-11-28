@@ -79,6 +79,11 @@ const formatClock = (ms: number) => {
 
 const HMIDashboard = () => {
   const { t } = useLanguage();
+  // Event messages are built inside intervals created once; read the language via a ref.
+  const tRef = useRef(t);
+  tRef.current = t;
+  const tr = (key: string, params: Record<string, string | number> = {}) =>
+    tRef.current(key).replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? ""));
   const [turbines, setTurbines] = useState<Turbine[]>([
     { id: "T001", name: "WG-Alpha",   status: "operational", energyOutput: 2.4, efficiency: 87, health: 95, position: { x: 20, y: 30 }, lat: 59.10, lng: 1.85, temperature: 45, vibration: 2.1 },
     { id: "T002", name: "WG-Beta",    status: "operational", energyOutput: 2.1, efficiency: 82, health: 88, position: { x: 40, y: 20 }, lat: 59.05, lng: 2.15, temperature: 42, vibration: 1.8 },
@@ -100,13 +105,13 @@ const HMIDashboard = () => {
   const [eventLog, setEventLog] = useState<LogEvent[]>(() => {
     const now = Date.now();
     return [
-      { id: 7, ts: now - 8000,   sev: "warn", unit: "T003", msg: "Temperature elevated — 52°C" },
-      { id: 6, ts: now - 22000,  sev: "err",  unit: "T005", msg: "Unit offline — maintenance scheduled" },
-      { id: 5, ts: now - 48000,  sev: "warn", unit: "T003", msg: "Vibration threshold: 3.2 Hz" },
-      { id: 4, ts: now - 72000,  sev: "info", unit: "T002", msg: "Efficiency nominal: 82%" },
-      { id: 3, ts: now - 98000,  sev: "info", unit: "T001", msg: "Power output stable: 2.4 MW" },
-      { id: 2, ts: now - 130000, sev: "ok",   unit: "T006", msg: "Post-maintenance check passed" },
-      { id: 1, ts: now - 190000, sev: "ok",   unit: "ALL",  msg: "SCADA link established — nominal" },
+      { id: 7, ts: now - 8000,   sev: "warn", unit: "T003", msg: tr("hmi.log.tempElevated", { v: 52 }) },
+      { id: 6, ts: now - 22000,  sev: "err",  unit: "T005", msg: tr("hmi.log.offlineMaint") },
+      { id: 5, ts: now - 48000,  sev: "warn", unit: "T003", msg: tr("hmi.log.vibThreshold", { v: "3.2" }) },
+      { id: 4, ts: now - 72000,  sev: "info", unit: "T002", msg: tr("hmi.log.effNominal", { v: 82 }) },
+      { id: 3, ts: now - 98000,  sev: "info", unit: "T001", msg: tr("hmi.log.powerStable", { v: "2.4" }) },
+      { id: 2, ts: now - 130000, sev: "ok",   unit: "T006", msg: tr("hmi.log.postMaint") },
+      { id: 1, ts: now - 190000, sev: "ok",   unit: "ALL",  msg: tr("hmi.log.scadaLink") },
     ];
   });
   const nextEventId = useRef(8);
@@ -242,17 +247,17 @@ const HMIDashboard = () => {
   useEffect(() => {
     const msgPool: Record<string, Array<(t: Turbine) => string>> = {
       operational: [
-        (t) => `Output: ${t.energyOutput.toFixed(1)} MW — nominal`,
-        (t) => `Efficiency check: ${Math.round(t.efficiency)}%`,
-        (t) => `Health telemetry OK — ${t.health}%`,
+        (u) => tr("hmi.log.outputNominal", { v: u.energyOutput.toFixed(1) }),
+        (u) => tr("hmi.log.effCheck", { v: Math.round(u.efficiency) }),
+        (u) => tr("hmi.log.healthOk", { v: u.health }),
       ],
       warning: [
-        (t) => `Vibration elevated: ${t.vibration.toFixed(1)} Hz`,
-        (t) => `Temp: ${Math.round(t.temperature)}°C — monitoring`,
-        (t) => `Reduced efficiency: ${Math.round(t.efficiency)}%`,
+        (u) => tr("hmi.log.vibElevated", { v: u.vibration.toFixed(1) }),
+        (u) => tr("hmi.log.tempMonitor", { v: Math.round(u.temperature) }),
+        (u) => tr("hmi.log.effReduced", { v: Math.round(u.efficiency) }),
       ],
       offline: [
-        () => `Unit offline — standby active`,
+        () => tr("hmi.log.offlineStandby"),
       ],
     };
     const sevMap: Record<string, LogSev> = {
@@ -303,7 +308,7 @@ const HMIDashboard = () => {
             </div>
             <div className="h-4 w-px bg-border hidden md:block" />
             <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap hidden md:inline">
-              Station: NORTH SEA — Sector 7G
+              {t("hmi.ui.station")}
             </span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
@@ -312,7 +317,7 @@ const HMIDashboard = () => {
             </span>
             <div className="h-4 w-px bg-border hidden sm:block" />
             <span className="font-mono text-[10px] uppercase tracking-wider whitespace-nowrap hidden sm:inline">
-              <span className="text-muted-foreground">Output </span>
+              <span className="text-muted-foreground">{t("hmi.ui.output")} </span>
               <span className="text-primary tabular-nums">{totalEnergy.toFixed(1)} MW</span>
             </span>
             <div className="h-4 w-px bg-border hidden sm:block" />
@@ -334,33 +339,33 @@ const HMIDashboard = () => {
             <div className="alarm-pulse flex items-center gap-3 px-4 py-2 rounded-lg bg-card/50 border">
               <AlertTriangle className="w-4 h-4 animate-pulse" style={{ color: COLOR_WARNING }} />
               <span className="font-mono text-xs uppercase tracking-wider" style={{ color: COLOR_WARNING }}>
-                {warningCount} ACTIVE WARNING{warningCount > 1 ? "S" : ""} — WG-Gamma: HIGH VIBRATION DETECTED
+                {t(warningCount > 1 ? "hmi.ui.warnMany" : "hmi.ui.warnOne").replace("{n}", String(warningCount))} — WG-Gamma: {t("hmi.ui.highVibration")}
               </span>
             </div>
           )}
 
           {/* Top row: KPI displays */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <HMIPanel title="Total Output" glowColor={COLOR_PRIMARY}>
-              <DigitalDisplay value={totalEnergy} label="Power" unit="MW" color={COLOR_PRIMARY} size="lg" />
+            <HMIPanel title={t("hmi.ui.totalOutput")} glowColor={COLOR_PRIMARY}>
+              <DigitalDisplay value={totalEnergy} label={t("hmi.ui.power")} unit="MW" color={COLOR_PRIMARY} size="lg" />
             </HMIPanel>
-            <HMIPanel title="Fleet Status">
+            <HMIPanel title={t("hmi.ui.fleetStatus")}>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <StatusIndicator status="operational" label={`${operationalCount} ONLINE`} size="sm" />
+                  <StatusIndicator status="operational" label={`${operationalCount} ${t("hmi.ui.online")}`} size="sm" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <StatusIndicator status="warning" label={`${warningCount} WARNING`} size="sm" />
+                  <StatusIndicator status="warning" label={`${warningCount} ${t("hmi.ui.warning")}`} size="sm" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <StatusIndicator status="offline" label={`${offlineCount} OFFLINE`} size="sm" />
+                  <StatusIndicator status="offline" label={`${offlineCount} ${t("hmi.ui.offline")}`} size="sm" />
                 </div>
               </div>
             </HMIPanel>
-            <HMIPanel title="Avg Efficiency" glowColor={COLOR_PRIMARY}>
+            <HMIPanel title={t("hmi.ui.avgEfficiency")} glowColor={COLOR_PRIMARY}>
               <GaugeCircular value={avgEfficiency} max={100} label="" unit="%" color={COLOR_PRIMARY} size={120} alarmWhen="none" />
             </HMIPanel>
-            <HMIPanel title="System Health" glowColor={COLOR_ACCENT}>
+            <HMIPanel title={t("hmi.ui.systemHealth")} glowColor={COLOR_ACCENT}>
               <GaugeCircular
                 value={Math.round(turbines.reduce((s, t) => s + t.health, 0) / turbines.length)}
                 max={100}
@@ -379,7 +384,7 @@ const HMIDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Ocean map / topological view */}
             <HMIPanel
-              title={mapView === "geo" ? "Ocean Farm — Geographic View" : "Ocean Farm — Topological View"}
+              title={mapView === "geo" ? t("hmi.ui.geoView") : t("hmi.ui.topoView")}
               className="lg:col-span-1"
             >
               {/* View toggle */}
@@ -392,7 +397,7 @@ const HMIDashboard = () => {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <MapIcon className="w-3 h-3" /> Map
+                  <MapIcon className="w-3 h-3" /> {t("hmi.ui.map")}
                 </button>
                 <button
                   onClick={() => setMapView("grid")}
@@ -402,7 +407,7 @@ const HMIDashboard = () => {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <Grid3x3 className="w-3 h-3" /> Grid
+                  <Grid3x3 className="w-3 h-3" /> {t("hmi.ui.grid")}
                 </button>
               </div>
 
@@ -460,7 +465,7 @@ const HMIDashboard = () => {
             </HMIPanel>
 
             {/* Live trend — fixed window, scrolls right→left */}
-            <HMIPanel title={`Power Output — Live Trend (${windowSeconds}s)`} className="lg:col-span-2 xl:col-span-2">
+            <HMIPanel title={t("hmi.ui.trendTitle").replace("{s}", String(windowSeconds))} className="lg:col-span-2 xl:col-span-2">
               {/* Series toggles */}
               <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 {(() => {
@@ -484,7 +489,7 @@ const HMIDashboard = () => {
                             ? "bg-background/60 border-border text-foreground"
                             : "bg-background/20 border-border/40 text-muted-foreground/60 line-through"
                         }`}
-                        title={active ? "Click to hide" : "Click to show"}
+                        title={active ? t("hmi.ui.clickHide") : t("hmi.ui.clickShow")}
                       >
                         <span className="w-2 h-2 rounded-full" style={{ background: color, opacity: active ? 1 : 0.35 }} />
                         {label}
@@ -504,7 +509,7 @@ const HMIDashboard = () => {
                         </button>
                       )}
                       <div className="ml-auto flex items-center gap-1 p-1 rounded-md bg-background/40 border border-border/40">
-                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-1.5">Window</span>
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground px-1.5">{t("hmi.ui.window")}</span>
                         {WINDOW_OPTIONS.map(s => (
                           <button
                             key={s}
@@ -617,7 +622,7 @@ const HMIDashboard = () => {
             </HMIPanel>
 
             {/* Event log */}
-            <HMIPanel title="Event Log" className="lg:col-span-1">
+            <HMIPanel title={t("hmi.ui.eventLog")} className="lg:col-span-1">
               <div className="space-y-0.5 h-[284px] overflow-y-auto pr-0.5 scrollbar-thin">
                 {eventLog.map(event => {
                   const sevColors: Record<LogSev, string> = {
@@ -666,7 +671,7 @@ const HMIDashboard = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Vibrate className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{turbine.vibration.toFixed(1)}Hz</span>
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground">{turbine.vibration.toFixed(1)} mm/s</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Zap className="w-3 h-3 text-muted-foreground" />
@@ -691,15 +696,15 @@ const HMIDashboard = () => {
 
           {/* Selected unit detail */}
           {selectedTurbine && (
-            <HMIPanel title={`${selectedTurbine.id} — ${selectedTurbine.name} — DIAGNOSTICS`} glowColor={getStatusColor(selectedTurbine.status)}>
+            <HMIPanel title={`${selectedTurbine.id} — ${selectedTurbine.name} — ${t("hmi.ui.diagnostics")}`} glowColor={getStatusColor(selectedTurbine.status)}>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center">
-                <GaugeCircular value={selectedTurbine.energyOutput} max={3} label="Output" unit="MW" color={COLOR_PRIMARY} size={130} alarmWhen="none" />
-                <GaugeCircular value={selectedTurbine.efficiency} max={100} label="Efficiency" unit="%" color={COLOR_ACCENT} size={130} alarmWhen="none" />
-                <GaugeCircular value={selectedTurbine.health} max={100} label="Health" unit="%" color={COLOR_HEALTH} size={130} warningThreshold={50} criticalThreshold={30} alarmWhen="low" />
-                <GaugeCircular value={selectedTurbine.temperature} max={60} label="Temperature" unit="°C" color={COLOR_PRIMARY} size={130} warningThreshold={75} criticalThreshold={90} />
-                <GaugeCircular value={selectedTurbine.vibration} max={5} label="Vibration" unit="Hz" color={COLOR_ACCENT} size={130} warningThreshold={60} criticalThreshold={80} />
+                <GaugeCircular value={selectedTurbine.energyOutput} max={3} label={t("hmi.ui.output")} unit="MW" color={COLOR_PRIMARY} size={130} alarmWhen="none" />
+                <GaugeCircular value={selectedTurbine.efficiency} max={100} label={t("hmi.ui.efficiency")} unit="%" color={COLOR_ACCENT} size={130} alarmWhen="none" />
+                <GaugeCircular value={selectedTurbine.health} max={100} label={t("hmi.ui.health")} unit="%" color={COLOR_HEALTH} size={130} warningThreshold={50} criticalThreshold={30} alarmWhen="low" />
+                <GaugeCircular value={selectedTurbine.temperature} max={60} label={t("hmi.ui.temperature")} unit="°C" color={COLOR_PRIMARY} size={130} warningThreshold={75} criticalThreshold={90} />
+                <GaugeCircular value={selectedTurbine.vibration} max={5} label={t("hmi.ui.vibration")} unit="mm/s" color={COLOR_ACCENT} size={130} warningThreshold={60} criticalThreshold={80} />
                 <div className="flex flex-col gap-3">
-                  <DigitalDisplay value={selectedTurbine.id} label="Unit ID" color={COLOR_PRIMARY} size="sm" />
+                  <DigitalDisplay value={selectedTurbine.id} label={t("hmi.ui.unitId")} color={COLOR_PRIMARY} size="sm" />
                   <StatusIndicator status={selectedTurbine.status} size="lg" />
                 </div>
               </div>

@@ -68,7 +68,7 @@ const Footer = () => {
               <h3 className="text-sm font-semibold text-foreground mb-4">{t('footer.expertise')}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="hover:text-foreground transition-colors">{t('footer.exp.twincat')}</li>
-                <li className="hover:text-foreground transition-colors">Beckhoff PLC</li>
+                <li className="hover:text-foreground transition-colors">{t('footer.exp.beckhoff')}</li>
                 <li className="hover:text-foreground transition-colors">IECEx & ATEX</li>
                 <li className="hover:text-foreground transition-colors">{t('footer.exp.sql')}</li>
                 <li className="hover:text-foreground transition-colors">{t('footer.exp.cctv')}</li>

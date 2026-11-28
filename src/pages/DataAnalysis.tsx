@@ -123,7 +123,7 @@ function KPICard({ label, value, unit, icon: Icon, delta, deltaLabel }: {
             {delta !== undefined && Number.isFinite(delta) && (
               <div className={`flex items-center gap-0.5 mt-1 text-xs font-medium ${delta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {delta >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                {Math.abs(delta).toFixed(1)}% {deltaLabel || 'vs prev. period'}
+                {Math.abs(delta).toFixed(1)}% {deltaLabel}
               </div>
             )}
           </div>
@@ -222,25 +222,25 @@ export default function DataAnalysis() {
   }, [historicalData]);
 
   const multiAxisMetrics = useMemo(() => [
-    { key: 'total_power', name: 'Total Power', type: 'bar' as const, color: 'hsl(var(--primary))', yAxisId: 'left' as const },
-    { key: 'wave_height', name: 'Wave Height', type: 'line' as const, color: 'hsl(0, 84%, 60%)', yAxisId: 'right' as const },
-    { key: 'wind_speed', name: 'Wind Speed', type: 'line' as const, color: 'hsl(217, 91%, 60%)', yAxisId: 'right' as const },
-    { key: 'efficiency', name: 'Efficiency', type: 'line' as const, color: 'hsl(142, 71%, 45%)', yAxisId: 'left' as const }
-  ], []);
+    { key: 'total_power', name: t('da.metric.total_power'), type: 'bar' as const, color: 'hsl(var(--primary))', yAxisId: 'left' as const },
+    { key: 'wave_height', name: t('da.metric.wave_height'), type: 'line' as const, color: 'hsl(0, 84%, 60%)', yAxisId: 'right' as const },
+    { key: 'wind_speed', name: t('da.metric.wind_speed'), type: 'line' as const, color: 'hsl(217, 91%, 60%)', yAxisId: 'right' as const },
+    { key: 'efficiency', name: t('da.metric.efficiency'), type: 'line' as const, color: 'hsl(142, 71%, 45%)', yAxisId: 'left' as const }
+  ], [t]);
 
   const statMetrics = useMemo(() => [
-    { key: 'total_power', label: 'Total Power', unit: 'kW', decimals: 0 },
-    { key: 'efficiency', label: 'Efficiency', unit: '%', decimals: 1 },
-    { key: 'wave_height', label: 'Wave Height', unit: 'm', decimals: 2 },
-    { key: 'wind_speed', label: 'Wind Speed', unit: 'm/s', decimals: 1 },
-    { key: 'vibration', label: 'Vibration', unit: 'mm/s', decimals: 2 },
-    { key: 'bearing_temp', label: 'Bearing Temp', unit: '°C', decimals: 1 },
-    { key: 'sea_temp', label: 'Sea Temp', unit: '°C', decimals: 1 },
-    { key: 'current_speed', label: 'Current Speed', unit: 'm/s', decimals: 2 },
-  ], []);
+    { key: 'total_power', label: t('da.metric.total_power'), unit: 'kW', decimals: 0 },
+    { key: 'efficiency', label: t('da.metric.efficiency'), unit: '%', decimals: 1 },
+    { key: 'wave_height', label: t('da.metric.wave_height'), unit: 'm', decimals: 2 },
+    { key: 'wind_speed', label: t('da.metric.wind_speed'), unit: 'm/s', decimals: 1 },
+    { key: 'vibration', label: t('da.metric.vibration'), unit: 'mm/s', decimals: 2 },
+    { key: 'bearing_temp', label: t('da.metric.bearing_temp'), unit: '°C', decimals: 1 },
+    { key: 'sea_temp', label: t('da.metric.sea_temp'), unit: '°C', decimals: 1 },
+    { key: 'current_speed', label: t('da.metric.current_speed'), unit: 'm/s', decimals: 2 },
+  ], [t]);
 
   const tableColumns = useMemo(() => [
-    { key: 'date', label: 'Date', decimals: 0 },
+    { key: 'date', label: t('da.col.date'), decimals: 0 },
     { key: 'wg1_power', label: 'WG-1', unit: 'kW', decimals: 0 },
     { key: 'wg2_power', label: 'WG-2', unit: 'kW', decimals: 0 },
     { key: 'wg3_power', label: 'WG-3', unit: 'kW', decimals: 0 },
@@ -249,9 +249,9 @@ export default function DataAnalysis() {
     { key: 'efficiency', label: 'Eff.', unit: '%', decimals: 1 },
     { key: 'wave_height', label: 'Wave', unit: 'm', decimals: 2 },
     { key: 'wind_speed', label: 'Wind', unit: 'm/s', decimals: 1 },
-    { key: 'vibration', label: 'Vibration', unit: 'mm/s', decimals: 2 },
+    { key: 'vibration', label: t('da.metric.vibration'), unit: 'mm/s', decimals: 2 },
     { key: 'bearing_temp', label: 'Bear. T', unit: '°C', decimals: 1 },
-  ], []);
+  ], [t]);
 
   const exportData = () => {
     const headers = tableColumns.map(c => `${c.label}${c.unit ? ` (${c.unit})` : ''}`);
@@ -340,28 +340,28 @@ export default function DataAnalysis() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <KPICard label="Total Energy" value={fmt(stats.totalEnergy, 1)} unit="MWh" icon={Zap} delta={stats.powerDelta} />
-          <KPICard label="Avg Efficiency" value={fmt(stats.avgEff, 1)} unit="%" icon={Gauge} delta={stats.effDelta} />
-          <KPICard label="Peak Power" value={fmt(stats.peakPower, 0)} unit="kW" icon={TrendingUp} />
-          <KPICard label="Avg Vibration" value={fmt(stats.avgVibration, 1)} unit="mm/s" icon={Activity} />
-          <KPICard label="Bearing Temp" value={fmt(stats.avgBearingTemp, 1)} unit="°C" icon={Thermometer} />
-          <KPICard label="Avg Wave Ht." value={fmt(stats.avgWave, 2)} unit="m" icon={Waves} />
+          <KPICard label={t('da.kpi.totalEnergy')} value={fmt(stats.totalEnergy, 1)} unit="MWh" icon={Zap} delta={stats.powerDelta} deltaLabel={t('da.kpi.vsPrev')} />
+          <KPICard label={t('da.kpi.avgEff')} value={fmt(stats.avgEff, 1)} unit="%" icon={Gauge} delta={stats.effDelta} deltaLabel={t('da.kpi.vsPrev')} />
+          <KPICard label={t('da.kpi.peakPower')} value={fmt(stats.peakPower, 0)} unit="kW" icon={TrendingUp} />
+          <KPICard label={t('da.kpi.avgVibration')} value={fmt(stats.avgVibration, 1)} unit="mm/s" icon={Activity} />
+          <KPICard label={t('da.kpi.bearingTemp')} value={fmt(stats.avgBearingTemp, 1)} unit="°C" icon={Thermometer} />
+          <KPICard label={t('da.kpi.avgWave')} value={fmt(stats.avgWave, 2)} unit="m" icon={Waves} />
         </div>
 
         <Tabs defaultValue="power" className="space-y-6">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-background/40 border border-border/40 rounded-md p-1">
             {[
-              ['power', 'Power'],
-              ['comparison', 'Comparison'],
-              ['correlation', 'Correlation'],
-              ['trends', 'Trends'],
-              ['multiaxis', 'Multi-Axis'],
-              ['anomaly', 'Anomaly'],
-              ['heatmap', 'Heatmap'],
-              ['stats', 'Statistics'],
-              ['performance', 'Performance'],
-              ['maintenance', 'Maintenance'],
-              ['rawdata', 'Raw Data'],
+              ['power', t('da.tab.power')],
+              ['comparison', t('da.tab.comparison')],
+              ['correlation', t('da.tab.correlation')],
+              ['trends', t('da.tab.trends')],
+              ['multiaxis', t('da.tab.multiaxis')],
+              ['anomaly', t('da.tab.anomaly')],
+              ['heatmap', t('da.tab.heatmap')],
+              ['stats', t('da.tab.stats')],
+              ['performance', t('da.tab.performance')],
+              ['maintenance', t('da.tab.maintenance')],
+              ['rawdata', t('da.tab.rawdata')],
             ].map(([value, label]) => (
               <TabsTrigger
                 key={value}
@@ -378,12 +378,12 @@ export default function DataAnalysis() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  Power Generation — Stacked Area
+                  {t('da.chart.powerStacked')}
                   {zoomArea && (
                     <Button variant="outline" size="sm" onClick={resetZoom}>Reset Zoom</Button>
                   )}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">Click and drag on the chart to zoom in. Use the brush slider below to pan.</p>
+                <p className="text-xs text-muted-foreground">{t('da.chart.zoomHint')}</p>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={420}>
@@ -461,7 +461,7 @@ export default function DataAnalysis() {
           <TabsContent value="multiaxis">
             <MultiAxisChart
               data={historicalData}
-              title="Multi-Axis: Power vs Environmental Factors"
+              title={t('da.chart.multiAxis')}
               metrics={multiAxisMetrics}
               leftAxisLabel="Power (kW) / Efficiency (%)"
               rightAxisLabel="Wave (m) / Wind (m/s)"
@@ -471,16 +471,16 @@ export default function DataAnalysis() {
           {/* Anomaly Detection */}
           <TabsContent value="anomaly">
             <div className="grid grid-cols-1 gap-6">
-              <AnomalyChart data={historicalData} dataKey="vibration" title="Vibration Anomaly Detection" unit="mm/s" sensitivity={2} />
-              <AnomalyChart data={historicalData} dataKey="bearing_temp" title="Bearing Temperature Anomaly Detection" unit="°C" sensitivity={2.5} />
+              <AnomalyChart data={historicalData} dataKey="vibration" title={t('da.chart.anomalyVib')} unit="mm/s" sensitivity={2} />
+              <AnomalyChart data={historicalData} dataKey="bearing_temp" title={t('da.chart.anomalyBearing')} unit="°C" sensitivity={2.5} />
             </div>
           </TabsContent>
 
           {/* Heatmap */}
           <TabsContent value="heatmap">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <HeatmapChart data={historicalData} title="Power Output Heatmap (Day × Hour)" metric="total_power" unit="kW" />
-              <HeatmapChart data={historicalData} title="Efficiency Heatmap (Day × Hour)" metric="efficiency" unit="%" />
+              <HeatmapChart data={historicalData} title={t('da.chart.heatPower')} metric="total_power" unit="kW" />
+              <HeatmapChart data={historicalData} title={t('da.chart.heatEff')} metric="efficiency" unit="%" />
             </div>
           </TabsContent>
 
@@ -493,7 +493,7 @@ export default function DataAnalysis() {
           <TabsContent value="performance">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle>Turbine Performance Comparison</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('da.chart.perfCompare')}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={320}>
                     <BarChart data={performanceData}>
@@ -511,7 +511,7 @@ export default function DataAnalysis() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle>Turbine Radar Profile</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('da.chart.radar')}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={320}>
                     <RadarChart data={radarData}>
@@ -527,7 +527,7 @@ export default function DataAnalysis() {
               </Card>
 
               <Card className="lg:col-span-2">
-                <CardHeader><CardTitle>Energy Output & MTBF</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('da.chart.energyMtbf')}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={performanceData}>
@@ -550,7 +550,7 @@ export default function DataAnalysis() {
           <TabsContent value="maintenance">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle>Maintenance Activity Distribution</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('da.chart.maintDist')}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={320}>
                     <PieChart>
@@ -576,7 +576,7 @@ export default function DataAnalysis() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle>Maintenance Schedule & Log</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('da.chart.maintLog')}</CardTitle></CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {maintenanceLog.map((item, i) => (
@@ -601,7 +601,7 @@ export default function DataAnalysis() {
 
           {/* Raw Data Table */}
           <TabsContent value="rawdata">
-            <DataTable data={historicalData} columns={tableColumns} title="Raw Sensor Data" />
+            <DataTable data={historicalData} columns={tableColumns} title={t('da.chart.rawData')} />
           </TabsContent>
         </Tabs>
 

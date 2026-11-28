@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -14,15 +15,16 @@ interface DateRangePickerProps {
 }
 
 export default function DateRangePicker({ from, to, onRangeChange }: DateRangePickerProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="space-y-1.5">
-        <Label className="text-xs">From</Label>
+        <Label className="text-xs">{t('da.date.from')}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-normal", !from && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-              {from ? format(from, "MMM dd, yyyy") : "Start date"}
+              {from ? format(from, "MMM dd, yyyy") : t('da.date.start')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -38,12 +40,12 @@ export default function DateRangePicker({ from, to, onRangeChange }: DateRangePi
         </Popover>
       </div>
       <div className="space-y-1.5">
-        <Label className="text-xs">To</Label>
+        <Label className="text-xs">{t('da.date.to')}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-normal", !to && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-              {to ? format(to, "MMM dd, yyyy") : "End date"}
+              {to ? format(to, "MMM dd, yyyy") : t('da.date.end')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Filter } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface FilterConfig {
   timeRange: string;
@@ -24,18 +25,18 @@ interface AdvancedFiltersProps {
 }
 
 const DATA_KEYS = [
-  { value: 'total_power', label: 'Total Power (kW)' },
-  { value: 'wg1_power', label: 'WG-1 Power (kW)' },
-  { value: 'wg2_power', label: 'WG-2 Power (kW)' },
-  { value: 'wg3_power', label: 'WG-3 Power (kW)' },
-  { value: 'wg4_power', label: 'WG-4 Power (kW)' },
-  { value: 'efficiency', label: 'Efficiency (%)' },
-  { value: 'wave_height', label: 'Wave Height (m)' },
-  { value: 'wind_speed', label: 'Wind Speed (m/s)' },
-  { value: 'vibration', label: 'Vibration (mm/s)' },
-  { value: 'bearing_temp', label: 'Bearing Temp (°C)' },
-  { value: 'sea_temp', label: 'Sea Temp (°C)' },
-  { value: 'current_speed', label: 'Current Speed (m/s)' },
+  { value: 'total_power', labelKey: 'da.metricUnit.total_power' },
+  { value: 'wg1_power', labelKey: 'da.metricUnit.wg1_power' },
+  { value: 'wg2_power', labelKey: 'da.metricUnit.wg2_power' },
+  { value: 'wg3_power', labelKey: 'da.metricUnit.wg3_power' },
+  { value: 'wg4_power', labelKey: 'da.metricUnit.wg4_power' },
+  { value: 'efficiency', labelKey: 'da.metricUnit.efficiency' },
+  { value: 'wave_height', labelKey: 'da.metricUnit.wave_height' },
+  { value: 'wind_speed', labelKey: 'da.metricUnit.wind_speed' },
+  { value: 'vibration', labelKey: 'da.metricUnit.vibration' },
+  { value: 'bearing_temp', labelKey: 'da.metricUnit.bearing_temp' },
+  { value: 'sea_temp', labelKey: 'da.metricUnit.sea_temp' },
+  { value: 'current_speed', labelKey: 'da.metricUnit.current_speed' },
 ];
 
 const TURBINE_OPTIONS = [
@@ -46,6 +47,7 @@ const TURBINE_OPTIONS = [
 ];
 
 export default function AdvancedFilters({ filters, onFiltersChange }: AdvancedFiltersProps) {
+  const { t } = useLanguage();
   const updateFilters = (updates: Partial<FilterConfig>) => {
     onFiltersChange({ ...filters, ...updates });
   };
@@ -76,28 +78,28 @@ export default function AdvancedFilters({ filters, onFiltersChange }: AdvancedFi
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Advanced Filters
+            {t('da.filters.title')}
           </div>
-          <Button variant="outline" size="sm" onClick={clearFilters}>Clear All</Button>
+          <Button variant="outline" size="sm" onClick={clearFilters}>{t('da.filters.clear')}</Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Row 1: Time + Date Range */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label>Preset Range</Label>
+            <Label>{t('da.filters.preset')}</Label>
             <Select value={filters.timeRange} onValueChange={(v) => updateFilters({ timeRange: v, customDateFrom: undefined, customDateTo: undefined })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">Last 7 days</SelectItem>
-                <SelectItem value="30">Last 30 days</SelectItem>
-                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="7">{t('da.filters.last7')}</SelectItem>
+                <SelectItem value="30">{t('da.filters.last30')}</SelectItem>
+                <SelectItem value="90">{t('da.filters.last90')}</SelectItem>
                 <SelectItem value="365">Last Year</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Custom Date Range</Label>
+            <Label>{t('da.filters.custom')}</Label>
             <DateRangePicker
               from={filters.customDateFrom}
               to={filters.customDateTo}
@@ -108,17 +110,17 @@ export default function AdvancedFilters({ filters, onFiltersChange }: AdvancedFi
 
         {/* Row 2: Turbines */}
         <div className="space-y-2">
-          <Label>Turbines</Label>
+          <Label>{t('da.filters.turbines')}</Label>
           <div className="flex flex-wrap gap-2">
-            {TURBINE_OPTIONS.map(t => (
+            {TURBINE_OPTIONS.map(opt => (
               <Badge
-                key={t.value}
-                variant={filters.turbines.includes(t.value) ? 'default' : 'outline'}
+                key={opt.value}
+                variant={filters.turbines.includes(opt.value) ? 'default' : 'outline'}
                 className="cursor-pointer"
-                onClick={() => toggleTurbine(t.value)}
+                onClick={() => toggleTurbine(opt.value)}
               >
-                {t.label}
-                {filters.turbines.includes(t.value) && <X className="h-3 w-3 ml-1" />}
+                {opt.label}
+                {filters.turbines.includes(opt.value) && <X className="h-3 w-3 ml-1" />}
               </Badge>
             ))}
           </div>
@@ -127,36 +129,36 @@ export default function AdvancedFilters({ filters, onFiltersChange }: AdvancedFi
         {/* Row 3: Correlation + Trend + Comparison */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label>Correlation X vs Y</Label>
+            <Label>{t('da.filters.correlation')}</Label>
             <div className="grid grid-cols-2 gap-2">
               <Select
                 value={filters.correlationPair?.x || 'wave_height'}
                 onValueChange={(v) => updateFilters({ correlationPair: { x: v, y: filters.correlationPair?.y || 'total_power' } })}
               >
                 <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{t(k.labelKey)}</SelectItem>)}</SelectContent>
               </Select>
               <Select
                 value={filters.correlationPair?.y || 'total_power'}
                 onValueChange={(v) => updateFilters({ correlationPair: { x: filters.correlationPair?.x || 'wave_height', y: v } })}
               >
                 <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{t(k.labelKey)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Trend Metric</Label>
+            <Label>{t('da.filters.trend')}</Label>
             <Select value={filters.trendMetric || 'total_power'} onValueChange={(v) => updateFilters({ trendMetric: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}</SelectContent>
+              <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{t(k.labelKey)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Comparison Metric</Label>
+            <Label>{t('da.filters.comparison')}</Label>
             <Select value={filters.comparisonMetric || 'total_power'} onValueChange={(v) => updateFilters({ comparisonMetric: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}</SelectContent>
+              <SelectContent>{DATA_KEYS.map(k => <SelectItem key={k.value} value={k.value}>{t(k.labelKey)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>

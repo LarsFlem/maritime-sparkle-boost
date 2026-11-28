@@ -27,7 +27,6 @@ const Portfolio = () => {
     year: string;
     client: string;
     image: string;
-    teamSize: number;
     downloads?: Array<{ labelKey: string; href: string }>;
   }> = [
     {
@@ -37,7 +36,6 @@ const Portfolio = () => {
       year: "2025",
       client: "IMECA via Vinje Industrier",
       image: portfolioCrane,
-      teamSize: 1,
     },
     {
       id: 7,
@@ -46,7 +44,6 @@ const Portfolio = () => {
       year: "2026",
       client: "NorWest",
       image: portfolioNorwest,
-      teamSize: 1,
     },
     {
       id: 2,
@@ -55,7 +52,6 @@ const Portfolio = () => {
       year: "2024–2025",
       client: "Aarbakke Innovation via AH-Tech",
       image: portfolioBattery,
-      teamSize: 1,
     },
     {
       id: 5,
@@ -64,7 +60,6 @@ const Portfolio = () => {
       year: "2025–2026",
       client: "KS-Service AS / Injeksjonsutstyr AS",
       image: portfolioKsService,
-      teamSize: 1,
     },
     {
       id: 6,
@@ -73,7 +68,6 @@ const Portfolio = () => {
       year: "2025–2026",
       client: "KS-Service AS",
       image: portfolio3DPrint,
-      teamSize: 1,
     },
     {
       id: 4,
@@ -82,7 +76,6 @@ const Portfolio = () => {
       year: "2018–2019",
       client: "UiA / Align Racing",
       image: portfolioRacing,
-      teamSize: 1,
     },
   ];
 
@@ -179,7 +172,7 @@ const Portfolio = () => {
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{location}</span>
                         <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{duration}</span>
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{project.teamSize} {t(project.teamSize === 1 ? 'portfolio.engineer' : 'portfolio.engineers')}</span>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{t(`portfolio.proj.${project.key}.role`)}</span>
                       </div>
                     </CardHeader>
 
